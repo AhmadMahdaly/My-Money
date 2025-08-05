@@ -1,20 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:opration/core/init/initializer.dart';
+import 'package:opration/my_app.dart';
 
-void main() {
+Future<void> main() async {
+  await initializeApp();
   runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Operating system',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      // home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
 }
