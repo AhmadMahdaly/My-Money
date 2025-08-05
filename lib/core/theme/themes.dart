@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:opration/core/theming/colors.dart';
-import 'package:opration/core/theming/text_style.dart';
+import 'package:opration/core/theme/colors.dart';
+import 'package:opration/core/theme/text_style.dart';
 
 class Appthemes {
   static ThemeData lightTheme() {

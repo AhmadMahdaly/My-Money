@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
-import 'package:opration/core/theming/colors.dart';
+import 'package:opration/core/theme/colors.dart';
 
 abstract class Styles {
   // --- Font Size 9 ---
