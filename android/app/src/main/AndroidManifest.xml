@@ -21,6 +21,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        android:allowBackup="false"
+        android:fullBackupContent="false"
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

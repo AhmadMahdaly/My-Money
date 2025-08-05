@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:opration/core/localization/s.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/services/cache_helper/cache_helper.dart';
@@ -29,7 +30,7 @@ class _SplashBodyState extends State<SplashBody> {
   Future<void> initSplashScreen() async {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-    await Future.delayed(const Duration(hours: 60));
+    await Future.delayed(const Duration(seconds: 3));
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
       overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top],
@@ -45,9 +46,11 @@ class _SplashBodyState extends State<SplashBody> {
         false;
 
     if (!context.mounted) return;
+    context.go(AppRoutes.loginScreen);
     if (!isOnboardingComplete) {
       context.go(AppRoutes.onbordingScreen);
     } else if (userName != null && userName.isNotEmpty) {
+      context.go(AppRoutes.mainLayoutScreen);
     } else {
       context.go(AppRoutes.loginScreen);
     }
@@ -67,7 +70,7 @@ class _SplashBodyState extends State<SplashBody> {
           ),
         ),
         Text(
-          'Tune Your Life',
+          S.of(context)!.tuneYourLife,
           textAlign: TextAlign.center,
           style: Styles.style20W900.copyWith(color: AppColors.orangeColor),
         ),

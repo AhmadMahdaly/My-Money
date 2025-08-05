@@ -18,6 +18,7 @@ dependencies:
   go_router: ^16.1.0
   flutter_secure_storage: ^9.2.4
   shared_preferences: ^2.5.3
+  flutter_bloc: ^9.1.1
 
 dev_dependencies:
   flutter_test:
@@ -37,3 +38,4 @@ flutter_assets:
   filename: assets.dart
   field_prefix: 
   ignore_comments: true
+# flutter gen-l10n

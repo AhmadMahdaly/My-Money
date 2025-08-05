@@ -7,4 +7,10 @@ import 's.dart';
 /// The translations for English (`en`).
 class SEn extends S {
   SEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get noUserRegistered => 'No user is registered.';
+
+  @override
+  String get tuneYourLife => 'Tune Your Life';
 }

@@ -92,6 +92,18 @@ abstract class S {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+
+  /// No description provided for @noUserRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'No user is registered.'**
+  String get noUserRegistered;
+
+  /// No description provided for @tuneYourLife.
+  ///
+  /// In en, this message translates to:
+  /// **'Tune Your Life'**
+  String get tuneYourLife;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
