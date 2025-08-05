@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:opration/core/localization/s.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
+import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/assets.dart';
 import 'package:opration/core/theme/colors.dart';
@@ -46,20 +49,17 @@ class LoginScreen extends StatelessWidget {
         child: BlocConsumer<LoginCubit, LoginState>(
           listener: (context, state) {
             if (state is LoginSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Successfully logged in as: ${state.username}',
-                  ),
-                  backgroundColor: AppColors.successColor,
-                ),
+              showCustomSnackBar(
+                context,
+                message: 'Successfully logged in as: ${state.username}',
+                backgroundColor: AppColors.successColor,
               );
+              context.go(AppRoutes.homeScreen);
             } else if (state is LoginFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: AppColors.errorColor,
-                ),
+              showCustomSnackBar(
+                context,
+                message: state.message,
+                backgroundColor: AppColors.errorColor,
               );
             }
           },
@@ -73,11 +73,14 @@ class LoginScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const WelcomeUserWidget(),
-                  16.verticalSpace,
+                  24.verticalSpace,
                   CustomPrimaryTextfield(
                     controller: usernameController,
                     text: 'Your name',
-                    prefix: const Icon(Icons.person),
+                    prefix: const Icon(
+                      Icons.person,
+                      color: AppColors.thirdColor,
+                    ),
                   ),
                   20.verticalSpace,
                   CustomPrimaryButton(

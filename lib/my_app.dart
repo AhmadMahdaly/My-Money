@@ -11,19 +11,29 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      title: 'Operating system',
-      routerConfig: RouterGenerationConfig.goRouter,
-      theme: Appthemes.lightTheme(),
-      locale: const Locale('en'),
-      supportedLocales: const [Locale('en'), Locale('ar')],
-      localizationsDelegates: const [
-        S.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+    return GestureDetector(
+      onTap: () => unfocusScope(context),
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        title: 'Operating system',
+        routerConfig: RouterGenerationConfig.goRouter,
+        theme: Appthemes.lightTheme(),
+        locale: const Locale('en'),
+        supportedLocales: const [Locale('en'), Locale('ar')],
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+      ),
     );
+  }
+}
+
+void unfocusScope(BuildContext context) {
+  final currentFocus = FocusScope.of(context);
+  if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
+    currentFocus.unfocus();
   }
 }

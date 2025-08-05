@@ -59,18 +59,22 @@ class CustomPrimaryTextfield extends StatelessWidget {
         onChanged: onChanged,
         onTap: onTap,
         readOnly: readOnly ?? false,
-        style: style ?? Styles.style14W500,
+        style:
+            style ?? Styles.style14W500.copyWith(color: AppColors.thirdColor),
 
         textAlign: textAlign ?? TextAlign.start,
         validator: validator,
         focusNode: focusNode,
         controller: controller,
-        cursorColor: AppColors.forthColor,
+        cursorWidth: 0.5,
+        cursorColor: AppColors.orangeColor,
         obscureText: isPassword ?? false,
         decoration: InputDecoration(
           hint: Text(
             text ?? '',
-            style: style ?? Styles.style14W500,
+            style:
+                style ??
+                Styles.style14W500.copyWith(color: AppColors.thirdColor),
           ),
           border: customOutlineInputBorder(),
           focusedBorder: customOutlineInputBorder(),

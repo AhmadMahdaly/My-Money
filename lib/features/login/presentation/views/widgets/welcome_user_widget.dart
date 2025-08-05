@@ -23,7 +23,7 @@ class WelcomeUserWidget extends StatelessWidget {
         ),
         Text(
           'With this app, you can easily:',
-          style: Styles.style17W500.copyWith(color: AppColors.blueLightColor),
+          style: Styles.style16W800.copyWith(color: AppColors.blueLightColor),
         ),
         const TextWithIcon(
           text: 'Track your expenses.',

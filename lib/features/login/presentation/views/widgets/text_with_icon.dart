@@ -12,7 +12,7 @@ class TextWithIcon extends StatelessWidget {
     return Row(
       spacing: 6.w,
       children: [
-        Icon(icon, size: 24.h, color: AppColors.blueLightColor),
+        Icon(icon, size: 20.r, color: AppColors.blueLightColor),
         Text(
           text,
           style: Styles.style17W500,
