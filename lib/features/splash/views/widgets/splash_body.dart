@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/localization/s.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
@@ -39,7 +40,7 @@ class _SplashBodyState extends State<SplashBody> {
   }
 
   Future<void> initRedirect() async {
-    final userName =
+    userName =
         await CacheHelper.getData(key: CacheKeys.userName) as String? ?? '';
 
     if (!context.mounted) return;
