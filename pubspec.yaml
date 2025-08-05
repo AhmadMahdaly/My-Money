@@ -29,6 +29,7 @@ flutter:
   generate: true
   assets:
     - assets/image/png/
+    - assets/image/svg/
     
 flutter_assets:
   assets_path: assets/

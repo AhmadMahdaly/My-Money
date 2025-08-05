@@ -1,4 +1,4 @@
-package com.example.opration
+package com.mahdaly.opration
 
 import io.flutter.embedding.android.FlutterActivity
 
