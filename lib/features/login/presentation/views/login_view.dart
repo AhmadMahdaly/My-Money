@@ -49,16 +49,16 @@ class LoginScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'تم تسجيل الدخول بنجاح باسم: ${state.username}',
+                    'Successfully logged in as: ${state.username}',
                   ),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.successColor,
                 ),
               );
             } else if (state is LoginFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.errorColor,
                 ),
               );
             }
