@@ -16,11 +16,14 @@ class Appthemes {
         titleMedium: Styles.style16W500,
       ),
       appBarTheme: AppBarTheme(
+        iconTheme: const IconThemeData(
+          color: AppColors.scaffoldBackgroundLightColor,
+        ),
         toolbarHeight: 100.h,
         titleTextStyle: Styles.style16W700.copyWith(
-          color: AppColors.secondaryColor,
+          color: AppColors.scaffoldBackgroundLightColor,
         ),
-        backgroundColor: AppColors.primaryColor,
+        backgroundColor: AppColors.blueLightColor,
         surfaceTintColor: AppColors.scaffoldBackgroundLightColor,
       ),
     );

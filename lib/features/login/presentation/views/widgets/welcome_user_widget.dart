@@ -43,7 +43,7 @@ class WelcomeUserWidget extends StatelessWidget {
         ),
         Text(
           'And so much more — all in one place!\nStart now and keep everything organized, offline, and truly yours.',
-          style: Styles.style17W500,
+          style: Styles.style16W500,
         ),
       ],
     );

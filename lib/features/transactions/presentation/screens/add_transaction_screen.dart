@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
+import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/shared_widgets/custom_primary_button.dart';
+import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
+import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
+import 'package:opration/core/theme/colors.dart';
+import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
-import 'package:opration/features/transactions/presentation/screens/transaction_details_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/category_selector.dart';
 import 'package:uuid/uuid.dart';
@@ -18,28 +25,40 @@ class AddTransactionScreen extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('إضافة معاملة جديدة'),
+          title: const Text('Add new transaction'),
           centerTitle: true,
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'مصروف', icon: Icon(Icons.arrow_downward)),
-              Tab(text: 'دخل', icon: Icon(Icons.arrow_upward)),
+          bottom: TabBar(
+            labelStyle: Styles.style12W800.copyWith(
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+            unselectedLabelStyle: Styles.style12W600.copyWith(
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+            indicatorColor: AppColors.greenLightColor,
+            tabs: const [
+              Tab(
+                text: 'Expense',
+                icon: Icon(
+                  Icons.arrow_downward,
+                  color: AppColors.scaffoldBackgroundLightColor,
+                ),
+              ),
+              Tab(
+                text: 'Income',
+                icon: Icon(
+                  Icons.arrow_upward,
+                  color: AppColors.scaffoldBackgroundLightColor,
+                ),
+              ),
             ],
           ),
           actions: [
             IconButton(
               icon: const Icon(Icons.analytics_outlined),
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: sl<TransactionCubit>(),
-                      child: const TransactionDetailsScreen(),
-                    ),
-                  ),
-                );
+                context.push(AppRoutes.transactionDetailsScreen);
               },
-              tooltip: 'عرض التفاصيل',
+              tooltip: 'View details',
             ),
           ],
         ),
@@ -71,11 +90,10 @@ class _TransactionFormState extends State<_TransactionForm> {
   void _submit() {
     if (_formKey.currentState!.validate()) {
       if (_selectedCategoryId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('الرجاء اختيار فئة'),
-            backgroundColor: Colors.orange,
-          ),
+        showCustomSnackBar(
+          context,
+          message: 'Please select a category',
+          backgroundColor: AppColors.orangeColor,
         );
         return;
       }
@@ -91,13 +109,12 @@ class _TransactionFormState extends State<_TransactionForm> {
 
       context.read<TransactionCubit>().addTransaction(transaction);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تمت إضافة ${widget.type == TransactionType.income ? 'الدخل' : 'المصروف'} بنجاح',
-          ),
-          backgroundColor: Colors.green,
-        ),
+      showCustomSnackBar(
+        context,
+        message:
+            '${widget.type == TransactionType.income ? 'Income' : 'Expense'} Successfully added',
+
+        backgroundColor: AppColors.successColor,
       );
 
       _amountController.clear();
@@ -119,15 +136,35 @@ class _TransactionFormState extends State<_TransactionForm> {
         return Form(
           key: _formKey,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16.r),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                CustomPrimaryTextfield(
+                  controller: _amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+
+                  text: 'Amount',
+                  prefix: const Icon(Icons.monetization_on_outlined),
+
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Please enter the amount'
+                      : null,
+                ),
+                16.verticalSpace,
+                CustomPrimaryTextfield(
+                  controller: _noteController,
+                  text: 'Note (optional)',
+                  prefix: const Icon(Icons.note_alt_outlined),
+                ),
+                32.verticalSpace,
                 Text(
-                  'اختر الفئة',
+                  'Select a category',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: 8),
+                8.verticalSpace,
                 CategorySelector(
                   categories: categories,
                   selectedCategoryId: _selectedCategoryId,
@@ -136,37 +173,12 @@ class _TransactionFormState extends State<_TransactionForm> {
                   onAddCategory: () =>
                       _showAddCategoryDialog(context, widget.type),
                 ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'المبلغ',
-                    prefixIcon: Icon(Icons.monetization_on_outlined),
-                  ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'الرجاء إدخال المبلغ'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _noteController,
-                  decoration: const InputDecoration(
-                    labelText: 'ملاحظة (اختياري)',
-                    prefixIcon: Icon(Icons.note_alt_outlined),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
+                24.verticalSpace,
+                CustomPrimaryButton(
                   onPressed: _submit,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: Text(
-                    'حفظ ال${widget.type == TransactionType.income ? 'دخل' : 'مصروف'}',
-                  ),
+                  width: SizeConfig.screenWidth,
+                  text:
+                      'Save the ${widget.type == TransactionType.income ? 'Income' : 'Expense'}',
                 ),
               ],
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 
 class CategorySelector extends StatelessWidget {
@@ -23,20 +24,23 @@ class CategorySelector extends StatelessWidget {
         ...categories.map((category) {
           final isSelected = category.id == selectedCategoryId;
           return ChoiceChip(
+            shape: ContinuousRectangleBorder(
+              borderRadius: BorderRadius.circular(30.r),
+            ),
             label: Text(category.name),
-            avatar: CircleAvatar(backgroundColor: category.color, radius: 10),
+            avatar: CircleAvatar(backgroundColor: category.color, radius: 30.r),
             selected: isSelected,
             onSelected: (selected) {
               if (selected) {
                 onCategorySelected(category.id);
               }
             },
-            selectedColor: category.color.withOpacity(0.3),
+            selectedColor: category.color.withAlpha(55),
           );
         }),
         ActionChip(
           avatar: const Icon(Icons.add),
-          label: const Text('إضافة'),
+          label: const Text('Add'),
           onPressed: onAddCategory,
         ),
       ],

@@ -15,7 +15,7 @@ class TransactionDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تفاصيل المصاريف'),
+        title: const Text('Expense Details'),
         centerTitle: true,
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
@@ -53,7 +53,7 @@ class TransactionDetailsScreen extends StatelessWidget {
               else if (expenseTransactions.isEmpty)
                 const Expanded(
                   child: Center(
-                    child: Text('لا توجد مصاريف لعرضها في هذا النطاق الزمني'),
+                    child: Text('No expenses to display in this time range'),
                   ),
                 )
               else
@@ -90,10 +90,10 @@ class _DateFilterBar extends StatelessWidget {
     final endDate = cubit.state.filterEndDate;
     final dateFormat = DateFormat('yyyy/MM/dd');
 
-    var filterText = 'اضغط لتحديد فترة الفلترة';
+    var filterText = 'Tap to select filter period';
     if (startDate != null && endDate != null) {
       filterText =
-          'من: ${dateFormat.format(startDate)}   إلى: ${dateFormat.format(endDate)}';
+          'From: ${dateFormat.format(startDate)}   To: ${dateFormat.format(endDate)}';
     }
 
     return InkWell(
@@ -154,7 +154,7 @@ class _PieChartCard extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'توزيع المصاريف',
+              'Expense Distribution',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 20),
@@ -169,7 +169,7 @@ class _PieChartCard extends StatelessWidget {
                       (c) => c.id == entry.key,
                       orElse: () => TransactionCategory(
                         id: '',
-                        name: 'غير معروف',
+                        name: 'Unknown',
                         colorValue: Colors.grey.value,
                         type: TransactionType.expense,
                       ),
@@ -218,7 +218,7 @@ class _ExpenseListCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'قائمة المصاريف',
+              'Expenses List',
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
@@ -234,7 +234,7 @@ class _ExpenseListCard extends StatelessWidget {
                 (c) => c.id == entry.key,
                 orElse: () => TransactionCategory(
                   id: '',
-                  name: 'غير معروف',
+                  name: 'Unknown',
                   colorValue: Colors.grey.value,
                   type: TransactionType.expense,
                 ),
@@ -246,7 +246,7 @@ class _ExpenseListCard extends StatelessWidget {
                 ),
                 title: Text(category.name),
                 trailing: Text(
-                  '${entry.value.toStringAsFixed(2)} جنيه',
+                  '${entry.value.toStringAsFixed(2)} EGP',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.red,

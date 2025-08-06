@@ -8,6 +8,7 @@ import 'package:opration/features/login/presentation/views/login_view.dart';
 import 'package:opration/features/splash/views/splash_view.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
+import 'package:opration/features/transactions/presentation/screens/transaction_details_screen.dart';
 
 class RouterGenerationConfig {
   static GoRouter goRouter = GoRouter(
@@ -39,6 +40,14 @@ class RouterGenerationConfig {
           create: (_) => sl<TransactionCubit>()..loadInitialData(),
           child: const AddTransactionScreen(),
         ),
+      ),
+         GoRoute(
+        path: AppRoutes.transactionDetailsScreen,
+        name: AppRoutes.transactionDetailsScreen,
+        builder: (context, state) => BlocProvider.value(
+                      value: sl<TransactionCubit>()..loadInitialData(),
+                      child: const TransactionDetailsScreen(),
+                    ),
       ),
     ],
   );

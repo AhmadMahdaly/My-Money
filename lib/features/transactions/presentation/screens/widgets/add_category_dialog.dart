@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opration/core/di.dart';
+import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:uuid/uuid.dart';
@@ -42,13 +43,13 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('إضافة فئة جديدة'),
+      title: const Text('Add new category'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(labelText: 'اسم الفئة'),
+            decoration: const InputDecoration(labelText: 'Category name'),
             autofocus: true,
           ),
           const SizedBox(height: 20),
@@ -60,7 +61,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                 onTap: () => setState(() => _selectedColor = color),
                 child: CircleAvatar(
                   backgroundColor: color,
-                  radius: 20,
+                  radius: 30.r,
                   child: _selectedColor == color
                       ? const Icon(Icons.check, color: Colors.white)
                       : null,
@@ -73,11 +74,11 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: _submit,
-          child: const Text('إضافة'),
+          child: const Text('Add'),
         ),
       ],
     );

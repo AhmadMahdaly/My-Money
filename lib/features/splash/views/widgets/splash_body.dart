@@ -60,15 +60,16 @@ class _SplashBodyState extends State<SplashBody> {
       spacing: 8.h,
       children: [
         SizedBox(
-          height: SizeConfig.screenHeight / 5,
+          height: SizeConfig.screenHeight / 8,
           child: const SvgImage(
             imagePath: Assets.imageSvgLogo,
+            color: AppColors.blueLightColor,
           ),
         ),
         Text(
           S.of(context)!.tuneYourLife,
           textAlign: TextAlign.center,
-          style: Styles.style20W900.copyWith(color: AppColors.orangeColor),
+          style: Styles.style20W900.copyWith(color: AppColors.blueLightColor),
         ),
       ],
     );

@@ -16,19 +16,33 @@ class HomeScreen extends StatelessWidget {
       body: Padding(
         padding: EdgeInsets.all(24.r),
         child: Column(
+          spacing: 12.h,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            24.verticalSpace,
             Text(
-              '👋 Welcome $userName',
-              style: Styles.style18W900.copyWith(color: AppColors.orangeColor),
+              'Welcome $userName',
+              style: Styles.style18W900.copyWith(
+                color: AppColors.blueDarkColor,
+              ),
             ),
             InkWell(
               onTap: () => context.push(AppRoutes.trackMoney),
               child: Container(
+                alignment: Alignment.centerLeft,
+                width: SizeConfig.screenWidth,
+                height: 100.h,
+                padding: EdgeInsets.all(12.r),
                 decoration: BoxDecoration(
                   color: AppColors.blueLightColor,
                   borderRadius: BorderRadius.circular(20.r),
                 ),
-                child: const Text('Track Your Money'),
+                child: Text(
+                  'Track Your Money',
+                  style: Styles.style16W500.copyWith(
+                    color: AppColors.scaffoldBackgroundLightColor,
+                  ),
+                ),
               ),
             ),
           ],

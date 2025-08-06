@@ -42,31 +42,31 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
       final defaultCategories = [
         TransactionCategory(
           id: uuid.v4(),
-          name: 'مرتب',
+          name: 'Salary',
           colorValue: Colors.green.value,
           type: TransactionType.income,
         ),
         TransactionCategory(
           id: uuid.v4(),
-          name: 'هدية',
+          name: 'Gift',
           colorValue: Colors.pinkAccent.value,
           type: TransactionType.income,
         ),
         TransactionCategory(
           id: uuid.v4(),
-          name: 'مواصلات',
+          name: 'Transportation',
           colorValue: Colors.orange.value,
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
-          name: 'أكل',
+          name: 'Food',
           colorValue: Colors.red.value,
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
-          name: 'سوبرماركت',
+          name: 'Supermarket',
           colorValue: Colors.blue.value,
           type: TransactionType.expense,
         ),
