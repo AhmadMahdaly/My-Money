@@ -5,6 +5,7 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
+import 'package:opration/features/home/presentation/views/widgets/open_home_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -26,24 +27,30 @@ class HomeScreen extends StatelessWidget {
                 color: AppColors.blueDarkColor,
               ),
             ),
-            InkWell(
+            10.verticalSpace,
+            OpenHomeRightService(
               onTap: () => context.push(AppRoutes.trackMoney),
-              child: Container(
-                alignment: Alignment.centerLeft,
-                width: SizeConfig.screenWidth,
-                height: 100.h,
-                padding: EdgeInsets.all(12.r),
-                decoration: BoxDecoration(
-                  color: AppColors.blueLightColor,
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Text(
-                  'Track Your Money',
-                  style: Styles.style16W500.copyWith(
-                    color: AppColors.scaffoldBackgroundLightColor,
-                  ),
-                ),
-              ),
+              text: 'Track Your Money',
+              img: 'assets/image/png/money.png',
+              color: AppColors.blueLightColor,
+            ),
+            OpenHomeRightService(
+              onTap: () {},
+              text: 'Track Your Thoughts',
+              img: 'assets/image/png/thought.png',
+              color: AppColors.orangeColor,
+            ),
+            OpenHomeLeftService(
+              onTap: () {},
+              text: 'Do Your Tasks',
+              img: 'assets/image/png/task-list.png',
+              color: AppColors.primaryColor,
+            ),
+            OpenHomeLeftService(
+              onTap: () {},
+              text: 'Enter Your Reads',
+              img: 'assets/image/png/open-book.png',
+              color: AppColors.blueDarkColor,
             ),
           ],
         ),

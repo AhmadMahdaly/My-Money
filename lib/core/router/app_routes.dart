@@ -5,4 +5,5 @@ class AppRoutes {
   static const String homeScreen = '/homeScreen';
   static const String trackMoney = '/trackMoney';
   static const String transactionDetailsScreen = '/transactionDetailsScreen';
+  static const String editTransactionScreen = '/editTransactionScreen';
 }

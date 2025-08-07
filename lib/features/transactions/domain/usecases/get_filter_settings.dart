@@ -3,5 +3,5 @@ import 'package:opration/features/transactions/domain/repositories/transaction_r
 class GetFilterSettingsUseCase {
   GetFilterSettingsUseCase({required this.repository});
   final TransactionRepository repository;
-  Future<Map<String, DateTime?>> call() => repository.getFilterSettings();
+  Future<Map<String, dynamic>> call() => repository.getFilterSettings();
 }

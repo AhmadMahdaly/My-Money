@@ -24,9 +24,6 @@ class CategorySelector extends StatelessWidget {
         ...categories.map((category) {
           final isSelected = category.id == selectedCategoryId;
           return ChoiceChip(
-            shape: ContinuousRectangleBorder(
-              borderRadius: BorderRadius.circular(30.r),
-            ),
             label: Text(category.name),
             avatar: CircleAvatar(backgroundColor: category.color, radius: 30.r),
             selected: isSelected,
@@ -40,7 +37,8 @@ class CategorySelector extends StatelessWidget {
         }),
         ActionChip(
           avatar: const Icon(Icons.add),
-          label: const Text('Add'),
+          label: const SizedBox.shrink(),
+          labelPadding: EdgeInsets.all(1.r),
           onPressed: onAddCategory,
         ),
       ],

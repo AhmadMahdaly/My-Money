@@ -9,10 +9,14 @@ import 'package:opration/features/transactions/data/repositories/transaction_rep
 import 'package:opration/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:opration/features/transactions/domain/usecases/add_category.dart';
 import 'package:opration/features/transactions/domain/usecases/add_transaction.dart';
+import 'package:opration/features/transactions/domain/usecases/delete_category.dart';
+import 'package:opration/features/transactions/domain/usecases/delete_transaction.dart';
 import 'package:opration/features/transactions/domain/usecases/get_categories.dart';
 import 'package:opration/features/transactions/domain/usecases/get_filter_settings.dart';
 import 'package:opration/features/transactions/domain/usecases/get_transactions.dart';
 import 'package:opration/features/transactions/domain/usecases/save_filter_settings.dart';
+import 'package:opration/features/transactions/domain/usecases/update_category.dart';
+import 'package:opration/features/transactions/domain/usecases/update_transaction.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -20,10 +24,12 @@ import 'package:uuid/uuid.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> setupGetIt() async {
+  // External
   final sharedPreferences = await SharedPreferences.getInstance();
   sl
     ..registerLazySingleton(() => sharedPreferences)
     ..registerLazySingleton(() => const Uuid())
+    // ================== Login Feature Dependencies ==================
     ..registerFactory(() => LoginCubit(loginUseCase: sl()))
     ..registerLazySingleton(() => LoginUseCase(repository: sl()))
     ..registerLazySingleton<LoginRepository>(
@@ -33,6 +39,7 @@ Future<void> setupGetIt() async {
       () => LoginLocalDataSourceImpl(sharedPreferences: sl()),
     )
     // ================== Transaction Feature Dependencies ==================
+    // Cubit
     ..registerFactory(
       () => TransactionCubit(
         getTransactionsUseCase: sl(),
@@ -41,6 +48,10 @@ Future<void> setupGetIt() async {
         addCategoryUseCase: sl(),
         getFilterSettingsUseCase: sl(),
         saveFilterSettingsUseCase: sl(),
+        updateCategoryUseCase: sl(),
+        deleteCategoryUseCase: sl(),
+        updateTransactionUseCase: sl(),
+        deleteTransactionUseCase: sl(),
       ),
     )
     // UseCases
@@ -50,6 +61,10 @@ Future<void> setupGetIt() async {
     ..registerLazySingleton(() => AddCategoryUseCase(repository: sl()))
     ..registerLazySingleton(() => GetFilterSettingsUseCase(repository: sl()))
     ..registerLazySingleton(() => SaveFilterSettingsUseCase(repository: sl()))
+    ..registerLazySingleton(() => UpdateCategoryUseCase(repository: sl()))
+    ..registerLazySingleton(() => DeleteCategoryUseCase(repository: sl()))
+    ..registerLazySingleton(() => UpdateTransactionUseCase(repository: sl()))
+    ..registerLazySingleton(() => DeleteTransactionUseCase(repository: sl()))
     // Repository
     ..registerLazySingleton<TransactionRepository>(
       () => TransactionRepositoryImpl(localDataSource: sl()),

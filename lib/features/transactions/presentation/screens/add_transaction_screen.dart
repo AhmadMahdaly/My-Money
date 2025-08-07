@@ -14,16 +14,27 @@ import 'package:opration/features/transactions/domain/entities/transaction_categ
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/category_selector.dart';
+import 'package:opration/features/transactions/presentation/screens/widgets/manage_categories_drawer.dart'
+    hide AddCategoryDialog, CategorySelector;
 import 'package:uuid/uuid.dart';
 
-class AddTransactionScreen extends StatelessWidget {
+class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
+
+  @override
+  State<AddTransactionScreen> createState() => _AddTransactionScreenState();
+}
+
+class _AddTransactionScreenState extends State<AddTransactionScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        key: _scaffoldKey,
+        endDrawer: const ManageCategoriesDrawer(),
         appBar: AppBar(
           title: const Text('Add new transaction'),
           centerTitle: true,
@@ -34,7 +45,7 @@ class AddTransactionScreen extends StatelessWidget {
             unselectedLabelStyle: Styles.style12W600.copyWith(
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            indicatorColor: AppColors.greenLightColor,
+            indicatorColor: AppColors.scaffoldBackgroundLightColor,
             tabs: const [
               Tab(
                 text: 'Expense',
@@ -59,6 +70,11 @@ class AddTransactionScreen extends StatelessWidget {
                 context.push(AppRoutes.transactionDetailsScreen);
               },
               tooltip: 'View details',
+            ),
+            IconButton(
+              icon: const Icon(Icons.category_outlined),
+              onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+              tooltip: 'Manage Categories',
             ),
           ],
         ),
@@ -103,7 +119,7 @@ class _TransactionFormState extends State<_TransactionForm> {
         amount: double.parse(_amountController.text),
         categoryId: _selectedCategoryId!,
         date: DateTime.now(),
-        note: _noteController.text.isNotEmpty ? _noteController.text : null,
+        note: _noteController.text.isNotEmpty ? _noteController.text : '',
         type: widget.type,
       );
 

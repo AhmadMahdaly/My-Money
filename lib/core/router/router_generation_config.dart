@@ -6,8 +6,10 @@ import 'package:opration/features/home/presentation/views/home_view.dart';
 import 'package:opration/features/login/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/login/presentation/views/login_view.dart';
 import 'package:opration/features/splash/views/splash_view.dart';
+import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
+import 'package:opration/features/transactions/presentation/screens/edit_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/transaction_details_screen.dart';
 
 class RouterGenerationConfig {
@@ -41,13 +43,26 @@ class RouterGenerationConfig {
           child: const AddTransactionScreen(),
         ),
       ),
-         GoRoute(
+      GoRoute(
         path: AppRoutes.transactionDetailsScreen,
         name: AppRoutes.transactionDetailsScreen,
         builder: (context, state) => BlocProvider.value(
-                      value: sl<TransactionCubit>()..loadInitialData(),
-                      child: const TransactionDetailsScreen(),
-                    ),
+          value: sl<TransactionCubit>()..loadInitialData(),
+          child: const TransactionDetailsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.editTransactionScreen,
+        name: AppRoutes.editTransactionScreen,
+        builder: (context, state) {
+          final transaction = state.extra! as Transaction;
+          return BlocProvider.value(
+            value: sl<TransactionCubit>(),
+            child: EditTransactionScreen(
+              transaction: transaction,
+            ),
+          );
+        },
       ),
     ],
   );

@@ -1,7 +1,9 @@
 part of 'transactions_cubit.dart';
 
+enum PredefinedFilter { today, week, month, year, custom }
+
 @immutable
-class TransactionState {
+class TransactionState extends Equatable {
   const TransactionState({
     this.isLoading = false,
     this.error,
@@ -9,6 +11,7 @@ class TransactionState {
     this.allCategories = const [],
     this.filterStartDate,
     this.filterEndDate,
+    this.activeFilter = PredefinedFilter.month,
   });
   final bool isLoading;
   final String? error;
@@ -16,12 +19,12 @@ class TransactionState {
   final List<TransactionCategory> allCategories;
   final DateTime? filterStartDate;
   final DateTime? filterEndDate;
+  final PredefinedFilter activeFilter;
 
   List<Transaction> get filteredTransactions {
     if (filterStartDate == null || filterEndDate == null) {
-      return allTransactions;
+      return [];
     }
-
     final inclusiveEndDate = DateTime(
       filterEndDate!.year,
       filterEndDate!.month,
@@ -43,14 +46,27 @@ class TransactionState {
     List<TransactionCategory>? allCategories,
     DateTime? filterStartDate,
     DateTime? filterEndDate,
+    PredefinedFilter? activeFilter,
   }) {
     return TransactionState(
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: error, // Don't carry over old error
       allTransactions: allTransactions ?? this.allTransactions,
       allCategories: allCategories ?? this.allCategories,
       filterStartDate: filterStartDate ?? this.filterStartDate,
       filterEndDate: filterEndDate ?? this.filterEndDate,
+      activeFilter: activeFilter ?? this.activeFilter,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    isLoading,
+    error,
+    allTransactions,
+    allCategories,
+    filterStartDate,
+    filterEndDate,
+    activeFilter,
+  ];
 }

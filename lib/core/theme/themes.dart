@@ -7,7 +7,7 @@ import 'package:opration/core/theme/text_style.dart';
 class Appthemes {
   static ThemeData lightTheme() {
     return ThemeData(
-      primaryColor: AppColors.primaryColor,
+      primaryColor: AppColors.blueLightColor,
       scaffoldBackgroundColor: AppColors.scaffoldBackgroundLightColor,
       fontFamily: GoogleFonts.cairo().fontFamily,
 
