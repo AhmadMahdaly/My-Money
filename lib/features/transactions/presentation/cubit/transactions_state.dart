@@ -50,7 +50,7 @@ class TransactionState extends Equatable {
   }) {
     return TransactionState(
       isLoading: isLoading ?? this.isLoading,
-      error: error, // Don't carry over old error
+      error: error,
       allTransactions: allTransactions ?? this.allTransactions,
       allCategories: allCategories ?? this.allCategories,
       filterStartDate: filterStartDate ?? this.filterStartDate,

@@ -53,25 +53,25 @@ class TransactionDetailsScreen extends StatelessWidget {
             children: [
               _FilterControlBar(),
               if (state.isLoading)
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Center(child: LinearProgressIndicator()),
+                Padding(
+                  padding: EdgeInsets.all(8.r),
+                  child: const Center(child: LinearProgressIndicator()),
                 )
               else
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8.r),
                     children: [
                       _SummaryCards(
                         totalIncome: totalIncome,
                         totalExpense: totalExpense,
                       ),
-                      const SizedBox(height: 8),
+                      8.verticalSpace,
                       if (filtered.isEmpty)
-                        const Card(
+                        Card(
                           child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: Center(
+                            padding: EdgeInsets.all(32.r),
+                            child: const Center(
                               child: Text(
                                 'No expenses to display in this time range',
                               ),
@@ -116,18 +116,18 @@ class _FilterControlBar extends StatelessWidget {
     return InkWell(
       onTap: () => _showFilterOptions(context),
       child: Card(
-        margin: const EdgeInsets.all(8),
+        margin: EdgeInsets.all(8.r),
         elevation: 1,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.filter_list, size: 20),
-              const SizedBox(width: 12),
+              Icon(Icons.filter_list, size: 20.r),
+              12.horizontalSpace,
               Text(
                 filterText,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: Styles.style14W600,
               ),
               const Icon(Icons.arrow_drop_down),
             ],
@@ -151,6 +151,7 @@ class _FilterControlBar extends StatelessWidget {
         return 'This month';
       case PredefinedFilter.year:
         return 'This year';
+
       case PredefinedFilter.custom:
         if (start != null && end != null) {
           final format = DateFormat('d MMM');
@@ -211,21 +212,39 @@ class _FilterControlBar extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.date_range),
                 title: const Text('Select filter period...'),
+
                 onTap: () async {
-                  Navigator.pop(sheetContext);
-                  final cubit = context.read<TransactionCubit>();
+                  sheetContext.pop();
+
+                  if (!context.mounted) return;
+
+                  final cubit = context.watch<TransactionCubit>();
                   final now = DateTime.now();
+
+                  DateTimeRange? initialRange;
+                  if (cubit.state.filterStartDate != null &&
+                      cubit.state.filterEndDate != null) {
+                    var initialEnd = cubit.state.filterEndDate!;
+                    if (initialEnd.isAfter(now)) {
+                      initialEnd = now;
+                    }
+                    var initialStart = cubit.state.filterStartDate!;
+                    if (initialStart.isAfter(initialEnd)) {
+                      initialStart = initialEnd;
+                    }
+                    initialRange = DateTimeRange(
+                      start: initialStart,
+                      end: initialEnd,
+                    );
+                  }
+
                   final picked = await showDateRangePicker(
                     context: context,
                     firstDate: DateTime(now.year - 5),
                     lastDate: now,
-                    initialDateRange: cubit.state.filterStartDate != null
-                        ? DateTimeRange(
-                            start: cubit.state.filterStartDate!,
-                            end: cubit.state.filterEndDate!,
-                          )
-                        : null,
+                    initialDateRange: initialRange,
                   );
+
                   if (picked != null && context.mounted) {
                     await context.read<TransactionCubit>().setCustomDateFilter(
                       picked.start,
@@ -259,19 +278,17 @@ class _SummaryCards extends StatelessWidget {
           child: Card(
             color: Colors.green[50],
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.r),
               child: Column(
                 children: [
                   const Text(
-                    'Totle income',
+                    'Total income',
                     style: TextStyle(color: Colors.green),
                   ),
-                  const SizedBox(height: 8),
+                  8.verticalSpace,
                   Text(
                     '${totalIncome.toStringAsFixed(2)} EGP',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    style: Styles.style18Bold.copyWith(
                       color: Colors.green,
                     ),
                   ),
@@ -285,19 +302,17 @@ class _SummaryCards extends StatelessWidget {
           child: Card(
             color: Colors.red[50],
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.r),
               child: Column(
                 children: [
-                  const Text(
-                    'Totle Expense',
-                    style: TextStyle(color: Colors.red),
+                  Text(
+                    'Total Expense',
+                    style: Styles.style14W700.copyWith(color: Colors.red),
                   ),
-                  const SizedBox(height: 8),
+                  8.verticalSpace,
                   Text(
                     '${totalExpense.toStringAsFixed(2)} EGP',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    style: Styles.style18Bold.copyWith(
                       color: Colors.red,
                     ),
                   ),
@@ -305,7 +320,9 @@ class _SummaryCards extends StatelessWidget {
                     4.verticalSpace,
                     Text(
                       '(${expenseRatio.toStringAsFixed(1)}% From income)',
-                      style: TextStyle(fontSize: 12, color: Colors.red[700]),
+                      style: Styles.style12W700.copyWith(
+                        color: Colors.red[700],
+                      ),
                     ),
                   ],
                 ],

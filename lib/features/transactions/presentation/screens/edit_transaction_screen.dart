@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
+import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
 
@@ -56,7 +57,9 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     );
 
     context.read<TransactionCubit>().updateTransaction(updatedTransaction);
-    Navigator.of(context).pop();
+    if (context.mounted) {
+      context.pop();
+    }
   }
 
   void _deleteTransaction() {
@@ -70,10 +73,13 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
         actions: [
           TextButton(
             child: const Text('Cancel'),
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () => ctx.pop(),
           ),
           TextButton(
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(
+              'Delete',
+              style: Styles.style12W700.copyWith(color: Colors.red),
+            ),
             onPressed: () {
               context.read<TransactionCubit>().deleteTransaction(
                 widget.transaction.id,

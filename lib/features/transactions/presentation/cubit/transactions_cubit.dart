@@ -146,9 +146,17 @@ class TransactionCubit extends Cubit<TransactionState> {
     final now = DateTime.now();
     switch (filter) {
       case PredefinedFilter.today:
-        return DateTimeRange(start: now, end: now);
+        final startOfDay = DateTime(now.year, now.month, now.day);
+        return DateTimeRange(start: startOfDay, end: startOfDay);
       case PredefinedFilter.week:
-        final startOfWeek = now.subtract(Duration(days: now.weekday % 7));
+        final daysToSubtract = (now.weekday == DateTime.saturday)
+            ? 0
+            : (now.weekday + 1) % 7;
+        final startOfWeek = DateTime(
+          now.year,
+          now.month,
+          now.day - daysToSubtract,
+        );
         final endOfWeek = startOfWeek.add(const Duration(days: 5));
         return DateTimeRange(start: startOfWeek, end: endOfWeek);
       case PredefinedFilter.month:
