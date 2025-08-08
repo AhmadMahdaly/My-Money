@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/theme/colors.dart';
+import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 
 class CategorySelector extends StatelessWidget {
@@ -36,9 +38,11 @@ class CategorySelector extends StatelessWidget {
           );
         }),
         ActionChip(
-          avatar: const Icon(Icons.add),
-          label: const SizedBox.shrink(),
-          labelPadding: EdgeInsets.all(1.r),
+          avatar: const Icon(Icons.add, color: AppColors.blueLightColor),
+          label: Text(
+            'Add new Category',
+            style: Styles.style12W300.copyWith(color: AppColors.blueLightColor),
+          ),
           onPressed: onAddCategory,
         ),
       ],

@@ -65,14 +65,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.analytics_outlined),
+              icon: const Icon(Icons.analytics),
               onPressed: () {
                 context.push(AppRoutes.transactionDetailsScreen);
               },
               tooltip: 'View details',
             ),
             IconButton(
-              icon: const Icon(Icons.category_outlined),
+              icon: const Icon(Icons.category),
               onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
               tooltip: 'Manage Categories',
             ),
@@ -102,6 +102,14 @@ class _TransactionFormState extends State<_TransactionForm> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   String? _selectedCategoryId;
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
@@ -118,7 +126,7 @@ class _TransactionFormState extends State<_TransactionForm> {
         id: sl<Uuid>().v4(),
         amount: double.parse(_amountController.text),
         categoryId: _selectedCategoryId!,
-        date: DateTime.now(),
+        date: _selectedDate,
         note: _noteController.text.isNotEmpty ? _noteController.text : '',
         type: widget.type,
       );
@@ -129,7 +137,6 @@ class _TransactionFormState extends State<_TransactionForm> {
         context,
         message:
             '${widget.type == TransactionType.income ? 'Income' : 'Expense'} Successfully added',
-
         backgroundColor: AppColors.successColor,
       );
 
@@ -137,6 +144,21 @@ class _TransactionFormState extends State<_TransactionForm> {
       _noteController.clear();
       setState(() {
         _selectedCategoryId = null;
+        _selectedDate = DateTime.now();
+      });
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
       });
     }
   }
@@ -157,14 +179,20 @@ class _TransactionFormState extends State<_TransactionForm> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 CustomPrimaryTextfield(
+                  suffix: IconButton(
+                    icon: Icon(
+                      Icons.calendar_month_outlined,
+                      size: 22.r,
+                      color: AppColors.blueLightColor,
+                    ),
+                    onPressed: () => _selectDate(context),
+                  ),
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-
                   text: 'Amount',
                   prefix: const Icon(Icons.monetization_on_outlined),
-
                   validator: (value) => value == null || value.isEmpty
                       ? 'Please enter the amount'
                       : null,
@@ -175,7 +203,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                   text: 'Note (optional)',
                   prefix: const Icon(Icons.note_alt_outlined),
                 ),
-                32.verticalSpace,
+                16.verticalSpace,
                 Text(
                   'Select a category',
                   style: Theme.of(context).textTheme.titleLarge,

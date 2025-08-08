@@ -40,12 +40,10 @@ class _SplashBodyState extends State<SplashBody> {
   }
 
   Future<void> initRedirect() async {
-    userName =
-        await CacheHelper.getData(key: CacheKeys.userName) as String? ?? '';
+    final username = await CacheHelper.getData(key: CacheKeys.userName);
+    userName = username.toString();
 
-    if (!context.mounted) return;
-    context.go(AppRoutes.loginScreen);
-    if (userName != null && userName.isNotEmpty) {
+    if (userName != null && userName.isNotEmpty && userName != 'null') {
       context.go(AppRoutes.homeScreen);
     } else {
       context.go(AppRoutes.loginScreen);

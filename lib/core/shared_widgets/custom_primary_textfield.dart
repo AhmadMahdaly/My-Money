@@ -74,7 +74,9 @@ class CustomPrimaryTextfield extends StatelessWidget {
             text ?? '',
             style:
                 style ??
-                Styles.style14W500.copyWith(color: AppColors.thirdColor),
+                Styles.style14W500.copyWith(
+                  color: AppColors.secondaryTextColor,
+                ),
           ),
           border: customOutlineInputBorder(),
           focusedBorder: customOutlineInputBorder(),
