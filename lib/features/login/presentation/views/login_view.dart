@@ -14,13 +14,23 @@ import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/login/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/login/presentation/views/widgets/welcome_user_widget.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final usernameController = TextEditingController();
+  State<LoginScreen> createState() => _LoginScreenState();
+}
 
+class _LoginScreenState extends State<LoginScreen> {
+  final usernameController = TextEditingController();
+  @override
+  void dispose() {
+    usernameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.blueLightColor,
@@ -52,6 +62,7 @@ class LoginScreen extends StatelessWidget {
               showCustomSnackBar(
                 context,
                 message: 'Successfully logged in as: ${state.username}',
+                msgColor: AppColors.scaffoldBackgroundLightColor,
                 backgroundColor: AppColors.successColor,
               );
               context.go(AppRoutes.homeScreen);
@@ -59,6 +70,7 @@ class LoginScreen extends StatelessWidget {
               showCustomSnackBar(
                 context,
                 message: state.message,
+                msgColor: AppColors.scaffoldBackgroundLightColor,
                 backgroundColor: AppColors.errorColor,
               );
             }

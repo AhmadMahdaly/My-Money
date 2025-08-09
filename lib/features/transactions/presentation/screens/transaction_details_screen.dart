@@ -22,6 +22,10 @@ class TransactionDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Expense Details'),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {

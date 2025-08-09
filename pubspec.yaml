@@ -9,7 +9,6 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.3.0
   very_good_analysis: ^9.0.0
   flutter_localizations:
     sdk: flutter
@@ -41,6 +40,13 @@ flutter:
     - assets/image/png/
     - assets/image/svg/
     
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+        - asset: assets/fonts/Cairo-Medium.ttf
+        - asset: assets/fonts/Cairo-Bold.ttf
+
 flutter_assets:
   assets_path: assets/
   output_path: lib/core/theme/
@@ -57,3 +63,4 @@ icons_launcher:
       enable: true
 # dart run icons_launcher:create
 # flutter gen-l10n
+  

@@ -34,7 +34,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     final newCategory = TransactionCategory(
       id: sl<Uuid>().v4(),
       name: _nameController.text,
-      colorValue: _selectedColor.value,
+      colorValue: _selectedColor.toARGB32(),
       type: widget.type,
     );
     Navigator.of(context).pop(newCategory);

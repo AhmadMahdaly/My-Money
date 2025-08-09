@@ -31,7 +31,7 @@ class _SplashBodyState extends State<SplashBody> {
   Future<void> initSplashScreen() async {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 1));
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
       overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top],
@@ -40,10 +40,10 @@ class _SplashBodyState extends State<SplashBody> {
   }
 
   Future<void> initRedirect() async {
-    final username = await CacheHelper.getData(key: CacheKeys.userName);
-    userName = username.toString();
+    userName =
+        await CacheHelper.getData(key: CacheKeys.userName) as String? ?? '';
 
-    if (userName != null && userName.isNotEmpty && userName != 'null') {
+    if (userName != null && userName.isNotEmpty) {
       context.go(AppRoutes.homeScreen);
     } else {
       context.go(AppRoutes.loginScreen);

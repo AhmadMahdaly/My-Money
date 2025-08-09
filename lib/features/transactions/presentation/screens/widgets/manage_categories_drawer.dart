@@ -15,8 +15,8 @@ class ManageCategoriesDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: BlocBuilder<TransactionCubit, TransactionState>(
+    return Scaffold(
+      body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {
           final incomeCategories = state.allCategories
               .where((c) => c.type == TransactionType.income)
@@ -28,24 +28,46 @@ class ManageCategoriesDrawer extends StatelessWidget {
           return ListView(
             children: [
               SizedBox(
-                height: 80.h,
+                height: 100.h,
                 child: DrawerHeader(
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor,
                   ),
-                  child: Text(
-                    'Manage Categories',
-                    style: Styles.style20Bold.copyWith(
-                      color: AppColors.scaffoldBackgroundLightColor,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: AppColors.scaffoldBackgroundLightColor,
+                        ),
+                        onTap: () => context.pop(),
+                      ),
+
+                      Text(
+                        'Manage Categories',
+                        style: Styles.style20Bold.copyWith(
+                          color: AppColors.scaffoldBackgroundLightColor,
+                        ),
+                      ),
+                      24.verticalSpace,
+                    ],
                   ),
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.add),
-                title: const Text('Add new category...'),
+                leading: Icon(
+                  Icons.add,
+                  color: AppColors.blueLightColor,
+                  size: 22.r,
+                ),
+                title: Text(
+                  'Add new category...',
+                  style: Styles.style14W300.copyWith(
+                    color: AppColors.blueLightColor,
+                  ),
+                ),
                 onTap: () {
-                  // Ask user for type before showing dialog
                   _showAddCategoryDialog(context);
                 },
               ),
@@ -78,25 +100,28 @@ class _CategoryListSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+          padding: EdgeInsets.all(16.r),
+          child: Text(title, style: Styles.style16W300),
         ),
         ...categories.map(
           (category) => ListTile(
-            leading: CircleAvatar(backgroundColor: category.color, radius: 10),
+            leading: CircleAvatar(
+              backgroundColor: category.color,
+              radius: 10.r,
+            ),
             title: Text(category.name),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  icon: Icon(Icons.edit_outlined, size: 20.r),
                   onPressed: () => _showEditCategoryDialog(context, category),
                 ),
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.delete_outline,
-                    size: 20,
-                    color: Colors.red,
+                    size: 20.r,
+                    color: AppColors.errorColor,
                   ),
                   onPressed: () => _confirmDeleteCategory(context, category),
                 ),
@@ -187,7 +212,10 @@ void _confirmDeleteCategory(
           child: const Text('Cancel'),
         ),
         TextButton(
-          child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          child: const Text(
+            'Delete',
+            style: TextStyle(color: AppColors.errorColor),
+          ),
           onPressed: () {
             context.read<TransactionCubit>().deleteCategory(category.id);
             ctx.pop();
@@ -229,7 +257,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.categoryToEdit?.name);
-    _selectedColor = widget.categoryToEdit?.color ?? Colors.blue;
+    _selectedColor = widget.categoryToEdit?.color ?? AppColors.primaryColor;
   }
 
   @override
@@ -244,7 +272,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     final category = TransactionCategory(
       id: widget.categoryToEdit?.id ?? sl<Uuid>().v4(),
       name: _nameController.text,
-      colorValue: _selectedColor.value,
+      colorValue: _selectedColor.toARGB32(),
       type: widget.type,
     );
     Navigator.of(context).pop(category);
@@ -276,7 +304,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                   child: CircleAvatar(
                     backgroundColor: color,
                     radius: 20.r,
-                    child: _selectedColor.value == color.value
+                    child: _selectedColor.toARGB32() == color.toARGB32()
                         ? const Icon(Icons.check, color: Colors.white)
                         : null,
                   ),

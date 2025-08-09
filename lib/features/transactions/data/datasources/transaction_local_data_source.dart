@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -67,55 +69,55 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
         TransactionCategory(
           id: uuid.v4(),
           name: 'Salary',
-          colorValue: Colors.green.value,
+          colorValue: Colors.green.toARGB32(),
           type: TransactionType.income,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'Gift',
-          colorValue: Colors.pinkAccent.value,
+          colorValue: Colors.pinkAccent.toARGB32(),
           type: TransactionType.income,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'مواصلات',
-          colorValue: Colors.orange.value,
+          colorValue: Colors.orange.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'Food',
-          colorValue: Colors.red.value,
+          colorValue: Colors.red.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'Supermarket',
-          colorValue: Colors.blue.value,
+          colorValue: Colors.blue.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'خروج',
-          colorValue: Colors.purple.value,
+          colorValue: Colors.purple.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'رصيد',
-          colorValue: Colors.teal.value,
+          colorValue: Colors.teal.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'استثمار',
-          colorValue: Colors.lime.value,
+          colorValue: Colors.lime.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'هدايا',
-          colorValue: Colors.cyan.value,
+          colorValue: Colors.cyan.toARGB32(),
           type: TransactionType.expense,
         ),
       ];

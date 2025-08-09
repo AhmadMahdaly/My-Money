@@ -15,7 +15,7 @@ class WelcomeUserWidget extends StatelessWidget {
       children: [
         Text(
           '👋 Welcome!',
-          style: Styles.style19W700,
+          style: Styles.style20W700,
         ),
         Text(
           'Enter your name now and enjoy a unique, personal experience designed just for your phone — no internet connection required.',

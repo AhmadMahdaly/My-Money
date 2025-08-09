@@ -75,7 +75,7 @@ class CustomPrimaryTextfield extends StatelessWidget {
             style:
                 style ??
                 Styles.style14W500.copyWith(
-                  color: AppColors.secondaryTextColor,
+                  color: AppColors.secondaryColor,
                 ),
           ),
           border: customOutlineInputBorder(),
@@ -105,7 +105,7 @@ class CustomPrimaryTextfield extends StatelessWidget {
       borderSide: const BorderSide(
         width: 0.50,
         strokeAlign: BorderSide.strokeAlignOutside,
-        color: AppColors.blueLightColor,
+        color: AppColors.secondaryColor,
       ),
     );
   }

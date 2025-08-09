@@ -36,21 +36,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         key: _scaffoldKey,
         endDrawer: const ManageCategoriesDrawer(),
         appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new),
+            onPressed: () => context.pop(),
+          ),
           title: const Text('Add new transaction'),
           centerTitle: true,
           bottom: TabBar(
-            labelStyle: Styles.style12W800.copyWith(
+            labelStyle: Styles.style14W800.copyWith(
               color: AppColors.scaffoldBackgroundLightColor,
             ),
             unselectedLabelStyle: Styles.style12W600.copyWith(
               color: AppColors.scaffoldBackgroundLightColor,
             ),
             indicatorColor: AppColors.scaffoldBackgroundLightColor,
-            tabs: const [
+            tabs: [
               Tab(
                 text: 'Expense',
                 icon: Icon(
                   Icons.arrow_downward,
+                  size: 28.r,
                   color: AppColors.scaffoldBackgroundLightColor,
                 ),
               ),
@@ -58,6 +63,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 text: 'Income',
                 icon: Icon(
                   Icons.arrow_upward,
+                  size: 28.r,
                   color: AppColors.scaffoldBackgroundLightColor,
                 ),
               ),
@@ -65,23 +71,24 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.analytics),
+              icon: Icon(Icons.analytics, size: 28.r),
               onPressed: () {
                 context.push(AppRoutes.transactionDetailsScreen);
               },
               tooltip: 'View details',
             ),
-            IconButton(
-              icon: const Icon(Icons.category),
-              onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-              tooltip: 'Manage Categories',
-            ),
           ],
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            _TransactionForm(type: TransactionType.expense),
-            _TransactionForm(type: TransactionType.income),
+            _TransactionForm(
+              type: TransactionType.expense,
+              scaffoldKey: _scaffoldKey,
+            ),
+            _TransactionForm(
+              type: TransactionType.income,
+              scaffoldKey: _scaffoldKey,
+            ),
           ],
         ),
       ),
@@ -90,8 +97,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 }
 
 class _TransactionForm extends StatefulWidget {
-  const _TransactionForm({required this.type});
+  const _TransactionForm({
+    required this.type,
+    required this.scaffoldKey,
+  });
+
   final TransactionType type;
+  final GlobalKey<ScaffoldState> scaffoldKey;
 
   @override
   State<_TransactionForm> createState() => _TransactionFormState();
@@ -135,6 +147,7 @@ class _TransactionFormState extends State<_TransactionForm> {
 
       showCustomSnackBar(
         context,
+        msgColor: AppColors.scaffoldBackgroundLightColor,
         message:
             '${widget.type == TransactionType.income ? 'Income' : 'Expense'} Successfully added',
         backgroundColor: AppColors.successColor,
@@ -151,10 +164,28 @@ class _TransactionFormState extends State<_TransactionForm> {
 
   Future<void> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
+      barrierColor: Colors.black54,
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.blueLightColor,
+              onPrimary: AppColors.scaffoldBackgroundLightColor,
+              onSurface: AppColors.primaryTextColor,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.blueLightColor,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -192,7 +223,10 @@ class _TransactionFormState extends State<_TransactionForm> {
                     decimal: true,
                   ),
                   text: 'Amount',
-                  prefix: const Icon(Icons.monetization_on_outlined),
+                  prefix: const Icon(
+                    Icons.monetization_on_outlined,
+                    color: AppColors.secondaryColor,
+                  ),
                   validator: (value) => value == null || value.isEmpty
                       ? 'Please enter the amount'
                       : null,
@@ -201,12 +235,30 @@ class _TransactionFormState extends State<_TransactionForm> {
                 CustomPrimaryTextfield(
                   controller: _noteController,
                   text: 'Note (optional)',
-                  prefix: const Icon(Icons.note_alt_outlined),
+                  prefix: const Icon(
+                    Icons.note_alt_outlined,
+                    color: AppColors.secondaryColor,
+                  ),
                 ),
                 16.verticalSpace,
-                Text(
-                  'Select a category',
-                  style: Theme.of(context).textTheme.titleLarge,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Select a category',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    InkWell(
+                      child: Text(
+                        'Edit',
+                        style: Styles.style12W300.copyWith(
+                          color: AppColors.blueLightColor,
+                        ),
+                      ),
+                      onTap: () =>
+                          widget.scaffoldKey.currentState?.openEndDrawer(),
+                    ),
+                  ],
                 ),
                 8.verticalSpace,
                 CategorySelector(

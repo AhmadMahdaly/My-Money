@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:ui';
+
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:opration/features/app_blocker/models/blocker_schedule.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/blocker_schedule.dart';
 
 const String blockedAppsKey = 'blocked_apps';
 const String notificationChannelId = 'app_blocker_channel';
@@ -51,24 +52,21 @@ Future<void> onStart(ServiceInstance service) async {
 
     final schedule = BlockerSchedule.fromJson(scheduleJson);
     final now = DateTime.now();
-    bool isBlocked = false;
+    var isBlocked = false;
 
     switch (schedule.blockType) {
       case BlockType.permanent:
         isBlocked = true;
-        break;
       case BlockType.scheduled:
         if (schedule.blockUntil != null && now.isBefore(schedule.blockUntil!)) {
           isBlocked = true;
         }
-        break;
       case BlockType.recurring:
         if (schedule.recurringInterval != null &&
             schedule.recurringDuration != null) {
           final midnight = DateTime(now.year, now.month, now.day);
           final secondsSinceMidnight = now.difference(midnight).inSeconds;
           final intervalSeconds = schedule.recurringInterval!.inSeconds;
-          final durationSeconds = schedule.recurringDuration!.inSeconds;
 
           final cycleStartSeconds =
               (secondsSinceMidnight ~/ intervalSeconds) * intervalSeconds;
@@ -77,7 +75,6 @@ Future<void> onStart(ServiceInstance service) async {
 
           isBlocked = now.isAfter(cycleStart) && now.isBefore(cycleEnd);
         }
-        break;
     }
 
     if (isBlocked) {
