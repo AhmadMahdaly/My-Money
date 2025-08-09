@@ -27,7 +27,7 @@ class _CustomDurationPickerDialogState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('اختر المدة الزمنية'),
+      title: const Text('Select Duration'),
       content: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -35,7 +35,7 @@ class _CustomDurationPickerDialogState
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('ساعات'),
+              const Text('Hours'),
               DropdownButton<int>(
                 value: _selectedHours,
                 onChanged: (value) {
@@ -60,7 +60,7 @@ class _CustomDurationPickerDialogState
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('دقائق'),
+              const Text('Minutes'),
               DropdownButton<int>(
                 value: _selectedMinutes,
                 onChanged: (value) {
@@ -86,7 +86,7 @@ class _CustomDurationPickerDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: () {
@@ -96,7 +96,7 @@ class _CustomDurationPickerDialogState
             );
             Navigator.of(context).pop(duration);
           },
-          child: const Text('حفظ'),
+          child: const Text('Save'),
         ),
       ],
     );

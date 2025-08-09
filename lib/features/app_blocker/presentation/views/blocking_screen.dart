@@ -16,7 +16,7 @@ class BlockingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // إعادة توجيه إلى تطبيقك
     InstalledApps.startApp(
-      'com.example.opration',
+      'com.mahdaly.opration',
     ); // استبدل بـ packageName لتطبيقك
     return WillPopScope(
       onWillPop: () async => false, // منع زر الرجوع
@@ -24,14 +24,14 @@ class BlockingScreen extends StatelessWidget {
         color: Colors.black.withOpacity(0.95),
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.lock_clock, color: Colors.white, size: 80),
                 const SizedBox(height: 24),
                 Text(
-                  'تطبيق "$appName" محظور حالياً',
+                  '$appName is currently blocked',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
@@ -41,7 +41,7 @@ class BlockingScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'لقد قمت بحظر هذا التطبيق لتحسين تركيزك. ارجع إلى الشاشة الرئيسية.',
+                  'You have blocked this app to improve your focus. Go back to the home screen.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
@@ -58,7 +58,7 @@ class BlockingScreen extends StatelessWidget {
                   onPressed: () {
                     context.go(AppRoutes.homeScreen);
                   },
-                  child: const Text('العودة إلى الشاشة الرئيسية'),
+                  child: const Text('Back to Home'),
                 ),
               ],
             ),

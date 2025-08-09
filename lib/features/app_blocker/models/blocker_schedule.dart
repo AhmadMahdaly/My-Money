@@ -46,16 +46,16 @@ class BlockerSchedule {
   String get description {
     switch (blockType) {
       case BlockType.permanent:
-        return 'محظور بشكل دائم';
+        return 'Permanently blocked';
       case BlockType.scheduled:
         final formattedDate = blockUntil != null
             ? "${blockUntil!.hour}:${blockUntil!.minute.toString().padLeft(2, '0')}, ${blockUntil!.day}/${blockUntil!.month}"
             : '';
-        return 'محظور حتى $formattedDate';
+        return 'Scheduled until $formattedDate';
       case BlockType.recurring:
         final interval = recurringInterval?.inHours ?? 0;
         final duration = recurringDuration?.inMinutes ?? 0;
-        return 'يُحظر لمدة $duration دقيقة كل $interval ساعة';
+        return 'Blocked for $duration minutes every $interval hours';
     }
   }
 }

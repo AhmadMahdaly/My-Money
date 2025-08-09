@@ -10,10 +10,11 @@ class ScheduleDialog extends StatefulWidget {
 }
 
 class _ScheduleDialogState extends State<ScheduleDialog> {
-  BlockType _selectedType = BlockType.permanent;
-  DateTime _scheduledUntil = DateTime.now().add(const Duration(hours: 1));
+  BlockType _selectedType = BlockType.scheduled;
+  DateTime _scheduledUntil = DateTime.now().add(const Duration(minutes: 5));
   Duration _recurringInterval = const Duration(hours: 2);
   Duration _recurringDuration = const Duration(minutes: 30);
+  int blockMinutes = 5;
 
   Future<Duration?> _showCustomDurationPicker(Duration initial) async {
     return showDialog<Duration>(
@@ -25,7 +26,7 @@ class _ScheduleDialogState extends State<ScheduleDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('إعدادات حظر التطبيق'),
+      title: const Text('App Blocker Settings'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -41,33 +42,42 @@ class _ScheduleDialogState extends State<ScheduleDialog> {
               items: const [
                 DropdownMenuItem(
                   value: BlockType.permanent,
-                  child: Text('حظر دائم'),
+                  child: Text('Permanently blocked'),
                 ),
                 DropdownMenuItem(
                   value: BlockType.scheduled,
-                  child: Text('حظر لفترة محددة'),
+                  child: Text('Scheduled'),
                 ),
                 DropdownMenuItem(
                   value: BlockType.recurring,
-                  child: Text('حظر دوري متكرر'),
+                  child: Text('Recurring'),
                 ),
               ],
             ),
             const SizedBox(height: 20),
-            if (_selectedType == BlockType.scheduled)
-              ListTile(
-                title: const Text('الحظر حتى تاريخ ووقت:'),
-                subtitle: Text(
-                  "${"${_scheduledUntil.toLocal()}".split(' ')[0]} - ${TimeOfDay.fromDateTime(_scheduledUntil).format(context)}",
+            if (_selectedType == BlockType.scheduled) ...[
+              const Text('Block duration (in minutes):'),
+              TextField(
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  hintText: 'Enter the number of minutes (e.g., 5)',
                 ),
-                trailing: const Icon(Icons.edit),
-                onTap: _pickScheduledDateTime,
+                onChanged: (value) {
+                  final minutes = int.tryParse(value) ?? 5;
+                  setState(() {
+                    blockMinutes = minutes;
+                    _scheduledUntil = DateTime.now().add(
+                      Duration(minutes: minutes),
+                    );
+                  });
+                },
               ),
+            ],
             if (_selectedType == BlockType.recurring) ...[
-              const Text('كل:'),
+              const Text('Every:'),
               ListTile(
                 title: Text(
-                  '${_recurringInterval.inHours} ساعة و ${_recurringInterval.inMinutes.remainder(60)} دقيقة',
+                  '${_recurringInterval.inHours} hours & ${_recurringInterval.inMinutes.remainder(60)} minutes',
                 ),
                 trailing: const Icon(Icons.edit),
                 onTap: () async {
@@ -79,10 +89,10 @@ class _ScheduleDialogState extends State<ScheduleDialog> {
                   }
                 },
               ),
-              const Text('يتم الحظر لمدة:'),
+              const Text('Blocked for:'),
               ListTile(
                 title: Text(
-                  '${_recurringDuration.inHours} ساعة و ${_recurringDuration.inMinutes.remainder(60)} دقيقة',
+                  '${_recurringDuration.inHours} hours & ${_recurringDuration.inMinutes.remainder(60)} minutes',
                 ),
                 trailing: const Icon(Icons.edit),
                 onTap: () async {
@@ -101,40 +111,14 @@ class _ScheduleDialogState extends State<ScheduleDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: _saveSchedule,
-          child: const Text('حفظ'),
+          child: const Text('Save'),
         ),
       ],
     );
-  }
-
-  Future<void> _pickScheduledDateTime() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _scheduledUntil,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (date == null) return;
-
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_scheduledUntil),
-    );
-    if (time == null) return;
-
-    setState(() {
-      _scheduledUntil = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    });
   }
 
   void _saveSchedule() {
@@ -142,20 +126,17 @@ class _ScheduleDialogState extends State<ScheduleDialog> {
     switch (_selectedType) {
       case BlockType.permanent:
         schedule = BlockerSchedule(blockType: BlockType.permanent);
-        break;
       case BlockType.scheduled:
         schedule = BlockerSchedule(
           blockType: BlockType.scheduled,
           blockUntil: _scheduledUntil,
         );
-        break;
       case BlockType.recurring:
         schedule = BlockerSchedule(
           blockType: BlockType.recurring,
           recurringInterval: _recurringInterval,
           recurringDuration: _recurringDuration,
         );
-        break;
     }
     Navigator.of(context).pop(schedule);
   }
