@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opration/core/di.dart';
-import 'package:opration/core/services/cache_helper/cache_helper.dart';
 
 Future<void> initializeApp() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +8,7 @@ Future<void> initializeApp() async {
   //   await Permission.notification.request();
   // }
   await setupGetIt();
-  await CacheHelper.init();
+  // await CacheHelper.init();
   // await createNotificationChannel();
   // await initializeService();
   await SystemChrome.setPreferredOrientations([

@@ -12,7 +12,7 @@ class Appthemes {
       fontFamily: kPrimaryFont,
 
       textTheme: TextTheme(
-        titleLarge: Styles.style20W800,
+        titleLarge: Styles.style18W800,
         titleMedium: Styles.style16W500,
       ),
       appBarTheme: AppBarTheme(
@@ -20,7 +20,7 @@ class Appthemes {
           color: AppColors.scaffoldBackgroundLightColor,
         ),
         toolbarHeight: 100.h,
-        titleTextStyle: Styles.style20Bold.copyWith(
+        titleTextStyle: Styles.style18Bold.copyWith(
           color: AppColors.scaffoldBackgroundLightColor,
         ),
         backgroundColor: AppColors.blueLightColor,

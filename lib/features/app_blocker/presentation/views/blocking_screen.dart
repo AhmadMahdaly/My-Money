@@ -21,10 +21,10 @@ class BlockingScreen extends StatelessWidget {
     return WillPopScope(
       onWillPop: () async => false, // منع زر الرجوع
       child: Material(
-        color: Colors.black.withOpacity(0.95),
+        color: Colors.black.withAlpha(220),
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -24,7 +24,7 @@ abstract class SizeConfig {
     _safeAreaHorizontal =
         _mediaQueryData.padding.left + _mediaQueryData.padding.right;
 
-    _safeBlockHorizontal = (screenWidth - _safeAreaHorizontal);
+    _safeBlockHorizontal = screenWidth - _safeAreaHorizontal;
   }
 
   static double getWidth(double width) {
@@ -36,7 +36,7 @@ abstract class SizeConfig {
   }
 
   static double getFontSize(double size) {
-    final double scale = _safeBlockHorizontal / 100;
+    final scale = _safeBlockHorizontal / 100;
 
     return (size * scale).clamp(size * 0.85, size * 1.15);
   }

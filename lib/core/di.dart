@@ -13,11 +13,14 @@ import 'package:opration/features/transactions/domain/usecases/delete_category.d
 import 'package:opration/features/transactions/domain/usecases/delete_transaction.dart';
 import 'package:opration/features/transactions/domain/usecases/get_categories.dart';
 import 'package:opration/features/transactions/domain/usecases/get_filter_settings.dart';
+import 'package:opration/features/transactions/domain/usecases/get_monthly_plan.dart';
 import 'package:opration/features/transactions/domain/usecases/get_transactions.dart';
 import 'package:opration/features/transactions/domain/usecases/save_filter_settings.dart';
+import 'package:opration/features/transactions/domain/usecases/save_monthly_plan.dart';
 import 'package:opration/features/transactions/domain/usecases/update_category.dart';
 import 'package:opration/features/transactions/domain/usecases/update_transaction.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
+import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -72,5 +75,15 @@ Future<void> setupGetIt() async {
     // Data Sources
     ..registerLazySingleton<TransactionLocalDataSource>(
       () => TransactionLocalDataSourceImpl(sharedPreferences: sl(), uuid: sl()),
+    )
+    //
+    ..registerLazySingleton(() => GetMonthlyPlanUseCase(repository: sl()))
+    ..registerLazySingleton(() => SaveMonthlyPlanUseCase(repository: sl()))
+    //
+    ..registerFactory(
+      () => MonthlyPlanCubit(
+        getMonthlyPlanUseCase: sl(),
+        saveMonthlyPlanUseCase: sl(),
+      ),
     );
 }

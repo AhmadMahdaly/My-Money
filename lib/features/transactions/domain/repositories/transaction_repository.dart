@@ -1,6 +1,7 @@
+import 'package:opration/features/transactions/domain/entities/monthly_plan.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 
 abstract class TransactionRepository {
   Future<List<Transaction>> getTransactions();
@@ -19,4 +20,6 @@ abstract class TransactionRepository {
     PredefinedFilter activeFilter,
   );
   Future<Map<String, dynamic>> getFilterSettings();
+  Future<MonthlyPlan> getMonthlyPlan(String yearMonth);
+  Future<void> saveMonthlyPlan(MonthlyPlan plan);
 }

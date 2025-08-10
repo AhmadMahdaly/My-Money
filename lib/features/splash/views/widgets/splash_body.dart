@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/constants.dart';
+import 'package:opration/core/di.dart';
 import 'package:opration/core/localization/s.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
-import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/core/services/cache_helper/cache_values.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/assets.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashBody extends StatefulWidget {
   const SplashBody({
@@ -40,8 +41,7 @@ class _SplashBodyState extends State<SplashBody> {
   }
 
   Future<void> initRedirect() async {
-    userName =
-        await CacheHelper.getData(key: CacheKeys.userName) as String? ?? '';
+    userName = sl<SharedPreferences>().getString(CacheKeys.userName) ?? '';
 
     if (userName != null && userName.isNotEmpty) {
       context.go(AppRoutes.homeScreen);

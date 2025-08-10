@@ -11,7 +11,7 @@ import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
   const TransactionDetailsScreen({super.key});
@@ -26,6 +26,15 @@ class TransactionDetailsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_calendar),
+            tooltip: 'Monthly Plan',
+            onPressed: () {
+              context.push(AppRoutes.monthlyPlanScreen);
+            },
+          ),
+        ],
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {

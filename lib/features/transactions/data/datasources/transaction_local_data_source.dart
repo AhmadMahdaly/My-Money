@@ -4,9 +4,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:opration/core/services/cache_helper/cache_values.dart';
+import 'package:opration/features/transactions/domain/entities/monthly_plan.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,11 +28,11 @@ abstract class TransactionLocalDataSource {
     PredefinedFilter activeFilter,
   );
   Future<Map<String, dynamic>> getDateFilter();
-}
 
-const CACHED_FILTER_START_DATE = 'CACHED_FILTER_START_DATE';
-const CACHED_FILTER_END_DATE = 'CACHED_FILTER_END_DATE';
-const CACHED_ACTIVE_FILTER = 'CACHED_ACTIVE_FILTER';
+  // New methods for Monthly Plan
+  Future<MonthlyPlan> getMonthlyPlan(String yearMonth);
+  Future<void> saveMonthlyPlan(MonthlyPlan plan);
+}
 
 class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
   TransactionLocalDataSourceImpl({
@@ -44,7 +45,7 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
   // Helper to get and decode a list from JSON
   Future<List<Map<String, dynamic>>> _getDecodedList(String key) async {
     final jsonString = sharedPreferences.getString(key);
-    if (jsonString != null) {
+    if (jsonString != null && jsonString.isNotEmpty) {
       return (json.decode(jsonString) as List).cast<Map<String, dynamic>>();
     }
     return [];
@@ -69,55 +70,55 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
         TransactionCategory(
           id: uuid.v4(),
           name: 'Salary',
-          colorValue: Colors.green.toARGB32(),
+          colorValue: Colors.green.value,
           type: TransactionType.income,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'Gift',
-          colorValue: Colors.pinkAccent.toARGB32(),
+          colorValue: Colors.pinkAccent.value,
           type: TransactionType.income,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'مواصلات',
-          colorValue: Colors.orange.toARGB32(),
+          colorValue: Colors.orange.value,
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'Food',
-          colorValue: Colors.red.toARGB32(),
+          colorValue: Colors.red.value,
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'Supermarket',
-          colorValue: Colors.blue.toARGB32(),
+          colorValue: Colors.blue.value,
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'خروج',
-          colorValue: Colors.purple.toARGB32(),
+          colorValue: Colors.purple.value,
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'رصيد',
-          colorValue: Colors.teal.toARGB32(),
+          colorValue: Colors.teal.value,
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'استثمار',
-          colorValue: Colors.lime.toARGB32(),
+          colorValue: Colors.lime.value,
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'هدايا',
-          colorValue: Colors.cyan.toARGB32(),
+          colorValue: Colors.cyan.value,
           type: TransactionType.expense,
         ),
       ];
@@ -195,24 +196,29 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     PredefinedFilter activeFilter,
   ) async {
     await sharedPreferences.setString(
-      CACHED_FILTER_START_DATE,
+      CacheKeys.cachedFilterStartDate,
       startDate.toIso8601String(),
     );
     await sharedPreferences.setString(
-      CACHED_FILTER_END_DATE,
+      CacheKeys.cachedFilterEndDate,
       endDate.toIso8601String(),
     );
-    await sharedPreferences.setString(CACHED_ACTIVE_FILTER, activeFilter.name);
+    await sharedPreferences.setString(
+      CacheKeys.cachedActiveFilter,
+      activeFilter.name,
+    );
   }
 
   @override
   Future<Map<String, dynamic>> getDateFilter() async {
     final startDateString = sharedPreferences.getString(
-      CACHED_FILTER_START_DATE,
+      CacheKeys.cachedFilterStartDate,
     );
-    final endDateString = sharedPreferences.getString(CACHED_FILTER_END_DATE);
+    final endDateString = sharedPreferences.getString(
+      CacheKeys.cachedFilterEndDate,
+    );
     final activeFilterString = sharedPreferences.getString(
-      CACHED_ACTIVE_FILTER,
+      CacheKeys.cachedActiveFilter,
     );
 
     final activeFilter = PredefinedFilter.values.firstWhere(
@@ -227,5 +233,26 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
       'endDate': endDateString != null ? DateTime.parse(endDateString) : null,
       'activeFilter': activeFilter,
     };
+  }
+
+  // --- Monthly Plan Implementation ---
+  String _getPlanCacheKey(String yearMonth) => 'monthly_plan_$yearMonth';
+
+  @override
+  Future<MonthlyPlan> getMonthlyPlan(String yearMonth) async {
+    final jsonString = sharedPreferences.getString(_getPlanCacheKey(yearMonth));
+    if (jsonString != null && jsonString.isNotEmpty) {
+      return MonthlyPlan.fromJson(
+        json.decode(jsonString) as Map<String, dynamic>,
+      );
+    }
+    // Return a new, empty plan for the month if none exists
+    return MonthlyPlan(id: yearMonth);
+  }
+
+  @override
+  Future<void> saveMonthlyPlan(MonthlyPlan plan) async {
+    final key = _getPlanCacheKey(plan.id);
+    await sharedPreferences.setString(key, json.encode(plan.toJson()));
   }
 }

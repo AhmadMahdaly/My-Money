@@ -1,8 +1,9 @@
 import 'package:opration/features/transactions/data/datasources/transaction_local_data_source.dart';
+import 'package:opration/features/transactions/domain/entities/monthly_plan.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/domain/repositories/transaction_repository.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 
 class TransactionRepositoryImpl implements TransactionRepository {
   TransactionRepositoryImpl({required this.localDataSource});
@@ -43,4 +44,11 @@ class TransactionRepositoryImpl implements TransactionRepository {
     DateTime endDate,
     PredefinedFilter activeFilter,
   ) => localDataSource.saveDateFilter(startDate, endDate, activeFilter);
+  @override
+  Future<MonthlyPlan> getMonthlyPlan(String yearMonth) =>
+      localDataSource.getMonthlyPlan(yearMonth);
+
+  @override
+  Future<void> saveMonthlyPlan(MonthlyPlan plan) =>
+      localDataSource.saveMonthlyPlan(plan);
 }

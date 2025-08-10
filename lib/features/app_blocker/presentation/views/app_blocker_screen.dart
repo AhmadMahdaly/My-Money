@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_usage/app_usage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -8,10 +10,9 @@ import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/app_blocker/models/blocker_schedule.dart';
 import 'package:opration/features/app_blocker/presentation/views/blocking_screen.dart';
 import 'package:opration/features/app_blocker/presentation/views/widgets/schedule_dialog.dart';
+import 'package:opration/features/app_blocker/services/notification_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:async';
-import 'package:opration/features/app_blocker/services/notification_service.dart';
 
 class AppBlockerScreen extends StatefulWidget {
   const AppBlockerScreen({super.key});

@@ -142,20 +142,17 @@ class _ScheduleDialogState extends State<ScheduleDialog> {
     switch (_selectedType) {
       case BlockType.permanent:
         schedule = BlockerSchedule(blockType: BlockType.permanent);
-        break;
       case BlockType.scheduled:
         schedule = BlockerSchedule(
           blockType: BlockType.scheduled,
           blockUntil: _scheduledUntil,
         );
-        break;
       case BlockType.recurring:
         schedule = BlockerSchedule(
           blockType: BlockType.recurring,
           recurringInterval: _recurringInterval,
           recurringDuration: _recurringDuration,
         );
-        break;
     }
     Navigator.of(context).pop(schedule);
   }

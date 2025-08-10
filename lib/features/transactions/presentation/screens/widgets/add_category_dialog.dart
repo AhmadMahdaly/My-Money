@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:uuid/uuid.dart';
@@ -37,39 +39,41 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
       colorValue: _selectedColor.toARGB32(),
       type: widget.type,
     );
-    Navigator.of(context).pop(newCategory);
+    context.pop(newCategory);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Add new category'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(labelText: 'Category name'),
-            autofocus: true,
-          ),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _availableColors.map((color) {
-              return GestureDetector(
-                onTap: () => setState(() => _selectedColor = color),
-                child: CircleAvatar(
-                  backgroundColor: color,
-                  radius: 30.r,
-                  child: _selectedColor == color
-                      ? const Icon(Icons.check, color: Colors.white)
-                      : null,
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomPrimaryTextfield(
+              controller: _nameController,
+              text: 'Category name',
+              autofocus: true,
+            ),
+            20.verticalSpace,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _availableColors.map((color) {
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedColor = color),
+                  child: CircleAvatar(
+                    backgroundColor: color,
+                    radius: 20.r,
+                    child: _selectedColor == color
+                        ? const Icon(Icons.check, color: Colors.white)
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(

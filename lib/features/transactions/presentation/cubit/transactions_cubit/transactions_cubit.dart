@@ -40,79 +40,92 @@ class TransactionCubit extends Cubit<TransactionState> {
   final GetFilterSettingsUseCase getFilterSettingsUseCase;
   final SaveFilterSettingsUseCase saveFilterSettingsUseCase;
 
-  Future<void> _reloadData() async {
-    final transactions = await getTransactionsUseCase();
-    final categories = await getCategoriesUseCase();
-    emit(
-      state.copyWith(
-        isLoading: false,
-        allTransactions: transactions,
-        allCategories: categories,
-      ),
-    );
-  }
-
   Future<void> loadInitialData() async {
     emit(state.copyWith(isLoading: true));
     try {
       final filterSettings = await getFilterSettingsUseCase();
       final lastFilter = filterSettings['activeFilter'] as PredefinedFilter;
-      DateTime? startDate = filterSettings['startDate'] as DateTime;
-      DateTime? endDate = filterSettings['endDate'] as DateTime;
+      var startDate = filterSettings['startDate'] as DateTime?;
+      var endDate = filterSettings['endDate'] as DateTime?;
 
       if (startDate == null ||
           endDate == null ||
           lastFilter != PredefinedFilter.custom) {
-        final range = _getDateRangeForFilter(lastFilter);
+        final range = _getDateRangeForFilter(lastFilter, DateTime.now());
         startDate = range.start;
         endDate = range.end;
       }
 
+      final transactions = await getTransactionsUseCase();
+      final categories = await getCategoriesUseCase();
+
       emit(
         state.copyWith(
+          isLoading: false,
           filterStartDate: startDate,
           filterEndDate: endDate,
           activeFilter: lastFilter,
+          allTransactions: transactions,
+          allCategories: categories,
         ),
       );
-      await _reloadData();
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  Future<void> _performDatabaseOperation(
+    Future<void> Function() operation,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      await operation();
+      // After operation, reload all data
+      final transactions = await getTransactionsUseCase();
+      final categories = await getCategoriesUseCase();
+      emit(
+        state.copyWith(
+          isLoading: false,
+          allTransactions: transactions,
+          allCategories: categories,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
   Future<void> addTransaction(Transaction transaction) async {
-    await addTransactionUseCase(transaction);
-    await _reloadData();
+    await _performDatabaseOperation(() => addTransactionUseCase(transaction));
   }
 
   Future<void> updateTransaction(Transaction transaction) async {
-    await updateTransactionUseCase(transaction);
-    await _reloadData();
+    await _performDatabaseOperation(
+      () => updateTransactionUseCase(transaction),
+    );
   }
 
   Future<void> deleteTransaction(String transactionId) async {
-    await deleteTransactionUseCase(transactionId);
-    await _reloadData();
+    await _performDatabaseOperation(
+      () => deleteTransactionUseCase(transactionId),
+    );
   }
 
   Future<void> addCategory(TransactionCategory category) async {
-    await addCategoryUseCase(category);
-    await _reloadData();
+    await _performDatabaseOperation(() => addCategoryUseCase(category));
   }
 
   Future<void> updateCategory(TransactionCategory category) async {
-    await updateCategoryUseCase(category);
-    await _reloadData();
+    await _performDatabaseOperation(() => updateCategoryUseCase(category));
   }
 
   Future<void> deleteCategory(String categoryId) async {
-    await deleteCategoryUseCase(categoryId);
-    await _reloadData();
+    await _performDatabaseOperation(() => deleteCategoryUseCase(categoryId));
   }
 
   Future<void> setPredefinedFilter(PredefinedFilter filter) async {
-    final range = _getDateRangeForFilter(filter);
+    emit(state.copyWith(isLoading: true));
+    final range = _getDateRangeForFilter(filter, DateTime.now());
     await saveFilterSettingsUseCase(
       startDate: range.start,
       endDate: range.end,
@@ -120,6 +133,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     );
     emit(
       state.copyWith(
+        isLoading: false,
         filterStartDate: range.start,
         filterEndDate: range.end,
         activeFilter: filter,
@@ -128,6 +142,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   }
 
   Future<void> setCustomDateFilter(DateTime startDate, DateTime endDate) async {
+    emit(state.copyWith(isLoading: true));
     await saveFilterSettingsUseCase(
       startDate: startDate,
       endDate: endDate,
@@ -135,6 +150,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     );
     emit(
       state.copyWith(
+        isLoading: false,
         filterStartDate: startDate,
         filterEndDate: endDate,
         activeFilter: PredefinedFilter.custom,
@@ -142,8 +158,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     );
   }
 
-  DateTimeRange _getDateRangeForFilter(PredefinedFilter filter) {
-    final now = DateTime.now();
+  DateTimeRange _getDateRangeForFilter(PredefinedFilter filter, DateTime now) {
     switch (filter) {
       case PredefinedFilter.today:
         final startOfDay = DateTime(now.year, now.month, now.day);
@@ -157,7 +172,9 @@ class TransactionCubit extends Cubit<TransactionState> {
           now.month,
           now.day - daysToSubtract,
         );
-        final endOfWeek = startOfWeek.add(const Duration(days: 5));
+        final endOfWeek = startOfWeek.add(
+          const Duration(days: 6),
+        ); // End of Friday
         return DateTimeRange(start: startOfWeek, end: endOfWeek);
       case PredefinedFilter.month:
         final startOfMonth = DateTime(now.year, now.month, 1);
