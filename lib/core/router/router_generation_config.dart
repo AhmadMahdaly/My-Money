@@ -1,8 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:installed_apps/app_info.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/router/app_routes.dart';
-import 'package:opration/features/app_blocker/presentation/views/app_blocker_screen.dart';
+import 'package:opration/features/app_blocker/presentation/views/app_details_page.dart';
+import 'package:opration/features/app_blocker/presentation/views/blocker_view.dart';
+import 'package:opration/features/app_blocker/presentation/views/settings_page.dart';
 import 'package:opration/features/home/presentation/views/home_view.dart';
 import 'package:opration/features/login/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/login/presentation/views/login_view.dart';
@@ -76,11 +79,7 @@ class RouterGenerationConfig {
           );
         },
       ),
-      GoRoute(
-        path: AppRoutes.appBlockerScreen,
-        name: AppRoutes.appBlockerScreen,
-        builder: (context, state) => const AppBlockerScreen(),
-      ),
+
       GoRoute(
         path: AppRoutes.monthlyPlanScreen,
         name: AppRoutes.monthlyPlanScreen,
@@ -96,6 +95,22 @@ class RouterGenerationConfig {
           ],
           child: const MonthlyPlanScreen(),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.appBlockerScreen,
+        name: AppRoutes.appBlockerScreen,
+        builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: '/details',
+        builder: (context, state) {
+          final appInfo = state.extra! as AppInfo;
+          return AppDetailsPage(app: appInfo);
+        },
       ),
     ],
   );

@@ -29,16 +29,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- <service
+        <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
-            android:foregroundServiceType="mediaPlayback" /> -->
+            android:foregroundServiceType="mediaPlayback" />
     </application>
 
-    <!-- <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" /> -->
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
