@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
 import 'package:opration/core/theme/colors.dart';
@@ -193,6 +194,26 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final existingExpenseCategoryIds = context
+        .watch<TransactionCubit>()
+        .state
+        .allCategories
+        .where((c) => c.type == TransactionType.expense)
+        .map((c) => c.id)
+        .toSet();
+
+    final validPlannedExpenses = plan.expenses.where(
+      (p) => existingExpenseCategoryIds.contains(p.categoryId),
+    );
+
+    final totalBudgetedExpense = validPlannedExpenses.fold(
+      // ignore: prefer_int_literals
+      0.0,
+      (sum, item) => sum + item.budgetedAmount,
+    );
+
+    final projectedSavings = plan.totalPlannedIncome - totalBudgetedExpense;
+
     return Card(
       child: Padding(
         padding: EdgeInsets.all(16.r),
@@ -210,13 +231,13 @@ class _SummarySection extends StatelessWidget {
                 ),
                 _SummaryItem(
                   title: 'Expenses',
-                  amount: plan.totalBudgetedExpense,
+                  amount: totalBudgetedExpense,
                   color: AppColors.errorColor,
                 ),
                 _SummaryItem(
                   title: 'Savings',
-                  amount: plan.projectedSavings,
-                  color: plan.projectedSavings >= 0
+                  amount: projectedSavings,
+                  color: projectedSavings >= 0
                       ? AppColors.primaryColor
                       : AppColors.orangeColor,
                 ),
@@ -246,7 +267,7 @@ class _SummaryItem extends StatelessWidget {
         Text(title, style: Styles.style16W600),
         4.verticalSpace,
         Text(
-          '${amount.toStringAsFixed(2)} EGP',
+          '${amount.truncate()} EGP',
           style: Styles.style16Bold.copyWith(
             color: color,
           ),
@@ -259,31 +280,56 @@ class _SummaryItem extends StatelessWidget {
 class _PlannedIncomeSection extends StatelessWidget {
   const _PlannedIncomeSection({required this.plan});
   final MonthlyPlan plan;
+  void _deleteIncome(BuildContext context, PlannedIncome incomeToDelete) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirm Deletion'),
+        content: Text(
+          'Are you sure you want to delete the planned income "${incomeToDelete.name}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => ctx.pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final monthlyPlanCubit = context.read<MonthlyPlanCubit>();
+              final updatedIncomes = plan.incomes
+                  .where((i) => i.id != incomeToDelete.id)
+                  .toList();
+              monthlyPlanCubit.updatePlan(
+                plan.copyWith(incomes: updatedIncomes),
+              );
+              ctx.pop();
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _addOrEditIncome(BuildContext context, [PlannedIncome? income]) {
     final monthlyPlanCubit = context.read<MonthlyPlanCubit>();
-    final incomeCategories = context
-        .read<TransactionCubit>()
-        .state
-        .allCategories
+    final transactionCubit = context.read<TransactionCubit>();
+
+    final incomeCategories = transactionCubit.state.allCategories
         .where((c) => c.type == TransactionType.income)
         .toList();
 
     if (incomeCategories.isEmpty) {
-      showCustomSnackBar(
-        context,
-        msgColor: AppColors.scaffoldBackgroundLightColor,
-        message: 'Please add an income category first!',
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add an income category first!')),
       );
-
       return;
     }
 
     final amountController = TextEditingController(
-      text: income?.amount.toString() ?? '',
+      text: income?.amount.truncate().toString() ?? '',
     );
     final selectedDate = income?.date ?? DateTime.now();
-
     String? selectedCategoryId = incomeCategories
         .firstWhere(
           (cat) => cat.name == income?.name,
@@ -294,20 +340,37 @@ class _PlannedIncomeSection extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) {
-        return BlocProvider.value(
+        return BlocProvider.value(  
           value: monthlyPlanCubit,
           child: StatefulBuilder(
             builder: (context, setDialogState) {
               return AlertDialog(
-                title: Text(
-                  income == null ? 'Add Planned Income' : 'Edit Planned Income',
+                title: Row(
+                  children: [
+                    Text(
+                      income == null
+                          ? 'Add Planned Income'
+                          : 'Edit Planned Income',
+                    ),
+                    if (income != null)
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          size: 20.r,
+                          color: AppColors.errorColor,
+                        ),
+                        onPressed: () => _deleteIncome(context, income),
+                      )
+                    else
+                      const SizedBox.shrink(),
+                  ],
                 ),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    DropdownButtonFormField<String>(
+                    CustomDropdownButtonFormField<String>(
                       value: selectedCategoryId,
-                      decoration: const InputDecoration(labelText: 'Category'),
+                      hintText: 'Category',
                       items: incomeCategories.map((
                         TransactionCategory category,
                       ) {
@@ -392,18 +455,25 @@ class _PlannedIncomeSection extends StatelessWidget {
               (income) => ListTile(
                 title: Text(income.name),
                 subtitle: Text(DateFormat.yMMMd().format(income.date)),
-                trailing: Text(
-                  '${income.amount.toStringAsFixed(2)} EGP',
-                  style: Styles.style14W700.copyWith(
-                    color: AppColors.successColor,
-                  ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${income.amount.truncate()} EGP', // **FIX: Remove decimal points**
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
                 onTap: () => _addOrEditIncome(context, income),
               ),
             ),
             ListTile(
               title: const Text('Add Income Source...'),
-              leading: Icon(Icons.add, color: AppColors.successColor),
+              leading: const Icon(Icons.add, color: Colors.green),
               onTap: () => _addOrEditIncome(context),
             ),
           ],
@@ -574,7 +644,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                 ),
               );
               if (result != null) {
-                _controller.text = result.toStringAsFixed(2);
+                _controller.text = result.truncate().toString();
                 _updateExpenseInCubit(result);
               }
             },

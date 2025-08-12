@@ -97,16 +97,16 @@ class CustomPrimaryTextfield extends StatelessWidget {
       ),
     );
   }
+}
 
-  OutlineInputBorder customOutlineInputBorder() {
-    return OutlineInputBorder(
-      gapPadding: 0,
-      borderRadius: BorderRadius.circular(30.r),
-      borderSide: const BorderSide(
-        width: 0.50,
-        strokeAlign: BorderSide.strokeAlignOutside,
-        color: AppColors.secondaryColor,
-      ),
-    );
-  }
+OutlineInputBorder customOutlineInputBorder() {
+  return OutlineInputBorder(
+    gapPadding: 0,
+    borderRadius: BorderRadius.circular(30.r),
+    borderSide: const BorderSide(
+      width: 0.50,
+      strokeAlign: BorderSide.strokeAlignOutside,
+      color: AppColors.secondaryColor,
+    ),
+  );
 }

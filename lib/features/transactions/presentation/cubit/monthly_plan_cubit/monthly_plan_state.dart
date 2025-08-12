@@ -27,7 +27,6 @@ class MonthlyPlanState extends Equatable {
     MonthlyPlan? plan,
     DateTime? currentMonth,
     String? error,
-    // Helper to clear error message
     bool clearError = false,
   }) {
     return MonthlyPlanState(

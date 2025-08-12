@@ -7,6 +7,8 @@ import 'package:opration/core/theme/text_style.dart';
 class Appthemes {
   static ThemeData lightTheme() {
     return ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.blueLightColor),
+      useMaterial3: true,
       primaryColor: AppColors.blueLightColor,
       scaffoldBackgroundColor: AppColors.scaffoldBackgroundLightColor,
       fontFamily: kPrimaryFont,
@@ -36,6 +38,44 @@ class Appthemes {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.r)),
       ),
       visualDensity: VisualDensity.adaptivePlatformDensity,
+
+      /// Dialog theme
+      dialogTheme: DialogThemeData(
+        backgroundColor:
+            AppColors.scaffoldBackgroundLightColor, // لون خلفية النافذة
+        shape: RoundedRectangleBorder(
+          // شكل الحواف
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        elevation: 5,
+        titleTextStyle: Styles.style20Bold,
+      ),
+
+      /// ستايل الزر الرئيسي (ElevatedButton)
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.blueLightColor, // لون خلفية الزر
+          foregroundColor:
+              AppColors.scaffoldBackgroundLightColor, // لون النص والأيقونة
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+          textStyle: Styles.style12W500,
+        ),
+      ),
+
+      /// ستايل الزر الثانوي (TextButton)
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.secondaryColor, // لون النص
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          textStyle: Styles.style14W500,
+        ),
+      ),
     );
   }
 }
