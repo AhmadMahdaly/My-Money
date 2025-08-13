@@ -4,7 +4,7 @@ import 's.dart';
 
 // ignore_for_file: type=lint
 
-/// The translations for English (`en`).
-class SEn extends S {
-  SEn([String locale = 'en']) : super(locale);
+/// The translations for Arabic (`ar`).
+class SAr extends S {
+  SAr([String locale = 'ar']) : super(locale);
 }

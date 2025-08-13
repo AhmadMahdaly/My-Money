@@ -39,6 +39,8 @@ flutter:
   assets:
     - assets/image/png/
     - assets/image/svg/
+    - assets/image/logo.png
+    - assets/image/logo.svg
     
   fonts:
     - family: Cairo
@@ -46,6 +48,11 @@ flutter:
         - asset: assets/fonts/Cairo-Regular.ttf
         - asset: assets/fonts/Cairo-Medium.ttf
         - asset: assets/fonts/Cairo-Bold.ttf
+    - family: IBM Plex Sans Arabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
 
 flutter_assets:
   assets_path: assets/
@@ -55,7 +62,7 @@ flutter_assets:
   ignore_comments: true
 
 icons_launcher:
-  image_path: "assets/image/png/app_logo.png"
+  image_path: "assets/image/logo.png"
   platforms:
     android:
       enable: true

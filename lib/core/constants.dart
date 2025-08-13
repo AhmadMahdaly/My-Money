@@ -1,2 +1,2 @@
 String userName = '';
-const kPrimaryFont = 'Cairo';
+const kPrimaryFont = 'IBM Plex Sans Arabic';

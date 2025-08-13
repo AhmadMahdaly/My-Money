@@ -36,10 +36,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         key: _scaffoldKey,
         endDrawer: const ManageCategoriesDrawer(),
         appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new),
-            onPressed: () => context.pop(),
-          ),
           title: const Text('Add new transaction'),
           centerTitle: true,
           bottom: TabBar(

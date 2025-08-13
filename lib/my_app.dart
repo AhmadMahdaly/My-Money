@@ -18,8 +18,8 @@ class MyApp extends StatelessWidget {
         title: 'Operating system',
         routerConfig: RouterGenerationConfig.goRouter,
         theme: Appthemes.lightTheme(),
-        locale: const Locale('en'),
-        supportedLocales: const [Locale('en'), Locale('ar')],
+        locale: const Locale('ar'),
+        supportedLocales: const [ Locale('ar')],
         localizationsDelegates: const [
           S.delegate,
           GlobalMaterialLocalizations.delegate,

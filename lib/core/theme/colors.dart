@@ -7,7 +7,7 @@ class AppColors {
   static const forthColor = Color(0xff0e0f24);
 
   ///
-  static const blueLightColor = Color(0xff00afcc);
+  static const blueLightColor = Color(0xFF14684E);
   static const blueDarkColor = Color(0xff114661);
   static const greenLightColor = Color(0xff7fb68a);
   static const orangeColor = Color(0xffe6951c);

@@ -1,9 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'package:opration/features/login/data/datasources/login_local_data_source.dart';
-import 'package:opration/features/login/data/repositories/login_repository_impl.dart';
-import 'package:opration/features/login/domain/repositories/login_repository.dart';
-import 'package:opration/features/login/domain/usecases/login_usecase.dart';
-import 'package:opration/features/login/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/transactions/data/datasources/transaction_local_data_source.dart';
 import 'package:opration/features/transactions/data/repositories/transaction_repository_impl.dart';
 import 'package:opration/features/transactions/domain/repositories/transaction_repository.dart';
@@ -32,15 +27,6 @@ Future<void> setupGetIt() async {
   sl
     ..registerLazySingleton(() => sharedPreferences)
     ..registerLazySingleton(() => const Uuid())
-    // ================== Login Feature Dependencies ==================
-    ..registerFactory(() => LoginCubit(loginUseCase: sl()))
-    ..registerLazySingleton(() => LoginUseCase(repository: sl()))
-    ..registerLazySingleton<LoginRepository>(
-      () => LoginRepositoryImpl(localDataSource: sl()),
-    )
-    ..registerLazySingleton<LoginLocalDataSource>(
-      () => LoginLocalDataSourceImpl(sharedPreferences: sl()),
-    )
     // ================== Transaction Feature Dependencies ==================
     // Cubit
     ..registerFactory(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 ///=> Design screen size:
-const Size deviceSize = Size(393, 844);
+const Size deviceSize = Size(390, 844);
 
 abstract class SizeConfig {
   static late MediaQueryData _mediaQueryData;
