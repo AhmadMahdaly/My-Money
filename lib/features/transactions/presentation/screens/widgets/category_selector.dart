@@ -38,10 +38,12 @@ class CategorySelector extends StatelessWidget {
           );
         }),
         ActionChip(
-          avatar: const Icon(Icons.add, color: AppColors.blueLightColor),
+          avatar: const Icon(Icons.add, color: AppColors.primaryColor),
           label: Text(
             'Add new Category',
-            style: Styles.style12W300.copyWith(color: AppColors.blueLightColor),
+            style: AppTextStyles.style12W300.copyWith(
+              color: AppColors.primaryColor,
+            ),
           ),
           onPressed: onAddCategory,
         ),

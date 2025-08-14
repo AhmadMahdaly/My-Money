@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
-import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
+import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
@@ -16,6 +16,7 @@ import 'package:opration/features/transactions/presentation/screens/widgets/add_
 import 'package:opration/features/transactions/presentation/screens/widgets/category_selector.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/manage_categories_drawer.dart'
     hide AddCategoryDialog, CategorySelector;
+import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -35,46 +36,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       child: Scaffold(
         key: _scaffoldKey,
         endDrawer: const ManageCategoriesDrawer(),
-        appBar: AppBar(
-          title: const Text('Add new transaction'),
-          centerTitle: true,
-          bottom: TabBar(
-            labelStyle: Styles.style14W800.copyWith(
-              color: AppColors.scaffoldBackgroundLightColor,
-            ),
-            unselectedLabelStyle: Styles.style12W600.copyWith(
-              color: AppColors.scaffoldBackgroundLightColor,
-            ),
-            indicatorColor: AppColors.scaffoldBackgroundLightColor,
-            tabs: [
-              Tab(
-                text: 'Expense',
-                icon: Icon(
-                  Icons.arrow_downward,
-                  size: 28.r,
-                  color: AppColors.scaffoldBackgroundLightColor,
-                ),
-              ),
-              Tab(
-                text: 'Income',
-                icon: Icon(
-                  Icons.arrow_upward,
-                  size: 28.r,
-                  color: AppColors.scaffoldBackgroundLightColor,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.analytics, size: 28.r),
-              onPressed: () {
-                context.push(AppRoutes.transactionDetailsScreen);
-              },
-              tooltip: 'View details',
-            ),
-          ],
-        ),
+        appBar: const PageHeader(),
         body: TabBarView(
           children: [
             _TransactionForm(
@@ -87,6 +49,83 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class PageHeader extends StatelessWidget implements PreferredSizeWidget {
+  const PageHeader({
+    super.key,
+  });
+
+  @override
+  Size get preferredSize => Size.fromHeight(170.h);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 170.h,
+      padding: EdgeInsets.only(right: 16.w, left: 16.w),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment(0.50, -0),
+          end: Alignment(0.50, 1),
+          colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
+        ),
+      ),
+      child: Column(
+        spacing: 10.h,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const WelcomeUserWidget(),
+          Row(
+            children: [
+              SvgImage(imagePath: 'assets/image/svg/quote-1.svg', height: 16.h),
+              Text(
+                ' من راقب ماله، زاد ماله ',
+                style: AppTextStyles.style14W400.copyWith(
+                  color: AppColors.scaffoldBackgroundLightColor,
+                ),
+              ),
+              SvgImage(imagePath: 'assets/image/svg/quote-2.svg', height: 16.h),
+            ],
+          ),
+          Container(
+            height: 55.h,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: AppColors.scaffoldBackgroundLightColor,
+                width: 0.5.w,
+              ),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: TabBar(
+              indicatorPadding: EdgeInsets.all(2.r),
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.r),
+                color: AppColors.scaffoldBackgroundLightColor,
+              ),
+
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerHeight: 0,
+              labelColor: AppColors.primaryColor,
+              unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
+
+              labelStyle: AppTextStyles.style14W600.copyWith(
+                fontFamily: kPrimaryFont,
+              ),
+              unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
+                fontFamily: kPrimaryFont,
+              ),
+
+              tabs: const [
+                Tab(text: 'مصاريف'),
+                Tab(text: 'فلوس داخلة'),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -169,13 +208,13 @@ class _TransactionFormState extends State<_TransactionForm> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.blueLightColor,
+              primary: AppColors.primaryColor,
               onPrimary: AppColors.scaffoldBackgroundLightColor,
               onSurface: AppColors.primaryTextColor,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.blueLightColor,
+                foregroundColor: AppColors.primaryColor,
               ),
             ),
           ),
@@ -210,7 +249,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                     icon: Icon(
                       Icons.calendar_month_outlined,
                       size: 22.r,
-                      color: AppColors.blueLightColor,
+                      color: AppColors.primaryColor,
                     ),
                     onPressed: () => _selectDate(context),
                   ),
@@ -247,8 +286,8 @@ class _TransactionFormState extends State<_TransactionForm> {
                     InkWell(
                       child: Text(
                         'Edit',
-                        style: Styles.style12W300.copyWith(
-                          color: AppColors.blueLightColor,
+                        style: AppTextStyles.style12W300.copyWith(
+                          color: AppColors.primaryColor,
                         ),
                       ),
                       onTap: () =>

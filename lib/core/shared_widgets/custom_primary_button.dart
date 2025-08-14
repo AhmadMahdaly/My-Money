@@ -19,7 +19,7 @@ class CustomPrimaryButton extends StatelessWidget {
       child: TextButton(
         onPressed: onPressed,
         style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(AppColors.blueLightColor),
+          backgroundColor: WidgetStateProperty.all(AppColors.primaryColor),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           minimumSize: WidgetStateProperty.all(Size(width ?? 300.w, 52.h)),
           shape: WidgetStateProperty.all(
@@ -28,7 +28,7 @@ class CustomPrimaryButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: Styles.style16W700.copyWith(
+          style: AppTextStyles.style16W700.copyWith(
             color: AppColors.scaffoldBackgroundLightColor,
           ),
         ),

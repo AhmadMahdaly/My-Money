@@ -28,6 +28,8 @@ dependencies:
   flutter_background_service_android: ^6.3.1
   flutter_local_notifications: ^19.4.0
   notification_listener_service: ^0.3.4
+  flutter_iconly: ^1.0.2
+  flutter_vector_icons: ^2.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

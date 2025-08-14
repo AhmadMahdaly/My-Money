@@ -46,7 +46,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
 
                       Text(
                         'Manage Categories',
-                        style: Styles.style20Bold.copyWith(
+                        style: AppTextStyles.style20Bold.copyWith(
                           color: AppColors.scaffoldBackgroundLightColor,
                         ),
                       ),
@@ -58,13 +58,13 @@ class ManageCategoriesDrawer extends StatelessWidget {
               ListTile(
                 leading: Icon(
                   Icons.add,
-                  color: AppColors.blueLightColor,
+                  color: AppColors.primaryColor,
                   size: 22.r,
                 ),
                 title: Text(
                   'Add new category...',
-                  style: Styles.style14W300.copyWith(
-                    color: AppColors.blueLightColor,
+                  style: AppTextStyles.style14W300.copyWith(
+                    color: AppColors.primaryColor,
                   ),
                 ),
                 onTap: () {
@@ -101,7 +101,7 @@ class _CategoryListSection extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.all(16.r),
-          child: Text(title, style: Styles.style16W300),
+          child: Text(title, style: AppTextStyles.style16W300),
         ),
         ...categories.map(
           (category) => ListTile(

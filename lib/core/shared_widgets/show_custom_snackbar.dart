@@ -12,7 +12,7 @@ void showCustomSnackBar(
     SnackBar(
       content: Text(
         message ?? '',
-        style: Styles.style16W600.copyWith(
+        style: AppTextStyles.style16W600.copyWith(
           color: msgColor ?? AppColors.primaryTextColor,
         ),
       ),

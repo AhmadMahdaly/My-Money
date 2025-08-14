@@ -264,11 +264,11 @@ class _SummaryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(title, style: Styles.style16W600),
+        Text(title, style: AppTextStyles.style16W600),
         4.verticalSpace,
         Text(
           '${amount.truncate()} EGP',
-          style: Styles.style16Bold.copyWith(
+          style: AppTextStyles.style16Bold.copyWith(
             color: color,
           ),
         ),
@@ -340,7 +340,7 @@ class _PlannedIncomeSection extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) {
-        return BlocProvider.value(  
+        return BlocProvider.value(
           value: monthlyPlanCubit,
           child: StatefulBuilder(
             builder: (context, setDialogState) {

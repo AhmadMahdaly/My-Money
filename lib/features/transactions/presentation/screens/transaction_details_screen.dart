@@ -140,7 +140,7 @@ class _FilterControlBar extends StatelessWidget {
               12.horizontalSpace,
               Text(
                 filterText,
-                style: Styles.style14W600,
+                style: AppTextStyles.style14W600,
               ),
               const Icon(Icons.arrow_drop_down),
             ],
@@ -301,7 +301,7 @@ class _SummaryCards extends StatelessWidget {
                   8.verticalSpace,
                   Text(
                     '${totalIncome.toStringAsFixed(2)} EGP',
-                    style: Styles.style18Bold.copyWith(
+                    style: AppTextStyles.style18Bold.copyWith(
                       color: Colors.green,
                     ),
                   ),
@@ -320,12 +320,14 @@ class _SummaryCards extends StatelessWidget {
                 children: [
                   Text(
                     'Total Expense',
-                    style: Styles.style14W700.copyWith(color: Colors.red),
+                    style: AppTextStyles.style14W700.copyWith(
+                      color: Colors.red,
+                    ),
                   ),
                   8.verticalSpace,
                   Text(
                     '${totalExpense.toStringAsFixed(2)} EGP',
-                    style: Styles.style18Bold.copyWith(
+                    style: AppTextStyles.style18Bold.copyWith(
                       color: Colors.red,
                     ),
                   ),
@@ -333,7 +335,7 @@ class _SummaryCards extends StatelessWidget {
                     4.verticalSpace,
                     Text(
                       '(${expenseRatio.toStringAsFixed(1)}% From income)',
-                      style: Styles.style12W700.copyWith(
+                      style: AppTextStyles.style12W700.copyWith(
                         color: Colors.red[700],
                       ),
                     ),
@@ -394,7 +396,7 @@ class _PieChartCard extends StatelessWidget {
                       value: entry.value,
                       title: '${percentage.toStringAsFixed(1)}%',
                       radius: 60.r,
-                      titleStyle: Styles.style12Bold.copyWith(
+                      titleStyle: AppTextStyles.style12Bold.copyWith(
                         color: AppColors.scaffoldBackgroundLightColor,
                       ),
                     );

@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 
-abstract class Styles {
+abstract class AppTextStyles {
   // --- Font Size 10 ---
   static final TextStyle style10W300 = TextStyle(
     fontSize: SizeConfig.responsiveValue(phone: 10.sp, tablet: 12.sp),

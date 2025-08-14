@@ -2,6 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/features/login/presentation/views/login_view.dart';
+import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
+import 'package:opration/features/main_layout/views/main_layout.dart';
 import 'package:opration/features/splash/views/splash_view.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
@@ -21,14 +24,37 @@ class RouterGenerationConfig {
         name: AppRoutes.splashScreen,
         builder: (context, state) => const SplashView(),
       ),
-
+      GoRoute(
+        path: AppRoutes.loginScreen,
+        name: AppRoutes.loginScreen,
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.mainLayout,
+        name: AppRoutes.mainLayout,
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (context) => MainLayoutCubit(),
+            ),
+            BlocProvider(
+              create: (_) => sl<TransactionCubit>()..loadInitialData(),
+            ),
+            BlocProvider(
+              create: (context) =>
+                  sl<MonthlyPlanCubit>()..loadPlanForMonth(DateTime.now()),
+            ),
+            BlocProvider.value(
+              value: sl<TransactionCubit>(),
+            ),
+          ],
+          child: const MainLayout(),
+        ),
+      ),
       GoRoute(
         path: AppRoutes.trackMoney,
         name: AppRoutes.trackMoney,
-        builder: (context, state) => BlocProvider(
-          create: (_) => sl<TransactionCubit>()..loadInitialData(),
-          child: const AddTransactionScreen(),
-        ),
+        builder: (context, state) => const AddTransactionScreen(),
       ),
       GoRoute(
         path: AppRoutes.manageCategoriesScreen,
@@ -63,18 +89,7 @@ class RouterGenerationConfig {
       GoRoute(
         path: AppRoutes.monthlyPlanScreen,
         name: AppRoutes.monthlyPlanScreen,
-        builder: (context, state) => MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (context) =>
-                  sl<MonthlyPlanCubit>()..loadPlanForMonth(DateTime.now()),
-            ),
-            BlocProvider.value(
-              value: sl<TransactionCubit>(),
-            ),
-          ],
-          child: const MonthlyPlanScreen(),
-        ),
+        builder: (context, state) => const MonthlyPlanScreen(),
       ),
     ],
   );

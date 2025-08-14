@@ -25,38 +25,32 @@ class CustomDropdownButtonFormField<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
-      // الخصائص الأساسية
       value: value,
       items: items,
       onChanged: onChanged,
       validator: validator,
 
-      // خصائص التصميم
-      isExpanded: true, // لجعل العنصر يملأ المساحة الأفقية
+      isExpanded: true,
       icon: const Icon(
         Icons.keyboard_arrow_down,
         color: AppColors.secondaryColor,
       ),
-      style: Styles.style14W500.copyWith(
+      style: AppTextStyles.style14W500.copyWith(
         color: AppColors.thirdColor,
-      ), // ستايل النص المختار
-      dropdownColor:
-          AppColors.scaffoldBackgroundLightColor, // لون القائمة المنسدلة
+      ),
+      dropdownColor: AppColors.scaffoldBackgroundLightColor,
 
       decoration: InputDecoration(
-        // استخدام نفس الـ hint والـ style من الويدجت الأخرى
         hintText: hintText,
-        hintStyle: Styles.style14W500.copyWith(
+        hintStyle: AppTextStyles.style14W500.copyWith(
           color: AppColors.secondaryColor,
         ),
 
-        // استخدام نفس الإطار (Border)
         border: customOutlineInputBorder(),
         focusedBorder: customOutlineInputBorder(),
         enabledBorder: customOutlineInputBorder(),
         disabledBorder: customOutlineInputBorder(),
 
-        // بقية الخصائص
         prefixIcon: prefix,
         contentPadding: EdgeInsets.symmetric(
           horizontal: 12.w,

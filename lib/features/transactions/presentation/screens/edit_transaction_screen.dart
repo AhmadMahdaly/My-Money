@@ -79,7 +79,9 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
           TextButton(
             child: Text(
               'Delete',
-              style: Styles.style12W700.copyWith(color: AppColors.errorColor),
+              style: AppTextStyles.style12W700.copyWith(
+                color: AppColors.errorColor,
+              ),
             ),
             onPressed: () {
               context.read<TransactionCubit>().deleteTransaction(

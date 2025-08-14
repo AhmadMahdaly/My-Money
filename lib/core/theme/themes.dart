@@ -7,25 +7,23 @@ import 'package:opration/core/theme/text_style.dart';
 class Appthemes {
   static ThemeData lightTheme() {
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.blueLightColor),
+      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryColor),
       useMaterial3: true,
-      primaryColor: AppColors.blueLightColor,
+      primaryColor: AppColors.primaryColor,
       scaffoldBackgroundColor: AppColors.scaffoldBackgroundLightColor,
       fontFamily: kPrimaryFont,
 
       textTheme: TextTheme(
-        titleLarge: Styles.style18W800,
-        titleMedium: Styles.style16W500,
+        titleLarge: AppTextStyles.style18W800,
+        titleMedium: AppTextStyles.style16W500,
       ),
       appBarTheme: AppBarTheme(
         iconTheme: const IconThemeData(
-          color: AppColors.scaffoldBackgroundLightColor,
+          color: AppColors.primaryColor,
         ),
-        toolbarHeight: 100.h,
-        titleTextStyle: Styles.style18Bold.copyWith(
-          color: AppColors.scaffoldBackgroundLightColor,
+        titleTextStyle: AppTextStyles.style18Bold.copyWith(
+          color: AppColors.primaryTextColor,
         ),
-        backgroundColor: AppColors.blueLightColor,
         surfaceTintColor: AppColors.scaffoldBackgroundLightColor,
       ),
       cardTheme: CardThemeData(
@@ -41,39 +39,37 @@ class Appthemes {
 
       /// Dialog theme
       dialogTheme: DialogThemeData(
-        backgroundColor:
-            AppColors.scaffoldBackgroundLightColor, // لون خلفية النافذة
+        backgroundColor: AppColors.scaffoldBackgroundLightColor,
         shape: RoundedRectangleBorder(
-          // شكل الحواف
           borderRadius: BorderRadius.circular(20.r),
         ),
         elevation: 5,
-        titleTextStyle: Styles.style20Bold,
+        titleTextStyle: AppTextStyles.style20Bold,
       ),
 
       /// ستايل الزر الرئيسي (ElevatedButton)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.blueLightColor, // لون خلفية الزر
+          backgroundColor: AppColors.primaryColor,
           foregroundColor:
               AppColors.scaffoldBackgroundLightColor, // لون النص والأيقونة
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.r),
           ),
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-          textStyle: Styles.style12W500,
+          textStyle: AppTextStyles.style12W500,
         ),
       ),
 
       /// ستايل الزر الثانوي (TextButton)
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.secondaryColor, // لون النص
+          foregroundColor: AppColors.secondaryColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.r),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          textStyle: Styles.style14W500,
+          textStyle: AppTextStyles.style14W500,
         ),
       ),
     );

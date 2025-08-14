@@ -60,7 +60,8 @@ class CustomPrimaryTextfield extends StatelessWidget {
         onTap: onTap,
         readOnly: readOnly ?? false,
         style:
-            style ?? Styles.style14W500.copyWith(color: AppColors.thirdColor),
+            style ??
+            AppTextStyles.style14W500.copyWith(color: AppColors.thirdColor),
 
         textAlign: textAlign ?? TextAlign.start,
         validator: validator,
@@ -74,7 +75,7 @@ class CustomPrimaryTextfield extends StatelessWidget {
             text ?? '',
             style:
                 style ??
-                Styles.style14W500.copyWith(
+                AppTextStyles.style14W500.copyWith(
                   color: AppColors.secondaryColor,
                 ),
           ),
