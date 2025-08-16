@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
@@ -485,8 +486,7 @@ class _TransactionList extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: sortedTransactions.length,
-          separatorBuilder: (context, index) =>
-              const Divider(height: 1, indent: 16, endIndent: 16),
+          separatorBuilder: (context, index) => 8.verticalSpace,
           itemBuilder: (context, index) {
             final transaction = sortedTransactions[index];
             final category = categories.firstWhere(
@@ -502,6 +502,10 @@ class _TransactionList extends StatelessWidget {
             final color = isIncome ? Colors.green : Colors.red;
 
             return ListTile(
+              shape: RoundedRectangleBorder(
+                side: const BorderSide(color: AppColors.secondaryColor),
+                borderRadius: BorderRadius.circular(kRadius),
+              ),
               leading: CircleAvatar(
                 backgroundColor: category.color,
                 radius: 18.r,
@@ -542,17 +546,30 @@ class _TransactionList extends StatelessWidget {
                     ),
                   ),
                   8.horizontalSpace,
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete,
-                      size: 22.r,
-                      color: Colors.red[700],
-                    ),
-                    onPressed: () {
-                      context.read<TransactionCubit>().deleteTransaction(
-                        transaction.id,
-                      );
-                    },
+                  PopupMenuButton(
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        child: Row(
+                          children: [
+                            const Text('حذف'),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete,
+                                size: 22.r,
+                                color: Colors.red[700],
+                              ),
+                              onPressed: () {
+                                context
+                                    .read<TransactionCubit>()
+                                    .deleteTransaction(
+                                      transaction.id,
+                                    );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
