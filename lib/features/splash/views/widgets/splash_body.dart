@@ -31,7 +31,7 @@ class _SplashBodyState extends State<SplashBody> {
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) async {
-        Future.delayed(const Duration(seconds: 5), () {
+        Future.delayed(const Duration(seconds: 2), () {
           if (state is Authenticated) {
             context.go(AppRoutes.mainLayout);
           } else if (state is Unauthenticated) {

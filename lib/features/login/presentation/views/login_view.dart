@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
-            context.go(AppRoutes.addTransactionScreen);
+            context.go(AppRoutes.mainLayout);
           } else if (state is AuthFailure) {
             showCustomSnackBar(
               context,
