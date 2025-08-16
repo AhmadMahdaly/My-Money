@@ -45,7 +45,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
                       ),
 
                       Text(
-                        'Manage Categories',
+                        'إدارة فئاتك',
                         style: AppTextStyles.style20Bold.copyWith(
                           color: AppColors.scaffoldBackgroundLightColor,
                         ),
@@ -62,7 +62,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
                   size: 22.r,
                 ),
                 title: Text(
-                  'Add new category...',
+                  'ضيف فئة جديدة...',
                   style: AppTextStyles.style14W300.copyWith(
                     color: AppColors.primaryColor,
                   ),
@@ -73,12 +73,12 @@ class ManageCategoriesDrawer extends StatelessWidget {
               ),
               const Divider(),
               _CategoryListSection(
-                title: 'Income Categories',
+                title: 'فئات الدخل',
                 categories: incomeCategories,
               ),
               const Divider(),
               _CategoryListSection(
-                title: 'Expense Categories',
+                title: 'فئات الصرف',
                 categories: expenseCategories,
               ),
             ],
@@ -119,7 +119,7 @@ class _CategoryListSection extends StatelessWidget {
                 ),
                 IconButton(
                   icon: Icon(
-                    Icons.delete_outline,
+                    Icons.delete,
                     size: 20.r,
                     color: AppColors.errorColor,
                   ),
@@ -138,12 +138,12 @@ void _showAddCategoryDialog(BuildContext context) {
   showDialog<void>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Select category type'),
+      title: const Text('اختار نوع الفئة'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            title: const Text('Income'),
+            title: const Text('دخل'),
             onTap: () {
               Navigator.of(ctx).pop();
               showDialog<TransactionCategory>(
@@ -158,7 +158,7 @@ void _showAddCategoryDialog(BuildContext context) {
             },
           ),
           ListTile(
-            title: const Text('Expense'),
+            title: const Text('صرف'),
             onTap: () {
               Navigator.of(ctx).pop();
               showDialog<TransactionCategory>(
@@ -202,18 +202,18 @@ void _confirmDeleteCategory(
   showDialog<void>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Confirm Deletion'),
+      title: const Text('متأكد؟'),
       content: Text(
-        'Are you sure you want to delete the category "${category.name}"? All associated transactions will also be deleted.',
+        'أنت كدا هتمسح "${category.name}"؟ كل اللي سجلته فيها هيتمسح',
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('Cancel'),
+          child: const Text('إلغاء'),
         ),
         TextButton(
           child: const Text(
-            'Delete',
+            'مسح',
             style: TextStyle(color: AppColors.errorColor),
           ),
           onPressed: () {
@@ -251,6 +251,8 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     Colors.amber,
     Colors.cyan,
     Colors.brown,
+    Colors.black,
+    Colors.indigo,
   ];
 
   @override
@@ -270,7 +272,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     final category = TransactionCategory(
-      id: widget.categoryToEdit?.id ?? sl<Uuid>().v4(),
+      id: widget.categoryToEdit?.id ?? getIt<Uuid>().v4(),
       name: _nameController.text,
       colorValue: _selectedColor.toARGB32(),
       type: widget.type,
@@ -282,7 +284,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   Widget build(BuildContext context) {
     final isEditing = widget.categoryToEdit != null;
     return AlertDialog(
-      title: Text(isEditing ? 'Edit' : 'Add'),
+      title: Text(isEditing ? 'عدّل' : 'ضيف'),
       content: Form(
         key: _formKey,
         child: Column(
@@ -290,9 +292,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Category name'),
+              decoration: const InputDecoration(labelText: 'اسم الفئة'),
               autofocus: true,
-              validator: (v) => v == null || v.isEmpty ? 'Name required' : null,
+              validator: (v) => v == null || v.isEmpty ? 'سجل الاسم' : null,
             ),
             20.verticalSpace,
             Wrap(
@@ -317,11 +319,11 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
       actions: [
         TextButton(
           onPressed: () => context.pop(),
-          child: const Text('Cancel'),
+          child: const Text('إلغاء'),
         ),
         ElevatedButton(
           onPressed: _submit,
-          child: Text(isEditing ? 'Save' : 'Add'),
+          child: Text(isEditing ? 'حفظ' : 'إضافة'),
         ),
       ],
     );

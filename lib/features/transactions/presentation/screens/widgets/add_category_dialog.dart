@@ -29,12 +29,14 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     Colors.amber,
     Colors.cyan,
     Colors.brown,
+    Colors.black,
+    Colors.indigo,
   ];
 
   void _submit() {
     if (_nameController.text.isEmpty) return;
     final newCategory = TransactionCategory(
-      id: sl<Uuid>().v4(),
+      id: getIt<Uuid>().v4(),
       name: _nameController.text,
       colorValue: _selectedColor.toARGB32(),
       type: widget.type,
@@ -45,14 +47,14 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add new category'),
+      title: const Text('ضيف فئة جديدة'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomPrimaryTextfield(
               controller: _nameController,
-              text: 'Category name',
+              text: 'اسم الفئة',
               autofocus: true,
             ),
             20.verticalSpace,
@@ -78,11 +80,11 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text('إلغاء'),
         ),
         ElevatedButton(
           onPressed: _submit,
-          child: const Text('Add'),
+          child: const Text('إضافة'),
         ),
       ],
     );

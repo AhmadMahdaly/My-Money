@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
@@ -30,7 +31,7 @@ class _SplashBodyState extends State<SplashBody> {
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) async {
-        Future.delayed(const Duration(seconds: 2), () {
+        Future.delayed(const Duration(seconds: 5), () {
           if (state is Authenticated) {
             context.go(AppRoutes.mainLayout);
           } else if (state is Unauthenticated) {
@@ -64,7 +65,7 @@ class _SplashBodyState extends State<SplashBody> {
           ),
           10.verticalSpace,
           Text(
-            'من راقب ماله، زاد ماله',
+            kAppQuote,
             textAlign: TextAlign.center,
             style: AppTextStyles.style20W400.copyWith(
               color: AppColors.primaryTextColor,

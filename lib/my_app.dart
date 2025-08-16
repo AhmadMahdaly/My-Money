@@ -7,6 +7,9 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/router_generation_config.dart';
 import 'package:opration/core/theme/themes.dart';
 import 'package:opration/features/login/presentation/cubit/login_cubit.dart';
+import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
+import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
+import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -16,11 +19,39 @@ class MyApp extends StatelessWidget {
     SizeConfig.init(context);
     return GestureDetector(
       onTap: () => unfocusScope(context),
-      child: BlocProvider(
-        create: (_) => sl<AuthCubit>(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthCubit>(
+            create: (_) => getIt<AuthCubit>(),
+          ),
+
+          BlocProvider<MainLayoutCubit>(
+            create: (context) => MainLayoutCubit(),
+          ),
+          BlocProvider<TransactionCubit>(
+            create: (_) => TransactionCubit(
+              getTransactionsUseCase: getIt(),
+              addTransactionUseCase: getIt(),
+              updateTransactionUseCase: getIt(),
+              deleteTransactionUseCase: getIt(),
+              getCategoriesUseCase: getIt(),
+              addCategoryUseCase: getIt(),
+              updateCategoryUseCase: getIt(),
+              deleteCategoryUseCase: getIt(),
+              getFilterSettingsUseCase: getIt(),
+              saveFilterSettingsUseCase: getIt(),
+            )..loadInitialData(),
+          ),
+          BlocProvider<MonthlyPlanCubit>(
+            create: (context) => MonthlyPlanCubit(
+              getMonthlyPlanUseCase: getIt(),
+              saveMonthlyPlanUseCase: getIt(),
+            )..loadPlanForMonth(DateTime.now()),
+          ),
+        ],
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          title: 'Operating system',
+          title: 'فلوسي',
           routerConfig: RouterGenerationConfig.goRouter,
           theme: Appthemes.lightTheme(),
           locale: const Locale('ar'),

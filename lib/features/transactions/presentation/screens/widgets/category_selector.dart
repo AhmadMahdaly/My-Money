@@ -40,7 +40,7 @@ class CategorySelector extends StatelessWidget {
         ActionChip(
           avatar: const Icon(Icons.add, color: AppColors.primaryColor),
           label: Text(
-            'Add new Category',
+            'ضيف فئة جديدة',
             style: AppTextStyles.style12W300.copyWith(
               color: AppColors.primaryColor,
             ),

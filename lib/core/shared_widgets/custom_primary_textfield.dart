@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
@@ -103,7 +104,7 @@ class CustomPrimaryTextfield extends StatelessWidget {
 OutlineInputBorder customOutlineInputBorder() {
   return OutlineInputBorder(
     gapPadding: 0,
-    borderRadius: BorderRadius.circular(30.r),
+    borderRadius: BorderRadius.circular(kRadius),
     borderSide: const BorderSide(
       width: 0.50,
       strokeAlign: BorderSide.strokeAlignOutside,

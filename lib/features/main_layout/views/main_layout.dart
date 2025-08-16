@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
@@ -15,54 +14,50 @@ class MainLayout extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<MainLayoutCubit>();
         return Scaffold(
-          appBar: AppBar(
-            toolbarHeight: 90.h,
-            backgroundColor: AppColors.primaryColor,
-          ),
-
           body: IndexedStack(
             index: cubit.currentIndex,
             children: cubit.screens,
           ),
-          bottomSheet: Container(
-            height: 75.h,
-            margin: EdgeInsets.only(right: 2.w, left: 2.w, bottom: 8.h),
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(60.r)),
+          bottomNavigationBar: BottomNavigationBar(
+            selectedLabelStyle: const TextStyle(
+              color: AppColors.primaryColor,
             ),
-            child: BottomNavigationBar(
-              selectedLabelStyle: const TextStyle(
-                color: AppColors.primaryColor,
-              ),
-              selectedIconTheme: const IconThemeData(
-                color: AppColors.primaryColor,
-              ),
-              useLegacyColorScheme: false,
-              backgroundColor: AppColors.scaffoldBackgroundLightColor,
-              type: BottomNavigationBarType.fixed,
-              currentIndex: cubit.currentIndex,
-              onTap: cubit.changeNavBarIndex,
-              unselectedItemColor: AppColors.brownLightColor,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(IconlyBroken.home),
-                  label: '1',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(IconlyBroken.category),
-                  label: '2',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Entypo.lab_flask),
-                  label: '3',
-                ),
-                // BottomNavigationBarItem(
-                //   icon: Icon(IconlyBroken.profile),
-                //   label: 'Profile',
-                // ),
-              ],
+
+            selectedIconTheme: const IconThemeData(
+              color: AppColors.primaryColor,
             ),
+            backgroundColor: AppColors.scaffoldBackgroundLightColor,
+            type: BottomNavigationBarType.fixed,
+            currentIndex: cubit.currentIndex,
+            onTap: cubit.changeNavBarIndex,
+            unselectedItemColor: AppColors.textGreyColor,
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(IconlyBroken.wallet),
+                label: 'فلوسك',
+              ),
+              BottomNavigationBarItem(
+                icon: Container(
+                  padding: EdgeInsets.all(4.r),
+                  decoration: BoxDecoration(
+                    color: cubit.currentIndex == 1
+                        ? AppColors.primaryColor
+                        : AppColors.textGreyColor,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    color: AppColors.scaffoldBackgroundLightColor,
+                  ),
+                ),
+                label: '',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(IconlyBroken.paper),
+                // icon: Icon(Entypo.attachment),
+                label: 'خططك',
+              ),
+            ],
           ),
         );
       },

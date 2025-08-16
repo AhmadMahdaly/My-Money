@@ -19,71 +19,44 @@ import 'package:opration/features/transactions/domain/usecases/save_filter_setti
 import 'package:opration/features/transactions/domain/usecases/save_monthly_plan.dart';
 import 'package:opration/features/transactions/domain/usecases/update_category.dart';
 import 'package:opration/features/transactions/domain/usecases/update_transaction.dart';
-import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
-final GetIt sl = GetIt.instance;
-
+final GetIt getIt = GetIt.instance;
 Future<void> setupGetIt() async {
-  // External
   final sharedPreferences = await SharedPreferences.getInstance();
-  sl
-    ..registerLazySingleton(() => sharedPreferences)
+  getIt
+    ..registerSingleton<SharedPreferences>(sharedPreferences)
     ..registerLazySingleton(() => const Uuid())
-    // ================== Login Feature Dependencies ==================
-    ..registerLazySingleton(() => LoginUseCase(repository: sl()))
+    // login
+    ..registerLazySingleton(() => LoginUseCase(repository: getIt()))
     ..registerLazySingleton<LoginRepository>(
-      () => LoginRepositoryImpl(localDataSource: sl()),
+      () => LoginRepositoryImpl(localDataSource: getIt()),
     )
     ..registerLazySingleton<AuthLocalDataSource>(
-      () => AuthLocalDataSourceImpl(sharedPreferences: sl()),
+      () => AuthLocalDataSourceImpl(sharedPreferences: getIt()),
     )
-    ..registerFactory(() => AuthCubit(localDataSource: sl()))
-    // ================== Transaction Feature Dependencies ==================
-    // Cubit
-    ..registerFactory(
-      () => TransactionCubit(
-        getTransactionsUseCase: sl(),
-        addTransactionUseCase: sl(),
-        getCategoriesUseCase: sl(),
-        addCategoryUseCase: sl(),
-        getFilterSettingsUseCase: sl(),
-        saveFilterSettingsUseCase: sl(),
-        updateCategoryUseCase: sl(),
-        deleteCategoryUseCase: sl(),
-        updateTransactionUseCase: sl(),
-        deleteTransactionUseCase: sl(),
+    ..registerFactory(() => AuthCubit(localDataSource: getIt()))
+    // transactions
+    ..registerFactory<TransactionLocalDataSource>(
+      () => TransactionLocalDataSourceImpl(
+        sharedPreferences: getIt(),
+        uuid: getIt(),
       ),
     )
-    // UseCases
-    ..registerLazySingleton(() => GetTransactionsUseCase(repository: sl()))
-    ..registerLazySingleton(() => AddTransactionUseCase(repository: sl()))
-    ..registerLazySingleton(() => GetCategoriesUseCase(repository: sl()))
-    ..registerLazySingleton(() => AddCategoryUseCase(repository: sl()))
-    ..registerLazySingleton(() => GetFilterSettingsUseCase(repository: sl()))
-    ..registerLazySingleton(() => SaveFilterSettingsUseCase(repository: sl()))
-    ..registerLazySingleton(() => UpdateCategoryUseCase(repository: sl()))
-    ..registerLazySingleton(() => DeleteCategoryUseCase(repository: sl()))
-    ..registerLazySingleton(() => UpdateTransactionUseCase(repository: sl()))
-    ..registerLazySingleton(() => DeleteTransactionUseCase(repository: sl()))
-    // Repository
-    ..registerLazySingleton<TransactionRepository>(
-      () => TransactionRepositoryImpl(localDataSource: sl()),
+    ..registerFactory<TransactionRepository>(
+      () => TransactionRepositoryImpl(localDataSource: getIt()),
     )
-    // Data Sources
-    ..registerLazySingleton<TransactionLocalDataSource>(
-      () => TransactionLocalDataSourceImpl(sharedPreferences: sl(), uuid: sl()),
-    )
-    //
-    ..registerLazySingleton(() => GetMonthlyPlanUseCase(repository: sl()))
-    ..registerLazySingleton(() => SaveMonthlyPlanUseCase(repository: sl()))
-    //
-    ..registerFactory(
-      () => MonthlyPlanCubit(
-        getMonthlyPlanUseCase: sl(),
-        saveMonthlyPlanUseCase: sl(),
-      ),
-    );
+    ..registerFactory(() => GetTransactionsUseCase(repository: getIt()))
+    ..registerFactory(() => AddTransactionUseCase(repository: getIt()))
+    ..registerFactory(() => GetCategoriesUseCase(repository: getIt()))
+    ..registerFactory(() => AddCategoryUseCase(repository: getIt()))
+    ..registerFactory(() => GetFilterSettingsUseCase(repository: getIt()))
+    ..registerFactory(() => SaveFilterSettingsUseCase(repository: getIt()))
+    ..registerFactory(() => UpdateCategoryUseCase(repository: getIt()))
+    ..registerFactory(() => DeleteCategoryUseCase(repository: getIt()))
+    ..registerFactory(() => UpdateTransactionUseCase(repository: getIt()))
+    ..registerFactory(() => DeleteTransactionUseCase(repository: getIt()))
+    ..registerFactory(() => GetMonthlyPlanUseCase(repository: getIt()))
+    ..registerFactory(() => SaveMonthlyPlanUseCase(repository: getIt()));
 }

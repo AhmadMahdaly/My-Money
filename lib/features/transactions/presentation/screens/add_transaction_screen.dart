@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
@@ -14,8 +16,6 @@ import 'package:opration/features/transactions/domain/entities/transaction_categ
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/category_selector.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/manage_categories_drawer.dart'
-    hide AddCategoryDialog, CategorySelector;
 import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:uuid/uuid.dart';
 
@@ -35,7 +35,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       length: 2,
       child: Scaffold(
         key: _scaffoldKey,
-        endDrawer: const ManageCategoriesDrawer(),
         appBar: const PageHeader(),
         body: TabBarView(
           children: [
@@ -60,13 +59,17 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => Size.fromHeight(170.h);
+  Size get preferredSize => Size.fromHeight(160.h);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 170.h,
-      padding: EdgeInsets.only(right: 16.w, left: 16.w),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top,
+        right: 16.w,
+        left: 16.w,
+        bottom: 10.h,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment(0.50, -0),
@@ -75,50 +78,62 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       child: Column(
-        spacing: 10.h,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const WelcomeUserWidget(),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              SvgImage(imagePath: 'assets/image/svg/quote-1.svg', height: 16.h),
-              Text(
-                ' من راقب ماله، زاد ماله ',
-                style: AppTextStyles.style14W400.copyWith(
-                  color: AppColors.scaffoldBackgroundLightColor,
-                ),
+              const WelcomeUserWidget(),
+              Row(
+                children: [
+                  SvgImage(
+                    imagePath: 'assets/image/svg/quote-1.svg',
+                    height: 14.h,
+                  ),
+                  4.horizontalSpace,
+                  Text(
+                    kAppQuote,
+                    style: AppTextStyles.style14W400.copyWith(
+                      color: AppColors.scaffoldBackgroundLightColor,
+                    ),
+                  ),
+                  4.horizontalSpace,
+                  SvgImage(
+                    imagePath: 'assets/image/svg/quote-1.svg',
+                    height: 14.h,
+                  ),
+                ],
               ),
-              SvgImage(imagePath: 'assets/image/svg/quote-2.svg', height: 16.h),
             ],
           ),
+          8.verticalSpace,
           Container(
-            height: 55.h,
+            height: 50.h,
             decoration: BoxDecoration(
               border: Border.all(
                 color: AppColors.scaffoldBackgroundLightColor,
                 width: 0.5.w,
               ),
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(kRadius),
             ),
             child: TabBar(
-              indicatorPadding: EdgeInsets.all(2.r),
+              indicatorPadding: EdgeInsets.all(3.r),
               indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(kRadius),
                 color: AppColors.scaffoldBackgroundLightColor,
               ),
-
               indicatorSize: TabBarIndicatorSize.tab,
               dividerHeight: 0,
               labelColor: AppColors.primaryColor,
               unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
-
               labelStyle: AppTextStyles.style14W600.copyWith(
                 fontFamily: kPrimaryFont,
               ),
               unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
                 fontFamily: kPrimaryFont,
               ),
-
               tabs: const [
                 Tab(text: 'مصاريف'),
                 Tab(text: 'فلوس داخلة'),
@@ -163,14 +178,17 @@ class _TransactionFormState extends State<_TransactionForm> {
       if (_selectedCategoryId == null) {
         showCustomSnackBar(
           context,
-          message: 'Please select a category',
+          message: widget.type == TransactionType.expense
+              ? 'متنساش تسجل صرفت على ايه'
+              : 'متنساش تسجل الفلوس جاية منين',
+          msgColor: AppColors.scaffoldBackgroundLightColor,
           backgroundColor: AppColors.orangeColor,
         );
         return;
       }
 
       final transaction = Transaction(
-        id: sl<Uuid>().v4(),
+        id: getIt<Uuid>().v4(),
         amount: double.parse(_amountController.text),
         categoryId: _selectedCategoryId!,
         date: _selectedDate,
@@ -179,15 +197,7 @@ class _TransactionFormState extends State<_TransactionForm> {
       );
 
       context.read<TransactionCubit>().addTransaction(transaction);
-
-      showCustomSnackBar(
-        context,
-        msgColor: AppColors.scaffoldBackgroundLightColor,
-        message:
-            '${widget.type == TransactionType.income ? 'Income' : 'Expense'} Successfully added',
-        backgroundColor: AppColors.successColor,
-      );
-
+      ////
       _amountController.clear();
       _noteController.clear();
       setState(() {
@@ -242,8 +252,17 @@ class _TransactionFormState extends State<_TransactionForm> {
           child: SingleChildScrollView(
             padding: EdgeInsets.all(16.r),
             child: Column(
+              spacing: 16.h,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Text(
+                  widget.type == TransactionType.income
+                      ? 'معاك كام (المبلغ)'
+                      : 'صرفت كام (المبلغ)',
+                  style: AppTextStyles.style14W400.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
+                ),
                 CustomPrimaryTextfield(
                   suffix: IconButton(
                     icon: Icon(
@@ -257,45 +276,36 @@ class _TransactionFormState extends State<_TransactionForm> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  text: 'Amount',
-                  prefix: const Icon(
-                    Icons.monetization_on_outlined,
-                    color: AppColors.secondaryColor,
-                  ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Please enter the amount'
-                      : null,
+                  text: 'المبلغ',
+
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'سجل المبلغ' : null,
                 ),
-                16.verticalSpace,
-                CustomPrimaryTextfield(
-                  controller: _noteController,
-                  text: 'Note (optional)',
-                  prefix: const Icon(
-                    Icons.note_alt_outlined,
-                    color: AppColors.secondaryColor,
-                  ),
-                ),
-                16.verticalSpace,
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Select a category',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      widget.type == TransactionType.income
+                          ? 'الفلوس دي جاية منين (الفئة)'
+                          : 'صرفتها على ايه (الفئة)',
+                      style: AppTextStyles.style14W400.copyWith(
+                        color: AppColors.primaryColor,
+                      ),
                     ),
                     InkWell(
                       child: Text(
-                        'Edit',
+                        'عدّل',
                         style: AppTextStyles.style12W300.copyWith(
                           color: AppColors.primaryColor,
                         ),
                       ),
                       onTap: () =>
-                          widget.scaffoldKey.currentState?.openEndDrawer(),
+                          context.pushNamed(AppRoutes.manageCategoriesScreen),
                     ),
                   ],
                 ),
-                8.verticalSpace,
+
                 CategorySelector(
                   categories: categories,
                   selectedCategoryId: _selectedCategoryId,
@@ -304,12 +314,21 @@ class _TransactionFormState extends State<_TransactionForm> {
                   onAddCategory: () =>
                       _showAddCategoryDialog(context, widget.type),
                 ),
-                24.verticalSpace,
+                Text(
+                  'ملاحظات',
+                  style: AppTextStyles.style14W400.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                CustomPrimaryTextfield(
+                  controller: _noteController,
+                  text: 'ملاحظات (اختياري)',
+                ),
+                16.verticalSpace,
                 CustomPrimaryButton(
                   onPressed: _submit,
                   width: SizeConfig.screenWidth,
-                  text:
-                      'Save the ${widget.type == TransactionType.income ? 'Income' : 'Expense'}',
+                  text: 'إضافة',
                 ),
               ],
             ),

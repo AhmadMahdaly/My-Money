@@ -67,18 +67,18 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirm Deletion'),
+        title: const Text('متأكد؟'),
         content: const Text(
-          'Are you sure you want to delete this transaction? This action cannot be undone.',
+          'أنت كدا هتمسح العملية دي كلها',
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel'),
+            child: const Text('إلغاء'),
             onPressed: () => ctx.pop(),
           ),
           TextButton(
             child: Text(
-              'Delete',
+              'مسح',
               style: AppTextStyles.style12W700.copyWith(
                 color: AppColors.errorColor,
               ),
@@ -102,12 +102,12 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit'),
+        title: const Text('عدّل'),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: _deleteTransaction,
-            tooltip: 'Delete',
+            tooltip: 'تعديل',
           ),
         ],
       ),
@@ -126,9 +126,9 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(labelText: 'Amount'),
+                  decoration: const InputDecoration(labelText: 'المبلغ'),
                   validator: (v) =>
-                      v == null || v.isEmpty ? 'Amount required' : null,
+                      v == null || v.isEmpty ? 'سجل المبلغ' : null,
                 ),
                 16.verticalSpace,
                 DropdownButtonFormField<String>(
@@ -146,18 +146,20 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                       setState(() => _selectedCategoryId = value);
                     }
                   },
-                  decoration: const InputDecoration(labelText: 'Category'),
+                  decoration: const InputDecoration(labelText: 'الفئة'),
                 ),
                 16.verticalSpace,
                 TextFormField(
                   controller: _noteController,
-                  decoration: const InputDecoration(labelText: 'Note'),
+                  decoration: const InputDecoration(
+                    labelText: 'لو عندك ملاحظة',
+                  ),
                 ),
                 16.verticalSpace,
                 ListTile(
-                  title: const Text('Date'),
+                  title: const Text('التاريخ'),
                   subtitle: Text(
-                    DateFormat.yMMMd().format(_selectedDate),
+                    DateFormat.yMMMd('ar').format(_selectedDate),
                   ),
                   trailing: const Icon(Icons.calendar_today),
                   onTap: () async {
@@ -176,7 +178,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                 CustomPrimaryButton(
                   onPressed: _updateTransaction,
                   width: SizeConfig.screenWidth,
-                  text: 'Save',
+                  text: 'سجّل',
                 ),
               ],
             ),

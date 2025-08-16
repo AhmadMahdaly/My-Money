@@ -27,6 +27,7 @@ class Appthemes {
         surfaceTintColor: AppColors.scaffoldBackgroundLightColor,
       ),
       cardTheme: CardThemeData(
+        color: AppColors.cardColor,
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.r),
@@ -57,19 +58,23 @@ class Appthemes {
             borderRadius: BorderRadius.circular(20.r),
           ),
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-          textStyle: AppTextStyles.style12W500,
+          textStyle: AppTextStyles.style12W500.copyWith(
+            fontFamily: kPrimaryFont,
+          ),
         ),
       ),
 
       /// ستايل الزر الثانوي (TextButton)
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.secondaryColor,
+          foregroundColor: AppColors.textGreyColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.r),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          textStyle: AppTextStyles.style14W500,
+          textStyle: AppTextStyles.style14W500.copyWith(
+            fontFamily: kPrimaryFont,
+          ),
         ),
       ),
     );

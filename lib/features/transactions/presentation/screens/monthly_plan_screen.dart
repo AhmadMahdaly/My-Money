@@ -6,8 +6,8 @@ import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
+import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
-import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/monthly_plan.dart';
@@ -17,6 +17,7 @@ import 'package:opration/features/transactions/presentation/cubit/monthly_plan_c
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/calculator_dialog.dart';
+import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class MonthlyPlanScreen extends StatelessWidget {
@@ -28,32 +29,8 @@ class MonthlyPlanScreen extends StatelessWidget {
   }
 }
 
-class _MonthlyPlanView extends StatefulWidget {
+class _MonthlyPlanView extends StatelessWidget {
   const _MonthlyPlanView();
-
-  @override
-  State<_MonthlyPlanView> createState() => _MonthlyPlanViewState();
-}
-
-class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
-  late final MonthlyPlanCubit _monthlyPlanCubit;
-
-  @override
-  void initState() {
-    super.initState();
-    _monthlyPlanCubit = context.read<MonthlyPlanCubit>();
-
-    final transactionCubit = context.read<TransactionCubit>();
-    if (transactionCubit.state.allCategories.isEmpty) {
-      transactionCubit.loadInitialData();
-    }
-  }
-
-  @override
-  void dispose() {
-    _monthlyPlanCubit.saveCurrentPlan();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,48 +38,13 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
     if (transactionCubit.state.allCategories.isEmpty &&
         !transactionCubit.state.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
+        if (context.mounted) {
           context.read<TransactionCubit>().loadInitialData();
         }
       });
     }
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text('Monthly Financial Plan'),
-        actions: [
-          BlocBuilder<MonthlyPlanCubit, MonthlyPlanState>(
-            builder: (context, state) {
-              if (state.status == MonthlyPlanStatus.saving) {
-                return Padding(
-                  padding: EdgeInsets.all(16.r),
-                  child: SizedBox(
-                    width: 20.w,
-                    height: 20.h,
-                    child: const CircularProgressIndicator(color: Colors.white),
-                  ),
-                );
-              }
-              return IconButton(
-                icon: const Icon(Icons.save),
-                tooltip: 'Save Plan',
-                onPressed: () {
-                  _monthlyPlanCubit.saveCurrentPlan();
-                  showCustomSnackBar(
-                    context,
-                    msgColor: AppColors.scaffoldBackgroundLightColor,
-                    message: 'Plan saved!',
-                  );
-                },
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: const _PageHeader(),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, transactionState) {
           if (transactionState.isLoading &&
@@ -115,11 +57,21 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
                   planState.plan == null) {
                 return const Center(child: CircularProgressIndicator());
               }
+              if (planState.status == MonthlyPlanStatus.saving) {
+                return Padding(
+                  padding: EdgeInsets.all(16.r),
+                  child: SizedBox(
+                    width: 20.w,
+                    height: 20.h,
+                    child: const CircularProgressIndicator(color: Colors.white),
+                  ),
+                );
+              }
               if (planState.status == MonthlyPlanStatus.error) {
-                return Center(child: Text('Error: ${planState.error}'));
+                return Center(child: Text('فيه غلطة: ${planState.error}'));
               }
               if (planState.plan == null) {
-                return const Center(child: Text('No plan data available.'));
+                return const Center(child: Text('مفيش أي خطط متسجلة.'));
               }
 
               return Column(
@@ -134,6 +86,15 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
                         _PlannedIncomeSection(plan: planState.plan!),
                         16.verticalSpace,
                         _PlannedExpensesSection(plan: planState.plan!),
+                        20.verticalSpace,
+                        CustomPrimaryButton(
+                          width: double.infinity,
+                          text: 'احفظ حسبة الشهر',
+                          onPressed: () => context
+                              .read<MonthlyPlanCubit>()
+                              .saveCurrentPlan(),
+                        ),
+                        16.verticalSpace,
                       ],
                     ),
                   ),
@@ -142,6 +103,55 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
+  const _PageHeader();
+
+  @override
+  Size get preferredSize => Size.fromHeight(100.h);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top,
+        right: 16.w,
+        left: 16.w,
+        bottom: 10.h,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment(0.50, -0),
+          end: Alignment(0.50, 1),
+          colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const WelcomeUserWidget(),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'احسب هنا دخلك الصافي بعد أي التزامات ثابتة',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.style16W500.copyWith(
+                    color: AppColors.scaffoldBackgroundLightColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -159,7 +169,10 @@ class _MonthSelector extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left),
+            icon: const Icon(
+              Icons.chevron_left,
+              color: AppColors.primaryColor,
+            ),
             onPressed: () {
               final prevMonth = DateTime(
                 currentMonth.year,
@@ -169,11 +182,16 @@ class _MonthSelector extends StatelessWidget {
             },
           ),
           Text(
-            DateFormat.yMMMM().format(currentMonth),
-            style: Theme.of(context).textTheme.titleLarge,
+            DateFormat.yMMMM('ar').format(currentMonth),
+            style: AppTextStyles.style16W400.copyWith(
+              color: AppColors.primaryColor,
+            ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right),
+            icon: const Icon(
+              Icons.chevron_right,
+              color: AppColors.primaryColor,
+            ),
             onPressed: () {
               final nextMonth = DateTime(
                 currentMonth.year,
@@ -214,37 +232,41 @@ class _SummarySection extends StatelessWidget {
 
     final projectedSavings = plan.totalPlannedIncome - totalBudgetedExpense;
 
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(16.r),
-        child: Column(
-          children: [
-            Text('Plan Summary', style: Theme.of(context).textTheme.titleLarge),
-            16.verticalSpace,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _SummaryItem(
-                  title: 'Income',
-                  amount: plan.totalPlannedIncome,
-                  color: AppColors.successColor,
-                ),
-                _SummaryItem(
-                  title: 'Expenses',
-                  amount: totalBudgetedExpense,
-                  color: AppColors.errorColor,
-                ),
-                _SummaryItem(
-                  title: 'Savings',
-                  amount: projectedSavings,
-                  color: projectedSavings >= 0
-                      ? AppColors.primaryColor
-                      : AppColors.orangeColor,
-                ),
-              ],
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.r),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'ملخص الحسبة',
+            style: AppTextStyles.style14W400.copyWith(
+              color: AppColors.primaryColor,
             ),
-          ],
-        ),
+          ),
+          16.verticalSpace,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _SummaryItem(
+                title: 'الدخل',
+                amount: plan.totalPlannedIncome,
+                color: AppColors.successColor,
+              ),
+              _SummaryItem(
+                title: 'المصروف',
+                amount: totalBudgetedExpense,
+                color: AppColors.errorColor,
+              ),
+              _SummaryItem(
+                title: 'الباقي',
+                amount: projectedSavings,
+                color: projectedSavings >= 0
+                    ? AppColors.primaryColor
+                    : AppColors.orangeColor,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -262,17 +284,32 @@ class _SummaryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(title, style: AppTextStyles.style16W600),
-        4.verticalSpace,
-        Text(
-          '${amount.truncate()} EGP',
-          style: AppTextStyles.style16Bold.copyWith(
-            color: color,
+    return Expanded(
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(16.r),
+          child: Column(
+            children: [
+              Text(
+                title,
+                style: AppTextStyles.style16W300.copyWith(
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              4.verticalSpace,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '${amount.truncate()}',
+                  style: AppTextStyles.style20Bold.copyWith(
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -284,14 +321,14 @@ class _PlannedIncomeSection extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirm Deletion'),
+        title: const Text('متأكد؟'),
         content: Text(
-          'Are you sure you want to delete the planned income "${incomeToDelete.name}"?',
+          'أنت هتمسح "${incomeToDelete.name}"؟',
         ),
         actions: [
           TextButton(
             onPressed: () => ctx.pop(),
-            child: const Text('Cancel'),
+            child: const Text('إلغاء'),
           ),
           TextButton(
             onPressed: () {
@@ -304,7 +341,7 @@ class _PlannedIncomeSection extends StatelessWidget {
               );
               ctx.pop();
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('مسح', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -321,7 +358,7 @@ class _PlannedIncomeSection extends StatelessWidget {
 
     if (incomeCategories.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add an income category first!')),
+        const SnackBar(content: Text('ضيف الفئة الأول!')),
       );
       return;
     }
@@ -346,11 +383,10 @@ class _PlannedIncomeSection extends StatelessWidget {
             builder: (context, setDialogState) {
               return AlertDialog(
                 title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      income == null
-                          ? 'Add Planned Income'
-                          : 'Edit Planned Income',
+                      income == null ? 'إضافة دخل متوقع' : 'تعديل الدخل',
                     ),
                     if (income != null)
                       IconButton(
@@ -370,7 +406,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                   children: [
                     CustomDropdownButtonFormField<String>(
                       value: selectedCategoryId,
-                      hintText: 'Category',
+                      hintText: 'تبع أنهي فئة',
                       items: incomeCategories.map((
                         TransactionCategory category,
                       ) {
@@ -388,7 +424,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                     6.verticalSpace,
                     CustomPrimaryTextfield(
                       controller: amountController,
-                      text: 'Amount',
+                      text: 'المبلغ',
                       keyboardType: TextInputType.number,
                     ),
                   ],
@@ -396,7 +432,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                 actions: [
                   TextButton(
                     onPressed: () => ctx.pop(),
-                    child: const Text('Cancel'),
+                    child: const Text('إلغاء'),
                   ),
                   ElevatedButton(
                     onPressed: () {
@@ -409,7 +445,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                       if (amount <= 0) return;
 
                       final newIncome = PlannedIncome(
-                        id: income?.id ?? sl<Uuid>().v4(),
+                        id: income?.id ?? getIt<Uuid>().v4(),
                         name: selectedCategory.name,
                         amount: amount,
                         date: selectedDate,
@@ -428,7 +464,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                       );
                       ctx.pop();
                     },
-                    child: const Text('Save'),
+                    child: const Text('سجل'),
                   ),
                 ],
               );
@@ -446,24 +482,23 @@ class _PlannedIncomeSection extends StatelessWidget {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           title: Text(
-            'Planned Income',
-            style: Theme.of(context).textTheme.titleLarge,
+            'دخلك المتوقع',
+            style: AppTextStyles.style14W400.copyWith(
+              color: AppColors.primaryColor,
+            ),
           ),
-          initiallyExpanded: true,
+          initiallyExpanded: false,
           children: [
             ...plan.incomes.map(
               (income) => ListTile(
                 title: Text(income.name),
-                subtitle: Text(DateFormat.yMMMd().format(income.date)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '${income.amount.truncate()} EGP', // **FIX: Remove decimal points**
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
+                      '${income.amount.truncate()} ج.م',
+                      style: AppTextStyles.style14Bold.copyWith(
+                        color: AppColors.primaryColor,
                       ),
                     ),
                   ],
@@ -472,8 +507,13 @@ class _PlannedIncomeSection extends StatelessWidget {
               ),
             ),
             ListTile(
-              title: const Text('Add Income Source...'),
-              leading: const Icon(Icons.add, color: Colors.green),
+              title: Text(
+                'ضيف دخل جديد...',
+                style: AppTextStyles.style14W400.copyWith(
+                  color: AppColors.primaryTextColor,
+                ),
+              ),
+              leading: const Icon(Icons.add, color: AppColors.primaryTextColor),
               onTap: () => _addOrEditIncome(context),
             ),
           ],
@@ -518,23 +558,25 @@ class _PlannedExpensesSection extends StatelessWidget {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           title: Text(
-            'Budgeted Expenses',
-            style: Theme.of(context).textTheme.titleLarge,
+            'الإلتزامات الثابتة (مصاريفك المتوقعة)',
+            style: AppTextStyles.style14W400.copyWith(
+              color: AppColors.primaryColor,
+            ),
           ),
-          initiallyExpanded: true,
+          initiallyExpanded: false,
           children: [
             if (expenseCategories.isEmpty)
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16.r),
                 child: Column(
                   children: [
-                    const Text('No expense categories found.'),
+                    const Text('لسا مضيفتش فئات'),
                     8.verticalSpace,
                     ElevatedButton(
                       onPressed: () {
                         context.push(AppRoutes.manageCategoriesScreen);
                       },
-                      child: const Text('Add Expense Category'),
+                      child: const Text('ضيف فئة جديدة'),
                     ),
                   ],
                 ),
@@ -547,7 +589,7 @@ class _PlannedExpensesSection extends StatelessWidget {
                 );
               }),
             ListTile(
-              title: const Text('Add Expense Category...'),
+              title: const Text('ضيف فئة جديدة لمصاريفك...'),
               leading: const Icon(Icons.add, color: Colors.red),
               onTap: () => _showAddExpenseCategoryDialog(context),
             ),
@@ -633,14 +675,21 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
           textAlign: TextAlign.center,
           keyboardType: TextInputType.number,
 
-          suffix: const Text('\n EGP'),
+          suffix: const Text(
+            '\n ج.م',
+            style: TextStyle(color: AppColors.primaryColor),
+          ),
           prefix: IconButton(
-            icon: Icon(Icons.calculate_outlined, size: 20.r),
+            icon: Icon(
+              Icons.calculate_outlined,
+              size: 24.r,
+              color: AppColors.primaryColor,
+            ),
             onPressed: () async {
               final result = await showDialog<double>(
                 context: context,
                 builder: (_) => CalculatorDialog(
-                  initialValue: double.tryParse(_controller.text) ?? 0.0,
+                  initialValue: double.tryParse(_controller.text) ?? 0,
                 ),
               );
               if (result != null) {

@@ -6,111 +6,219 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
-import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
+import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
   const TransactionDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Expense Details'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: const PageHeader(),
+        body: BlocBuilder<TransactionCubit, TransactionState>(
+          builder: (context, state) {
+            if (state.isLoading && state.allTransactions.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            return Column(
+              children: [
+                4.verticalSpace,
+                _FilterControlBar(),
+                4.verticalSpace,
+                if (state.isLoading)
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.r),
+                    child: const LinearProgressIndicator(),
+                  )
+                else
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _TransactionDetailsPage(
+                          type: TransactionType.expense,
+                          state: state,
+                        ),
+
+                        _TransactionDetailsPage(
+                          type: TransactionType.income,
+                          state: state,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_calendar),
-            tooltip: 'Monthly Plan',
-            onPressed: () {
-              context.push(AppRoutes.monthlyPlanScreen);
-            },
+      ),
+    );
+  }
+}
+
+class _TransactionDetailsPage extends StatelessWidget {
+  const _TransactionDetailsPage({
+    required this.type,
+    required this.state,
+  });
+
+  final TransactionType type;
+  final TransactionState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final transactionsForType = state.filteredTransactions
+        .where((t) => t.type == type)
+        .toList();
+    final totalAmount = transactionsForType.fold(
+      0.0,
+      (sum, item) => sum + item.amount,
+    );
+
+    if (transactionsForType.isEmpty) {
+      return Card(
+        margin: EdgeInsets.all(16.r),
+        child: Padding(
+          padding: EdgeInsets.all(32.r),
+          child: Center(
+            child: Text(
+              'مفيش ${type == TransactionType.expense ? 'مصروفات' : 'فلوس داخلة'} الفترة دي',
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView(
+      padding: EdgeInsets.all(8.r),
+      children: [
+        _SingleSummaryCard(
+          title: type == TransactionType.income ? 'فلوسك' : 'مصاريفك',
+          totalAmount: totalAmount,
+          type: type,
+        ),
+        8.verticalSpace,
+        _TransactionList(
+          transactions: transactionsForType,
+          categories: state.allCategories,
+          type: type,
+        ),
+
+        if (type == TransactionType.expense) ...[
+          16.verticalSpace,
+          _PieChartCard(
+            transactions: transactionsForType,
+            categories: state.allCategories,
+            totalExpense: totalAmount,
           ),
         ],
-      ),
-      body: BlocBuilder<TransactionCubit, TransactionState>(
-        builder: (context, state) {
-          if (state.isLoading && state.allTransactions.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      ],
+    );
+  }
+}
 
-          final filtered = state.filteredTransactions;
-          final totalIncome = filtered
-              .where((t) => t.type == TransactionType.income)
-              .fold(0.0, (sum, item) => sum + item.amount);
-          final totalExpense = filtered
-              .where((t) => t.type == TransactionType.expense)
-              .fold(0.0, (sum, item) => sum + item.amount);
+class _SingleSummaryCard extends StatelessWidget {
+  const _SingleSummaryCard({
+    required this.title,
+    required this.totalAmount,
+    required this.type,
+  });
 
-          final expenseTransactions = filtered
-              .where((t) => t.type == TransactionType.expense)
-              .toList();
-          final expenseByCategory = <String, double>{};
-          for (final t in expenseTransactions) {
-            expenseByCategory.update(
-              t.categoryId,
-              (value) => value + t.amount,
-              ifAbsent: () => t.amount,
-            );
-          }
+  final String title;
+  final double totalAmount;
+  final TransactionType type;
 
-          return Column(
-            children: [
-              _FilterControlBar(),
-              if (state.isLoading)
-                Padding(
-                  padding: EdgeInsets.all(8.r),
-                  child: const Center(child: LinearProgressIndicator()),
-                )
-              else
-                Expanded(
-                  child: ListView(
-                    padding: EdgeInsets.all(8.r),
-                    children: [
-                      _SummaryCards(
-                        totalIncome: totalIncome,
-                        totalExpense: totalExpense,
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: AppColors.cardColor,
+      child: Column(
+        children: [
+          16.verticalSpace,
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTextStyles.style16W500.copyWith(
+                        color: AppColors.primaryTextColor,
                       ),
-                      8.verticalSpace,
-                      if (filtered.isEmpty)
-                        Card(
-                          child: Padding(
-                            padding: EdgeInsets.all(32.r),
-                            child: const Center(
-                              child: Text(
-                                'No expenses to display in this time range',
-                              ),
+                    ),
+                    8.verticalSpace,
+                    Text.rich(
+                      TextSpan(
+                        text: totalAmount.truncate().toString(),
+                        style: AppTextStyles.style20W700.copyWith(
+                          color: AppColors.primaryColor,
+                          fontSize: 32.sp,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: ' ج.م',
+                            style: AppTextStyles.style16W700.copyWith(
+                              color: AppColors.primaryColor,
                             ),
                           ),
-                        )
-                      else ...[
-                        _TransactionList(
-                          transactions: filtered,
-                          categories: state.allCategories,
-                        ),
-                        if (expenseByCategory.isNotEmpty) ...[
-                          16.verticalSpace,
-                          _PieChartCard(
-                            expenseByCategory: expenseByCategory,
-                            categories: state.allCategories,
-                            totalExpense: totalExpense,
-                          ),
                         ],
-                      ],
-                    ],
+                      ),
+                    ),
+                  ],
+                ),
+                Image.asset(
+                  type == TransactionType.income
+                      ? 'assets/image/png/wallet-money.png'
+                      : 'assets/image/png/flying-money.png',
+                  height: 96.h,
+                ),
+              ],
+            ),
+          ),
+          8.verticalSpace,
+          const Divider(
+            color: AppColors.primaryColor,
+            thickness: 0.5,
+            height: 0,
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  type == TransactionType.expense
+                      ? 'إضافة مصاريف جديدة'
+                      : 'إضافة دخل جديد',
+                  style: AppTextStyles.style14W500.copyWith(
+                    color: AppColors.primaryColor,
                   ),
                 ),
-            ],
-          );
-        },
+                IconButton(
+                  icon: const Icon(Icons.add, color: AppColors.primaryColor),
+                  onPressed: () {
+                    context.read<MainLayoutCubit>().changeNavBarIndex(1);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -128,24 +236,20 @@ class _FilterControlBar extends StatelessWidget {
 
     return InkWell(
       onTap: () => _showFilterOptions(context),
-      child: Card(
-        margin: EdgeInsets.all(8.r),
-        elevation: 1,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.filter_list, size: 20.r),
-              12.horizontalSpace,
-              Text(
-                filterText,
-                style: AppTextStyles.style14W600,
-              ),
-              const Icon(Icons.arrow_drop_down),
-            ],
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            filterText,
+            style: AppTextStyles.style14W600.copyWith(
+              color: AppColors.greenLightColor,
+            ),
           ),
-        ),
+          const Icon(
+            Icons.arrow_drop_down,
+            color: AppColors.primaryTextColor,
+          ),
+        ],
       ),
     );
   }
@@ -157,20 +261,20 @@ class _FilterControlBar extends StatelessWidget {
   ) {
     switch (filter) {
       case PredefinedFilter.today:
-        return 'Today';
+        return 'النهاردة';
       case PredefinedFilter.week:
-        return 'This week';
+        return 'من أول الأسبوع';
       case PredefinedFilter.month:
-        return 'This month';
+        return 'من أول الشهر';
       case PredefinedFilter.year:
-        return 'This year';
+        return 'السنادي كلها';
 
       case PredefinedFilter.custom:
         if (start != null && end != null) {
           final format = DateFormat('d MMM');
           return '${format.format(start)} - ${format.format(end)}';
         }
-        return 'Filter period';
+        return 'فترة معينة';
     }
   }
 
@@ -183,7 +287,7 @@ class _FilterControlBar extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.today),
-                title: const Text('Today'),
+                title: const Text('النهاردة'),
                 onTap: () {
                   context.read<TransactionCubit>().setPredefinedFilter(
                     PredefinedFilter.today,
@@ -193,7 +297,7 @@ class _FilterControlBar extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.view_week_outlined),
-                title: const Text('This week (Sat - Fri)'),
+                title: const Text('من أول الأسبوع'),
                 onTap: () {
                   context.read<TransactionCubit>().setPredefinedFilter(
                     PredefinedFilter.week,
@@ -203,7 +307,7 @@ class _FilterControlBar extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.calendar_month),
-                title: const Text('This month'),
+                title: const Text('من أول الشهر'),
                 onTap: () {
                   context.read<TransactionCubit>().setPredefinedFilter(
                     PredefinedFilter.month,
@@ -213,7 +317,7 @@ class _FilterControlBar extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.calendar_today),
-                title: const Text('This year'),
+                title: const Text('السنادي كلها'),
                 onTap: () {
                   context.read<TransactionCubit>().setPredefinedFilter(
                     PredefinedFilter.year,
@@ -224,14 +328,13 @@ class _FilterControlBar extends StatelessWidget {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.date_range),
-                title: const Text('Select filter period...'),
-
+                title: const Text('اختار فترة معينة...'),
                 onTap: () async {
                   sheetContext.pop();
 
                   if (!context.mounted) return;
 
-                  final cubit = context.watch<TransactionCubit>();
+                  final cubit = context.read<TransactionCubit>();
                   final now = DateTime.now();
 
                   DateTimeRange? initialRange;
@@ -252,6 +355,8 @@ class _FilterControlBar extends StatelessWidget {
                   }
 
                   final picked = await showDateRangePicker(
+                    helpText: 'اختار فترة معينة',
+                    saveText: 'حفظ',
                     context: context,
                     firstDate: DateTime(now.year - 5),
                     lastDate: now,
@@ -274,102 +379,37 @@ class _FilterControlBar extends StatelessWidget {
   }
 }
 
-class _SummaryCards extends StatelessWidget {
-  const _SummaryCards({required this.totalIncome, required this.totalExpense});
-  final double totalIncome;
-  final double totalExpense;
-
-  @override
-  Widget build(BuildContext context) {
-    final expenseRatio = totalIncome > 0
-        ? (totalExpense / totalIncome) * 100
-        : 0.0;
-
-    return Row(
-      children: [
-        Expanded(
-          child: Card(
-            color: Colors.green[50],
-            child: Padding(
-              padding: EdgeInsets.all(16.r),
-              child: Column(
-                children: [
-                  const Text(
-                    'Total income',
-                    style: TextStyle(color: Colors.green),
-                  ),
-                  8.verticalSpace,
-                  Text(
-                    '${totalIncome.toStringAsFixed(2)} EGP',
-                    style: AppTextStyles.style18Bold.copyWith(
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        8.horizontalSpace,
-        Expanded(
-          child: Card(
-            color: Colors.red[50],
-            child: Padding(
-              padding: EdgeInsets.all(16.r),
-              child: Column(
-                children: [
-                  Text(
-                    'Total Expense',
-                    style: AppTextStyles.style14W700.copyWith(
-                      color: Colors.red,
-                    ),
-                  ),
-                  8.verticalSpace,
-                  Text(
-                    '${totalExpense.toStringAsFixed(2)} EGP',
-                    style: AppTextStyles.style18Bold.copyWith(
-                      color: Colors.red,
-                    ),
-                  ),
-                  if (totalIncome > 0) ...[
-                    4.verticalSpace,
-                    Text(
-                      '(${expenseRatio.toStringAsFixed(1)}% From income)',
-                      style: AppTextStyles.style12W700.copyWith(
-                        color: Colors.red[700],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _PieChartCard extends StatelessWidget {
   const _PieChartCard({
-    required this.expenseByCategory,
+    required this.transactions,
     required this.categories,
     required this.totalExpense,
   });
-  final Map<String, double> expenseByCategory;
+  final List<Transaction> transactions;
   final List<TransactionCategory> categories;
   final double totalExpense;
 
   @override
   Widget build(BuildContext context) {
+    final expenseByCategory = <String, double>{};
+    for (final t in transactions) {
+      expenseByCategory.update(
+        t.categoryId,
+        (value) => value + t.amount,
+        ifAbsent: () => t.amount,
+      );
+    }
+
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.r),
         child: Column(
           children: [
             Text(
-              'Expense Distribution',
-              style: Theme.of(context).textTheme.titleLarge,
+              'فلوسك على الشارت',
+              style: AppTextStyles.style18W600.copyWith(
+                color: AppColors.primaryColor,
+              ),
             ),
             20.verticalSpace,
             SizedBox(
@@ -383,7 +423,7 @@ class _PieChartCard extends StatelessWidget {
                       (c) => c.id == entry.key,
                       orElse: () => TransactionCategory(
                         id: '',
-                        name: 'Unknown',
+                        name: 'في المجهول',
                         colorValue: 0,
                         type: TransactionType.expense,
                       ),
@@ -394,7 +434,7 @@ class _PieChartCard extends StatelessWidget {
                     return PieChartSectionData(
                       color: category.color,
                       value: entry.value,
-                      title: '${percentage.toStringAsFixed(1)}%',
+                      title: '${percentage.truncate()}%',
                       radius: 60.r,
                       titleStyle: AppTextStyles.style12Bold.copyWith(
                         color: AppColors.scaffoldBackgroundLightColor,
@@ -415,87 +455,111 @@ class _TransactionList extends StatelessWidget {
   const _TransactionList({
     required this.transactions,
     required this.categories,
+    required this.type,
   });
+
+  final TransactionType type;
   final List<Transaction> transactions;
   final List<TransactionCategory> categories;
 
   @override
   Widget build(BuildContext context) {
-    transactions.sort((a, b) => b.date.compareTo(a.date));
+    final sortedTransactions = List<Transaction>.from(transactions)
+      ..sort((a, b) => b.date.compareTo(a.date));
 
-    return Card(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Expenses List',
-              style: Theme.of(context).textTheme.titleLarge,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.all(16.r),
+          child: Text(
+            type == TransactionType.income
+                ? 'فلوسك جت منين؟'
+                : 'فلوسك راحت فين؟',
+            style: AppTextStyles.style18W600.copyWith(
+              color: AppColors.primaryColor,
             ),
           ),
-          const Divider(height: 1),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: transactions.length,
-            separatorBuilder: (context, index) =>
-                const Divider(height: 1, indent: 16, endIndent: 16),
-            itemBuilder: (context, index) {
-              final transaction = transactions[index];
-              final category = categories.firstWhere(
-                (c) => c.id == transaction.categoryId,
-                orElse: () => TransactionCategory(
-                  id: '',
-                  name: 'Unknown',
-                  colorValue: 0,
-                  type: TransactionType.expense,
-                ),
-              );
-              final isIncome = transaction.type == TransactionType.income;
-              final color = isIncome ? Colors.green : Colors.red;
+        ),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: sortedTransactions.length,
+          separatorBuilder: (context, index) =>
+              const Divider(height: 1, indent: 16, endIndent: 16),
+          itemBuilder: (context, index) {
+            final transaction = sortedTransactions[index];
+            final category = categories.firstWhere(
+              (c) => c.id == transaction.categoryId,
+              orElse: () => TransactionCategory(
+                id: '',
+                name: 'في المجهول',
+                colorValue: 0,
+                type: TransactionType.expense,
+              ),
+            );
+            final isIncome = transaction.type == TransactionType.income;
+            final color = isIncome ? Colors.green : Colors.red;
 
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: category.color,
-                  radius: 18.r,
-                  child: Icon(
-                    isIncome ? Icons.arrow_upward : Icons.arrow_downward,
-                    color: Colors.white,
-                    size: 16.r,
-                  ),
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: category.color,
+                radius: 18.r,
+                child: Icon(
+                  isIncome ? Icons.arrow_upward : Icons.arrow_downward,
+                  color: Colors.white,
+                  size: 16.r,
                 ),
-                title: Text(category.name),
-                subtitle: Text(
-                  DateFormat.yMMMd().format(transaction.date),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${isIncome ? '+' : '-'}${transaction.amount.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                        fontSize: 16.sp,
+              ),
+              title: Row(
+                children: [
+                  Text(category.name),
+                  if (transaction.note != null && transaction.note!.isNotEmpty)
+                    Flexible(
+                      child: Text(
+                        ' (${transaction.note!})',
+                        style: AppTextStyles.style12W300,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                    )
+                  else
+                    const SizedBox.shrink(),
+                ],
+              ),
+
+              subtitle: Text(
+                DateFormat.yMMMd('ar').format(transaction.date),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${isIncome ? '+' : '-'}${transaction.amount.truncate()}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                      fontSize: 16.sp,
                     ),
-                    8.horizontalSpace,
-                    IconButton(
-                      icon: Icon(Icons.edit_outlined, size: 20.r),
-                      onPressed: () {
-                        context.push(
-                          AppRoutes.editTransactionScreen,
-                          extra: transaction,
-                        );
-                      },
+                  ),
+                  8.horizontalSpace,
+                  IconButton(
+                    icon: Icon(
+                      Icons.delete,
+                      size: 22.r,
+                      color: Colors.red[700],
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+                    onPressed: () {
+                      context.read<TransactionCubit>().deleteTransaction(
+                        transaction.id,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

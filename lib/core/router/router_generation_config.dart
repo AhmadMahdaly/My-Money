@@ -1,14 +1,9 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:opration/core/di.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/features/login/presentation/views/login_view.dart';
-import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
 import 'package:opration/features/main_layout/views/main_layout.dart';
 import 'package:opration/features/splash/views/splash_view.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
-import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/edit_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/monthly_plan_screen.dart';
@@ -32,56 +27,30 @@ class RouterGenerationConfig {
       GoRoute(
         path: AppRoutes.mainLayout,
         name: AppRoutes.mainLayout,
-        builder: (context, state) => MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (context) => MainLayoutCubit(),
-            ),
-            BlocProvider(
-              create: (_) => sl<TransactionCubit>()..loadInitialData(),
-            ),
-            BlocProvider(
-              create: (context) =>
-                  sl<MonthlyPlanCubit>()..loadPlanForMonth(DateTime.now()),
-            ),
-            BlocProvider.value(
-              value: sl<TransactionCubit>(),
-            ),
-          ],
-          child: const MainLayout(),
-        ),
+        builder: (context, state) => const MainLayout(),
       ),
       GoRoute(
-        path: AppRoutes.trackMoney,
-        name: AppRoutes.trackMoney,
+        path: AppRoutes.addTransactionScreen,
+        name: AppRoutes.addTransactionScreen,
         builder: (context, state) => const AddTransactionScreen(),
       ),
       GoRoute(
         path: AppRoutes.manageCategoriesScreen,
         name: AppRoutes.manageCategoriesScreen,
-        builder: (context, state) => BlocProvider(
-          create: (_) => sl<TransactionCubit>()..loadInitialData(),
-          child: const ManageCategoriesDrawer(),
-        ),
+        builder: (context, state) => const ManageCategoriesDrawer(),
       ),
       GoRoute(
         path: AppRoutes.transactionDetailsScreen,
         name: AppRoutes.transactionDetailsScreen,
-        builder: (context, state) => BlocProvider.value(
-          value: sl<TransactionCubit>()..loadInitialData(),
-          child: const TransactionDetailsScreen(),
-        ),
+        builder: (context, state) => const TransactionDetailsScreen(),
       ),
       GoRoute(
         path: AppRoutes.editTransactionScreen,
         name: AppRoutes.editTransactionScreen,
         builder: (context, state) {
           final transaction = state.extra! as Transaction;
-          return BlocProvider.value(
-            value: sl<TransactionCubit>(),
-            child: EditTransactionScreen(
-              transaction: transaction,
-            ),
+          return EditTransactionScreen(
+            transaction: transaction,
           );
         },
       ),

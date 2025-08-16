@@ -9,11 +9,11 @@ part 'main_layout_state.dart';
 class MainLayoutCubit extends Cubit<MainLayoutState> {
   MainLayoutCubit() : super(MainLayoutInitial());
   List<Widget> screens = [
+    const TransactionDetailsScreen(),
     const AddTransactionScreen(),
     const MonthlyPlanScreen(),
-    const TransactionDetailsScreen(),
   ];
-  int currentIndex = 0;
+  int currentIndex = 1;
   void changeNavBarIndex(int index) {
     currentIndex = index;
     emit(ChangeNavBarState());

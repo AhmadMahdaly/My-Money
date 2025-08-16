@@ -29,7 +29,6 @@ abstract class TransactionLocalDataSource {
   );
   Future<Map<String, dynamic>> getDateFilter();
 
-  // New methods for Monthly Plan
   Future<MonthlyPlan> getMonthlyPlan(String yearMonth);
   Future<void> saveMonthlyPlan(MonthlyPlan plan);
 }
@@ -42,7 +41,6 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
   final SharedPreferences sharedPreferences;
   final Uuid uuid;
 
-  // Helper to get and decode a list from JSON
   Future<List<Map<String, dynamic>>> _getDecodedList(String key) async {
     final jsonString = sharedPreferences.getString(key);
     if (jsonString != null && jsonString.isNotEmpty) {
@@ -51,7 +49,6 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     return [];
   }
 
-  // Helper to encode and save a list to JSON
   Future<void> _saveEncodedList(
     String key,
     List<Map<String, dynamic>> list,
@@ -65,60 +62,53 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     if (list.isNotEmpty) {
       return list.map(TransactionCategory.fromJson).toList();
     } else {
-      // Add default categories on first run
       final defaultCategories = [
         TransactionCategory(
           id: uuid.v4(),
-          name: 'Salary',
-          colorValue: Colors.green.value,
-          type: TransactionType.income,
-        ),
-        TransactionCategory(
-          id: uuid.v4(),
-          name: 'Gift',
-          colorValue: Colors.pinkAccent.value,
+          name: 'المرتب',
+          colorValue: Colors.green.toARGB32(),
           type: TransactionType.income,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'مواصلات',
-          colorValue: Colors.orange.value,
+          colorValue: Colors.orange.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
-          name: 'Food',
-          colorValue: Colors.red.value,
+          name: 'أكل',
+          colorValue: Colors.red.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
-          name: 'Supermarket',
-          colorValue: Colors.blue.value,
+          name: 'سوبر ماركت',
+          colorValue: Colors.blue.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'خروج',
-          colorValue: Colors.purple.value,
+          colorValue: Colors.purple.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'رصيد',
-          colorValue: Colors.teal.value,
+          colorValue: Colors.teal.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'استثمار',
-          colorValue: Colors.lime.value,
+          colorValue: Colors.lime.toARGB32(),
           type: TransactionType.expense,
         ),
         TransactionCategory(
           id: uuid.v4(),
           name: 'هدايا',
-          colorValue: Colors.cyan.value,
+          colorValue: Colors.cyan.toARGB32(),
           type: TransactionType.expense,
         ),
       ];
@@ -153,7 +143,6 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     list.removeWhere((c) => c['id'] == categoryId);
     await _saveEncodedList(CacheKeys.cachedCategories, list);
 
-    // Also delete transactions associated with this category
     final transactions = await _getDecodedList(CacheKeys.cachedTransactions);
     transactions.removeWhere((t) => t['categoryId'] == categoryId);
     await _saveEncodedList(CacheKeys.cachedTransactions, transactions);
@@ -235,7 +224,6 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     };
   }
 
-  // --- Monthly Plan Implementation ---
   String _getPlanCacheKey(String yearMonth) => 'monthly_plan_$yearMonth';
 
   @override
@@ -246,7 +234,6 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
         json.decode(jsonString) as Map<String, dynamic>,
       );
     }
-    // Return a new, empty plan for the month if none exists
     return MonthlyPlan(id: yearMonth);
   }
 
