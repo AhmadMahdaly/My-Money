@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
@@ -48,7 +49,6 @@ class TransactionDetailsScreen extends StatelessWidget {
                           type: TransactionType.expense,
                           state: state,
                         ),
-
                         _TransactionDetailsPage(
                           type: TransactionType.income,
                           state: state,
@@ -85,14 +85,11 @@ class _TransactionDetailsPage extends StatelessWidget {
     );
 
     if (transactionsForType.isEmpty) {
-      return Card(
-        margin: EdgeInsets.all(16.r),
-        child: Padding(
-          padding: EdgeInsets.all(32.r),
-          child: Center(
-            child: Text(
-              'مفيش ${type == TransactionType.expense ? 'مصروفات' : 'فلوس داخلة'} الفترة دي',
-            ),
+      return Padding(
+        padding: EdgeInsets.all(32.r),
+        child: Center(
+          child: Text(
+            'مفيش ${type == TransactionType.expense ? 'مصروفات' : 'فلوس داخلة'} الفترة دي',
           ),
         ),
       );
@@ -107,12 +104,12 @@ class _TransactionDetailsPage extends StatelessWidget {
           type: type,
         ),
         8.verticalSpace,
-        _TransactionList(
+
+        _CategoryTransactionList(
           transactions: transactionsForType,
           categories: state.allCategories,
           type: type,
         ),
-
         if (type == TransactionType.expense) ...[
           16.verticalSpace,
           _PieChartCard(
@@ -122,6 +119,221 @@ class _TransactionDetailsPage extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _CategoryTransactionList extends StatelessWidget {
+  const _CategoryTransactionList({
+    required this.transactions,
+    required this.categories,
+    required this.type,
+  });
+
+  final TransactionType type;
+  final List<Transaction> transactions;
+  final List<TransactionCategory> categories;
+
+  @override
+  Widget build(BuildContext context) {
+    final groupedTransactions = <String, List<Transaction>>{};
+    for (final transaction in transactions) {
+      (groupedTransactions[transaction.categoryId] ??= []).add(transaction);
+    }
+
+    final sortedCategoryIds = groupedTransactions.keys.toList()
+      ..sort((a, b) {
+        final totalA = groupedTransactions[a]!.fold(
+          0.0,
+          (sum, item) => sum + item.amount,
+        );
+        final totalB = groupedTransactions[b]!.fold(
+          0.0,
+          (sum, item) => sum + item.amount,
+        );
+        return totalB.compareTo(totalA);
+      });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.all(16.r),
+          child: Text(
+            type == TransactionType.income
+                ? 'فلوسك جت منين؟'
+                : 'فلوسك راحت فين؟',
+            style: AppTextStyles.style18W600.copyWith(
+              color: AppColors.primaryColor,
+            ),
+          ),
+        ),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: sortedCategoryIds.length,
+          separatorBuilder: (context, index) => 8.verticalSpace,
+          itemBuilder: (context, index) {
+            final categoryId = sortedCategoryIds[index];
+            final categoryTransactions = groupedTransactions[categoryId]!;
+            final categoryTotal = categoryTransactions.fold(
+              0.0,
+              (sum, item) => sum + item.amount,
+            );
+
+            final category = categories.firstWhere(
+              (c) => c.id == categoryId,
+              orElse: () => TransactionCategory(
+                id: '',
+                name: 'في المجهول',
+                colorValue: 0,
+                type: type,
+              ),
+            );
+
+            return Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(kRadius),
+              ),
+              clipBehavior: Clip.antiAlias,
+              margin: EdgeInsets.zero,
+              child: Theme(
+                data: Theme.of(
+                  context,
+                ).copyWith(dividerColor: Colors.transparent),
+                child: ExpansionTile(
+                  leading: CircleAvatar(
+                    backgroundColor: category.color,
+                    radius: 18.r,
+                    child: Icon(
+                      type == TransactionType.income
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                      color: Colors.white,
+                      size: 16.r,
+                    ),
+                  ),
+                  title: Text(category.name, style: AppTextStyles.style14W600),
+                  trailing: Text(
+                    '$categoryTotal ج.م',
+                    style: AppTextStyles.style14W700.copyWith(
+                      color: type == TransactionType.income
+                          ? AppColors.greenLightColor
+                          : AppColors.errorColor,
+                    ),
+                  ),
+                  children: categoryTransactions.map((transaction) {
+                    return _TransactionListItem(transaction: transaction);
+                  }).toList(),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _TransactionListItem extends StatelessWidget {
+  const _TransactionListItem({
+    required this.transaction,
+  });
+
+  final Transaction transaction;
+
+  void _handleMenuSelection(BuildContext context, String value) {
+    if (value == 'edit') {
+      context.push(AppRoutes.editTransactionScreen, extra: transaction);
+    } else if (value == 'delete') {
+      _showDeleteConfirmation(context);
+    }
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('متأكد؟'),
+        content: const Text('أنت كدا هتمسح العملية دي كلها'),
+        actions: [
+          TextButton(
+            child: const Text('إلغاء'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+          TextButton(
+            child: Text(
+              'مسح',
+              style: AppTextStyles.style12W700.copyWith(
+                color: AppColors.errorColor,
+              ),
+            ),
+            onPressed: () {
+              context.read<TransactionCubit>().deleteTransaction(
+                transaction.id,
+              );
+              ctx.pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isIncome = transaction.type == TransactionType.income;
+    final color = isIncome ? Colors.green : Colors.red;
+
+    return ListTile(
+      title: Row(
+        children: [
+          Text(
+            '${transaction.amount.truncate()} ج.م',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+              fontSize: 16.sp,
+            ),
+          ),
+          if (transaction.note != null && transaction.note!.isNotEmpty)
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                child: Text(
+                  '(${transaction.note!})',
+                  style: AppTextStyles.style12W300,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+        ],
+      ),
+      subtitle: Text(
+        DateFormat.yMMMd('ar').format(transaction.date),
+      ),
+      trailing: PopupMenuButton<String>(
+        onSelected: (value) => _handleMenuSelection(context, value),
+        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+          const PopupMenuItem<String>(
+            value: 'edit',
+            child: ListTile(
+              leading: Icon(Icons.edit_outlined, color: AppColors.orangeColor),
+              title: Text(
+                'تعديل',
+                style: TextStyle(color: AppColors.orangeColor),
+              ),
+            ),
+          ),
+          const PopupMenuItem<String>(
+            value: 'delete',
+            child: ListTile(
+              leading: Icon(Icons.delete_outline, color: AppColors.errorColor),
+              title: Text('حذف', style: TextStyle(color: AppColors.errorColor)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -448,135 +660,6 @@ class _PieChartCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _TransactionList extends StatelessWidget {
-  const _TransactionList({
-    required this.transactions,
-    required this.categories,
-    required this.type,
-  });
-
-  final TransactionType type;
-  final List<Transaction> transactions;
-  final List<TransactionCategory> categories;
-
-  @override
-  Widget build(BuildContext context) {
-    final sortedTransactions = List<Transaction>.from(transactions)
-      ..sort((a, b) => b.date.compareTo(a.date));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.all(16.r),
-          child: Text(
-            type == TransactionType.income
-                ? 'فلوسك جت منين؟'
-                : 'فلوسك راحت فين؟',
-            style: AppTextStyles.style18W600.copyWith(
-              color: AppColors.primaryColor,
-            ),
-          ),
-        ),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: sortedTransactions.length,
-          separatorBuilder: (context, index) => 8.verticalSpace,
-          itemBuilder: (context, index) {
-            final transaction = sortedTransactions[index];
-            final category = categories.firstWhere(
-              (c) => c.id == transaction.categoryId,
-              orElse: () => TransactionCategory(
-                id: '',
-                name: 'في المجهول',
-                colorValue: 0,
-                type: TransactionType.expense,
-              ),
-            );
-            final isIncome = transaction.type == TransactionType.income;
-            final color = isIncome ? Colors.green : Colors.red;
-
-            return ListTile(
-              shape: RoundedRectangleBorder(
-                side: const BorderSide(color: AppColors.secondaryColor),
-                borderRadius: BorderRadius.circular(kRadius),
-              ),
-              leading: CircleAvatar(
-                backgroundColor: category.color,
-                radius: 18.r,
-                child: Icon(
-                  isIncome ? Icons.arrow_upward : Icons.arrow_downward,
-                  color: Colors.white,
-                  size: 16.r,
-                ),
-              ),
-              title: Row(
-                children: [
-                  Text(category.name),
-                  if (transaction.note != null && transaction.note!.isNotEmpty)
-                    Flexible(
-                      child: Text(
-                        ' (${transaction.note!})',
-                        style: AppTextStyles.style12W300,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    )
-                  else
-                    const SizedBox.shrink(),
-                ],
-              ),
-
-              subtitle: Text(
-                DateFormat.yMMMd('ar').format(transaction.date),
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${isIncome ? '+' : '-'}${transaction.amount.truncate()}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                      fontSize: 16.sp,
-                    ),
-                  ),
-                  8.horizontalSpace,
-                  PopupMenuButton(
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        child: Row(
-                          children: [
-                            const Text('حذف'),
-                            IconButton(
-                              icon: Icon(
-                                Icons.delete,
-                                size: 22.r,
-                                color: Colors.red[700],
-                              ),
-                              onPressed: () {
-                                context
-                                    .read<TransactionCubit>()
-                                    .deleteTransaction(
-                                      transaction.id,
-                                    );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
     );
   }
 }
