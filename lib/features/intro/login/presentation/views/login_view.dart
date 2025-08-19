@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 150.h,
                     ),
                     24.verticalSpace,
-                    const WelcomeUserWidget(),
+                    const LoginWelcomeUserWidget(),
                     30.verticalSpace,
 
                     CustomPrimaryTextfield(

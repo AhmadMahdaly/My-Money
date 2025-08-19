@@ -320,7 +320,7 @@ class _TransactionListItem extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.edit_outlined, color: AppColors.orangeColor),
               title: Text(
-                'تعديل',
+                'عدّل',
                 style: TextStyle(color: AppColors.orangeColor),
               ),
             ),
@@ -329,7 +329,7 @@ class _TransactionListItem extends StatelessWidget {
             value: 'delete',
             child: ListTile(
               leading: Icon(Icons.delete_outline, color: AppColors.errorColor),
-              title: Text('حذف', style: TextStyle(color: AppColors.errorColor)),
+              title: Text('مسح', style: TextStyle(color: AppColors.errorColor)),
             ),
           ),
         ],
@@ -408,27 +408,25 @@ class _SingleSummaryCard extends StatelessWidget {
             height: 0,
           ),
           Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16.w,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  type == TransactionType.expense
-                      ? 'إضافة مصاريف جديدة'
-                      : 'إضافة دخل جديد',
-                  style: AppTextStyles.style14W500.copyWith(
-                    color: AppColors.primaryColor,
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+            child: InkWell(
+              onTap: () {
+                context.read<MainLayoutCubit>().changeNavBarIndex(2);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    type == TransactionType.expense
+                        ? 'إضافة مصاريف جديدة'
+                        : 'إضافة دخل جديد',
+                    style: AppTextStyles.style14W500.copyWith(
+                      color: AppColors.primaryColor,
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add, color: AppColors.primaryColor),
-                  onPressed: () {
-                    context.read<MainLayoutCubit>().changeNavBarIndex(1);
-                  },
-                ),
-              ],
+                  const Icon(Icons.add, color: AppColors.primaryColor),
+                ],
+              ),
             ),
           ),
         ],

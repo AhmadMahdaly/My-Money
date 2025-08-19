@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
-import 'package:opration/features/login/presentation/cubit/login_cubit.dart';
+import 'package:opration/features/intro/login/presentation/cubit/login_cubit.dart';
 
 class WelcomeUserWidget extends StatelessWidget {
   const WelcomeUserWidget({super.key});

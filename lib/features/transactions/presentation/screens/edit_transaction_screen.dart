@@ -21,6 +21,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
   late final TextEditingController _amountController;
   late final TextEditingController _noteController;
   late String _selectedCategoryId;
+  late String _selectedWalletId;
   late DateTime _selectedDate;
 
   final _formKey = GlobalKey<FormState>();
@@ -35,6 +36,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       text: widget.transaction.note ?? '',
     );
     _selectedCategoryId = widget.transaction.categoryId;
+    _selectedWalletId = widget.transaction.walletId;
     _selectedDate = widget.transaction.date;
   }
 
@@ -55,6 +57,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       date: _selectedDate,
       note: _noteController.text,
       type: widget.transaction.type,
+      walletId: _selectedWalletId,
     );
 
     context.read<TransactionCubit>().updateTransaction(updatedTransaction);
@@ -132,7 +135,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                 ),
                 16.verticalSpace,
                 DropdownButtonFormField<String>(
-                  value: _selectedCategoryId,
+                  initialValue: _selectedCategoryId,
                   items: categories
                       .map(
                         (cat) => DropdownMenuItem(

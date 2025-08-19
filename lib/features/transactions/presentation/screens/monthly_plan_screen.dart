@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
+import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/monthly_plan.dart';
@@ -112,7 +114,7 @@ class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
   const _PageHeader();
 
   @override
-  Size get preferredSize => Size.fromHeight(100.h);
+  Size get preferredSize => Size.fromHeight(120.h);
 
   @override
   Widget build(BuildContext context) {
@@ -139,12 +141,34 @@ class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const WelcomeUserWidget(),
+
+              Row(
+                children: [
+                  SvgImage(
+                    imagePath: 'assets/image/svg/quote-1.svg',
+                    height: 14.h,
+                  ),
+                  4.horizontalSpace,
+                  Text(
+                    kAppQuote,
+                    style: AppTextStyles.style14W400.copyWith(
+                      color: AppColors.scaffoldBackgroundLightColor,
+                    ),
+                  ),
+                  4.horizontalSpace,
+                  SvgImage(
+                    imagePath: 'assets/image/svg/quote-1.svg',
+                    height: 14.h,
+                  ),
+                ],
+              ),
+              8.verticalSpace,
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  'احسب هنا دخلك الصافي بعد أي التزامات ثابتة',
+                  'احسب هنا بادجت الشهر بعد أي إلتزامات ثابتة',
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.style16W500.copyWith(
+                  style: AppTextStyles.style14Bold.copyWith(
                     color: AppColors.scaffoldBackgroundLightColor,
                   ),
                 ),
@@ -285,28 +309,34 @@ class _SummaryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.all(16.r),
-          child: Column(
-            children: [
-              Text(
-                title,
-                style: AppTextStyles.style16W300.copyWith(
-                  color: AppColors.primaryColor,
-                ),
-              ),
-              4.verticalSpace,
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  '${amount.truncate()}',
-                  style: AppTextStyles.style20Bold.copyWith(
-                    color: color,
+      child: SizedBox(
+        height: 100.h,
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(16.r),
+            child: Column(
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    title,
+                    style: AppTextStyles.style16W300.copyWith(
+                      color: AppColors.primaryColor,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                4.verticalSpace,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '${amount.truncate()}',
+                    style: AppTextStyles.style20Bold.copyWith(
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

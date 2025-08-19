@@ -31,18 +31,20 @@ class MainLayout extends StatelessWidget {
             unselectedItemColor: AppColors.textGreyColor,
             items: [
               BottomNavigationBarItem(
-                icon: cubit.currentIndex == 0
-                    ? const Icon(Icons.wallet_rounded)
-                    : const Icon(
-                        IconlyBroken.wallet,
-                      ), // Icon(Icons.credit_card),
-                label: 'فلوسك',
+                icon: Icon(
+                  cubit.currentIndex == 0
+                      ? Icons.wallet_rounded
+                      : IconlyBroken.wallet,
+                ), // Icon(Icons.credit_card),
+                label: 'الفلوس',
               ),
               BottomNavigationBarItem(
-                icon: cubit.currentIndex == 1
-                    ? const Icon(Icons.analytics)
-                    : const Icon(IconlyBroken.paper),
-                label: 'خططك',
+                icon: Icon(
+                  cubit.currentIndex == 1
+                      ? Icons.analytics
+                      : IconlyBroken.paper,
+                ),
+                label: 'بادجت الشهر',
               ),
               BottomNavigationBarItem(
                 icon: Container(
@@ -59,14 +61,16 @@ class MainLayout extends StatelessWidget {
                 label: '',
               ),
               BottomNavigationBarItem(
-                icon: cubit.currentIndex == 3
-                    ? const Icon(Icons.credit_card)
-                    : const Icon(Icons.credit_card),
+                icon: Icon(
+                  cubit.currentIndex == 3
+                      ? Icons.account_balance_wallet_rounded
+                      : Icons.credit_card,
+                ),
                 //Icon(IconlyBroken.category),
-                label: 'محافظك',
+                label: 'محافظ',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.track_changes_outlined),
+                icon: Icon(Icons.track_changes),
                 label: 'الأهداف',
               ),
             ],

@@ -3,8 +3,8 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 
-class WelcomeUserWidget extends StatelessWidget {
-  const WelcomeUserWidget({super.key});
+class LoginWelcomeUserWidget extends StatelessWidget {
+  const LoginWelcomeUserWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
