@@ -1,8 +1,9 @@
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/router/app_routes.dart';
-import 'package:opration/features/login/presentation/views/login_view.dart';
+import 'package:opration/features/financial_goals/presentation/screens/financial_goals_screen.dart';
+import 'package:opration/features/intro/login/presentation/views/login_view.dart';
+import 'package:opration/features/intro/splash/views/splash_view.dart';
 import 'package:opration/features/main_layout/views/main_layout.dart';
-import 'package:opration/features/splash/views/splash_view.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/edit_transaction_screen.dart';
@@ -54,11 +55,15 @@ class RouterGenerationConfig {
           );
         },
       ),
-
       GoRoute(
         path: AppRoutes.monthlyPlanScreen,
         name: AppRoutes.monthlyPlanScreen,
         builder: (context, state) => const MonthlyPlanScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.financialGoalsScreen,
+        name: AppRoutes.financialGoalsScreen,
+        builder: (context, state) => const FinancialGoalsScreen(),
       ),
     ],
   );

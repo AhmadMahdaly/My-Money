@@ -8,8 +8,8 @@ import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
-import 'package:opration/features/login/presentation/cubit/login_cubit.dart';
-import 'package:opration/features/login/presentation/views/widgets/welcome_user_widget.dart';
+import 'package:opration/features/intro/login/presentation/cubit/login_cubit.dart';
+import 'package:opration/features/intro/login/presentation/views/widgets/welcome_user_widget.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

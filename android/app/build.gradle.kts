@@ -14,7 +14,7 @@ plugins {
 
 android {
     namespace = "com.mahdaly.mymoney"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -30,8 +30,8 @@ android {
 
     defaultConfig {
         applicationId = "com.mahdaly.mymoney"
-        minSdk = 21
-        targetSdk = 34
+        minSdk = flutter.minSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

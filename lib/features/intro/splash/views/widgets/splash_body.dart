@@ -8,7 +8,7 @@ import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
-import 'package:opration/features/login/presentation/cubit/login_cubit.dart';
+import 'package:opration/features/intro/login/presentation/cubit/login_cubit.dart';
 
 class SplashBody extends StatefulWidget {
   const SplashBody({

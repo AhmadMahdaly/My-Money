@@ -1,4 +1,4 @@
-import 'package:opration/features/login/domain/repositories/login_repository.dart';
+import 'package:opration/features/intro/login/domain/repositories/login_repository.dart';
 
 class LoginUseCase {
   LoginUseCase({required this.repository});

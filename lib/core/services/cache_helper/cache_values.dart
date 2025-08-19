@@ -9,4 +9,7 @@ class CacheKeys {
   static const String cachedFilterStartDate = 'cachedFilterStartDate';
   static const String cachedFilterEndDate = 'cachedFilterEndDate';
   static const String cachedActiveFilter = 'cachedActiveFilter';
+  static const String cachedWallets = 'cachedWallets';
+  static const String showMainWalletPref = 'showMainWalletPref';
+  static const String cachedFinancialGoals = 'cachedFinancialGoals';
 }

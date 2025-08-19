@@ -1,5 +1,5 @@
-import 'package:opration/features/login/data/datasources/login_local_data_source.dart';
-import 'package:opration/features/login/domain/repositories/login_repository.dart';
+import 'package:opration/features/intro/login/data/datasources/login_local_data_source.dart';
+import 'package:opration/features/intro/login/domain/repositories/login_repository.dart';
 
 class LoginRepositoryImpl implements LoginRepository {
   LoginRepositoryImpl({required this.localDataSource});

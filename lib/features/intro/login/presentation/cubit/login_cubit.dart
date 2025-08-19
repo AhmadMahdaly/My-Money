@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
-import 'package:opration/features/login/data/datasources/login_local_data_source.dart';
+import 'package:opration/features/intro/login/data/datasources/login_local_data_source.dart';
 
 part 'login_state.dart';
 

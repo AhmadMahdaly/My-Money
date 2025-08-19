@@ -7,4 +7,5 @@ class AppRoutes {
   static const String transactionDetailsScreen = '/transactionDetailsScreen';
   static const String editTransactionScreen = '/editTransactionScreen';
   static const String monthlyPlanScreen = '/monthlyPlanScreen';
+  static const String financialGoalsScreen = '/financialGoalsScreen';
 }

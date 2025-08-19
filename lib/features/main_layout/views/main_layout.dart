@@ -14,10 +14,8 @@ class MainLayout extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<MainLayoutCubit>();
         return Scaffold(
-          body: IndexedStack(
-            index: cubit.currentIndex,
-            children: cubit.screens,
-          ),
+          body: cubit.screens[cubit.currentIndex],
+
           bottomNavigationBar: BottomNavigationBar(
             selectedLabelStyle: const TextStyle(
               color: AppColors.primaryColor,
@@ -32,17 +30,25 @@ class MainLayout extends StatelessWidget {
             onTap: cubit.changeNavBarIndex,
             unselectedItemColor: AppColors.textGreyColor,
             items: [
-              const BottomNavigationBarItem(
-                icon: Icon(IconlyBroken.wallet),
+              BottomNavigationBarItem(
+                icon: cubit.currentIndex == 0
+                    ? const Icon(Icons.wallet_rounded)
+                    : const Icon(
+                        IconlyBroken.wallet,
+                      ), // Icon(Icons.credit_card),
                 label: 'فلوسك',
+              ),
+              BottomNavigationBarItem(
+                icon: cubit.currentIndex == 1
+                    ? const Icon(Icons.analytics)
+                    : const Icon(IconlyBroken.paper),
+                label: 'خططك',
               ),
               BottomNavigationBarItem(
                 icon: Container(
                   padding: EdgeInsets.all(4.r),
                   decoration: BoxDecoration(
-                    color: cubit.currentIndex == 1
-                        ? AppColors.primaryColor
-                        : AppColors.textGreyColor,
+                    color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: const Icon(
@@ -52,10 +58,16 @@ class MainLayout extends StatelessWidget {
                 ),
                 label: '',
               ),
+              BottomNavigationBarItem(
+                icon: cubit.currentIndex == 3
+                    ? const Icon(Icons.credit_card)
+                    : const Icon(Icons.credit_card),
+                //Icon(IconlyBroken.category),
+                label: 'محافظك',
+              ),
               const BottomNavigationBarItem(
-                icon: Icon(IconlyBroken.paper),
-                // icon: Icon(Entypo.attachment),
-                label: 'خططك',
+                icon: Icon(Icons.track_changes_outlined),
+                label: 'الأهداف',
               ),
             ],
           ),
