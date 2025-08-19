@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -237,7 +238,7 @@ class _TransactionFormState extends State<_TransactionForm> {
         _selectedWalletId!,
         widget.type == TransactionType.income ? amount : -amount,
       );
-
+      playTimerSound();
       _amountController.clear();
       _noteController.clear();
       setState(() {
@@ -451,4 +452,10 @@ void _showAddCategoryDialog(BuildContext context, TransactionType type) {
       context.read<TransactionCubit>().addCategory(newCategory);
     }
   });
+}
+
+void playTimerSound() {
+  final player = AudioPlayer();
+  const sound = appSound;
+  player.play(AssetSource(sound));
 }

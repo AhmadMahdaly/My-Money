@@ -21,6 +21,7 @@ dependencies:
   fl_chart: ^1.0.0
   flutter_iconly: ^1.0.2
   flutter_vector_icons: ^2.0.0
+  audioplayers: ^6.5.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -36,6 +37,7 @@ flutter:
     - assets/image/svg/
     - assets/image/logo.png
     - assets/image/logo.svg
+    - assets/audio/coin-and-money-bag.mp3
     
   fonts:
     - family: IBM Plex Sans Arabic
