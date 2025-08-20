@@ -143,6 +143,7 @@ class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
               const WelcomeUserWidget(),
 
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgImage(
                     imagePath: 'assets/image/svg/quote-1.svg',

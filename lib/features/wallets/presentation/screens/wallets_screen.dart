@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/shared_widgets/custom_floating_action_buttom.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
-import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
-import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
@@ -98,10 +96,9 @@ class WalletsScreen extends StatelessWidget {
           return const Center(child: Text('شاشة المحافظ'));
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: CustomFloatingActionButton(
         onPressed: () => _showAddEditWalletDialog(context),
         tooltip: 'ضيف محفظة جديدة',
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -189,7 +186,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   const PageHeader({super.key});
 
   @override
-  Size get preferredSize => Size.fromHeight(120.h);
+  Size get preferredSize => Size.fromHeight(90.h);
 
   @override
   Widget build(BuildContext context) {
@@ -207,59 +204,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
           colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const WelcomeUserWidget(),
-
-              Row(
-                children: [
-                  SvgImage(
-                    imagePath: 'assets/image/svg/quote-1.svg',
-                    height: 14.h,
-                  ),
-                  4.horizontalSpace,
-                  Text(
-                    kAppQuote,
-                    style: AppTextStyles.style14W400.copyWith(
-                      color: AppColors.scaffoldBackgroundLightColor,
-                    ),
-                  ),
-                  4.horizontalSpace,
-                  SvgImage(
-                    imagePath: 'assets/image/svg/quote-1.svg',
-                    height: 14.h,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          4.verticalSpace,
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            spacing: 6.w,
-            children: [
-              const Icon(
-                Icons.account_balance_wallet_rounded,
-                color: AppColors.scaffoldBackgroundLightColor,
-              ),
-              Text(
-                'محافظ',
-                style: AppTextStyles.style16W800.copyWith(
-                  color: AppColors.scaffoldBackgroundLightColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ],
-      ),
+      child: const WelcomeUserWidget(),
     );
   }
 }

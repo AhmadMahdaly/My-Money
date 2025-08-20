@@ -45,10 +45,9 @@ class WalletCubit extends Cubit<WalletState> {
     final originalWallets = (state as WalletLoaded).wallets;
     try {
       await operation();
-      await loadWallets(); // Reload wallets to reflect changes
+      await loadWallets();
     } catch (e) {
       emit(WalletError(e.toString()));
-      // In case of error, revert to the original state
       emit(WalletLoaded(originalWallets));
     }
   }

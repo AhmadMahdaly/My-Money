@@ -12,16 +12,16 @@ class FinancialGoalInitial extends FinancialGoalState {}
 class FinancialGoalLoading extends FinancialGoalState {}
 
 class FinancialGoalLoaded extends FinancialGoalState {
-  final List<FinancialGoal> goals;
   const FinancialGoalLoaded(this.goals);
+  final List<FinancialGoal> goals;
 
   @override
   List<Object> get props => [goals];
 }
 
 class FinancialGoalError extends FinancialGoalState {
-  final String message;
   const FinancialGoalError(this.message);
+  final String message;
 
   @override
   List<Object> get props => [message];

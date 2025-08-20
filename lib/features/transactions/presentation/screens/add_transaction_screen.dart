@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,7 +8,6 @@ import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
-import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
@@ -47,7 +48,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   const PageHeader({super.key});
 
   @override
-  Size get preferredSize => Size.fromHeight(180.h);
+  Size get preferredSize => Size.fromHeight(150.h);
 
   @override
   Widget build(BuildContext context) {
@@ -84,65 +85,77 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const WelcomeUserWidget(),
-
-                  Row(
-                    children: [
-                      SvgImage(
-                        imagePath: 'assets/image/svg/quote-1.svg',
-                        height: 14.h,
-                      ),
-                      4.horizontalSpace,
-                      Text(
-                        kAppQuote,
-                        style: AppTextStyles.style14W400.copyWith(
-                          color: AppColors.scaffoldBackgroundLightColor,
-                        ),
-                      ),
-                      4.horizontalSpace,
-                      SvgImage(
-                        imagePath: 'assets/image/svg/quote-1.svg',
-                        height: 14.h,
-                      ),
-                    ],
-                  ),
+                  WelcomeUserWidget(),
                 ],
               ),
+              if (walletState is WalletLoaded && mainWallet != null)
+                Expanded(
+                  child: Container(
+                    alignment: Alignment.center,
+                    color: Colors.white.withAlpha(0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: SvgImage(
+                            imagePath: 'assets/image/svg/change_wallet.svg',
+                            height: 20.r,
+                            color: AppColors.cardColor,
+                          ),
 
-              InkWell(
-                onTap: () =>
-                    context.read<WalletCubit>().toggleShowMainWalletPref(),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (walletState is WalletLoaded)
-                      Icon(
-                        showMainWallet
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+                          onPressed: () {
+                            _showChangeMainWalletDialog(
+                              context,
+                              walletState.wallets,
+                              mainWallet!.id,
+                            );
+                          },
+                          tooltip: 'تغيير المحفظة الرئيسية',
+                        ),
 
-                        color: AppColors.cardColor,
-                        size: 16.r,
-                      ),
-                    6.horizontalSpace,
-                    if (walletState is WalletLoaded && mainWallet != null)
-                      Flexible(
-                        child: Text(
-                          showMainWallet
-                              ? 'محفظتك: ${mainWallet.name} ( ${mainWallet.balance.truncate()}  ج.م)'
-                              : 'محفظتك: ${mainWallet.name} ( ******  ج.م)',
-                          style: AppTextStyles.style12Bold.copyWith(
-                            color: AppColors.scaffoldBackgroundLightColor,
+                        ImageFiltered(
+                          imageFilter: ui.ImageFilter.blur(
+                            sigmaX: showMainWallet ? 0 : 4.0,
+                            sigmaY: showMainWallet ? 0 : 4.0,
+                          ),
+                          child: Text(
+                            showMainWallet
+                                ? 'محفظتك: ${mainWallet.name} (${mainWallet.balance.truncate()} ج.م)'
+                                : 'محفظتك: ${mainWallet.name} (****** ج.م)',
+                            style: AppTextStyles.style16W500.copyWith(
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                  ],
-                ),
-              ),
+                        const Spacer(),
+                        IconButton(
+                          icon: Icon(
+                            showMainWallet
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+
+                            color: AppColors.cardColor,
+                            size: 24.r,
+                          ),
+                          onPressed: () {
+                            context
+                                .read<WalletCubit>()
+                                .toggleShowMainWalletPref();
+                          },
+                          tooltip: 'إخفاء المحفظة',
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                const Spacer(),
 
               Container(
                 height: 50.h,
@@ -184,6 +197,65 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+void _showChangeMainWalletDialog(
+  BuildContext context,
+  List<Wallet> wallets,
+  String currentMainWalletId,
+) {
+  showDialog<void>(
+    context: context,
+    builder: (ctx) {
+      String? selectedWalletId = currentMainWalletId;
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('تغيير المحفظة الرئيسية'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: wallets.length,
+                itemBuilder: (context, index) {
+                  final wallet = wallets[index];
+                  return RadioListTile<String>(
+                    title: Text(wallet.name),
+                    subtitle: Text('${wallet.balance.truncate()} ج.م'),
+                    value: wallet.id,
+                    groupValue: selectedWalletId,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedWalletId = value;
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('إلغاء'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (selectedWalletId != null &&
+                      selectedWalletId != currentMainWalletId) {
+                    context.read<WalletCubit>().setMainWallet(
+                      selectedWalletId!,
+                    );
+                  }
+                  Navigator.of(ctx).pop();
+                },
+                child: const Text('حفظ'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 class _TransactionForm extends StatefulWidget {
   const _TransactionForm({
     required this.type,
@@ -222,7 +294,18 @@ class _TransactionFormState extends State<_TransactionForm> {
         );
         return;
       }
-
+      final walletState = context.read<WalletCubit>().state;
+      if (walletState is! WalletLoaded || walletState.wallets.isEmpty) {
+        showCustomSnackBar(
+          context,
+          message: 'لا توجد محافظ. الرجاء إضافة محفظة أولاً.',
+        );
+        return;
+      }
+      final mainWallet = walletState.wallets.firstWhere(
+        (w) => w.isMain,
+        orElse: () => walletState.wallets.first,
+      );
       final amount = double.parse(_amountController.text);
       final transaction = Transaction(
         id: getIt<Uuid>().v4(),
@@ -231,11 +314,11 @@ class _TransactionFormState extends State<_TransactionForm> {
         date: _selectedDate,
         note: _noteController.text.isNotEmpty ? _noteController.text : '',
         type: widget.type,
-        walletId: _selectedWalletId!,
+        walletId: mainWallet.id,
       );
       context.read<TransactionCubit>().addTransaction(transaction);
       context.read<WalletCubit>().updateWalletBalance(
-        _selectedWalletId!,
+        mainWallet.id,
         widget.type == TransactionType.income ? amount : -amount,
       );
       playTimerSound();
@@ -369,61 +452,16 @@ class _TransactionFormState extends State<_TransactionForm> {
                       onAddCategory: () =>
                           _showAddCategoryDialog(context, widget.type),
                     ),
-                    Row(
-                      spacing: 8.w,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 12.h,
-                            children: [
-                              Text(
-                                'المحفظة',
-                                style: AppTextStyles.style14W400.copyWith(
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
-                              CustomDropdownButtonFormField<String>(
-                                value: _selectedWalletId,
-                                hintText: 'المحفظة',
-                                items: wallets
-                                    .map(
-                                      (w) => DropdownMenuItem(
-                                        value: w.id,
-                                        child: Text(
-                                          w.name,
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: (value) =>
-                                    setState(() => _selectedWalletId = value),
 
-                                validator: (v) =>
-                                    v == null ? 'اختار محفظة' : null,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 12.h,
-                            children: [
-                              Text(
-                                'ملاحظات',
-                                style: AppTextStyles.style14W400.copyWith(
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
-                              CustomPrimaryTextfield(
-                                controller: _noteController,
-                                text: 'ملاحظات (اختياري)',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'ملاحظات',
+                      style: AppTextStyles.style14W400.copyWith(
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                    CustomPrimaryTextfield(
+                      controller: _noteController,
+                      text: 'ملاحظات (اختياري)',
                     ),
 
                     10.verticalSpace,

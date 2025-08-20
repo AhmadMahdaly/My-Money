@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
 
@@ -31,20 +31,25 @@ class MainLayout extends StatelessWidget {
             unselectedItemColor: AppColors.textGreyColor,
             items: [
               BottomNavigationBarItem(
-                icon: Icon(
-                  cubit.currentIndex == 0
-                      ? Icons.wallet_rounded
-                      : IconlyBroken.wallet,
-                ), // Icon(Icons.credit_card),
+                icon: SvgImage(
+                  imagePath: 'assets/image/svg/money-bag-outline.svg',
+                  height: cubit.currentIndex == 0 ? 30.r : 24.r,
+                  color: cubit.currentIndex == 0
+                      ? AppColors.primaryColor
+                      : AppColors.textGreyColor,
+                ),
+
                 label: 'الفلوس',
               ),
               BottomNavigationBarItem(
-                icon: Icon(
-                  cubit.currentIndex == 1
-                      ? Icons.analytics
-                      : IconlyBroken.paper,
+                icon: SvgImage(
+                  imagePath: 'assets/image/svg/wallet-money (1).svg',
+                  height: cubit.currentIndex == 1 ? 30.r : 24.r,
+                  color: cubit.currentIndex == 1
+                      ? AppColors.primaryColor
+                      : AppColors.textGreyColor,
                 ),
-                label: 'بادجت الشهر',
+                label: 'المحافظ',
               ),
               BottomNavigationBarItem(
                 icon: Container(
@@ -61,16 +66,23 @@ class MainLayout extends StatelessWidget {
                 label: '',
               ),
               BottomNavigationBarItem(
-                icon: Icon(
-                  cubit.currentIndex == 3
-                      ? Icons.account_balance_wallet_rounded
-                      : Icons.credit_card,
+                icon: SvgImage(
+                  imagePath: 'assets/image/svg/big-data-analytics 1.svg',
+                  height: cubit.currentIndex == 3 ? 28.r : 22.r,
+                  color: cubit.currentIndex == 3
+                      ? AppColors.primaryColor
+                      : AppColors.textGreyColor,
                 ),
-                //Icon(IconlyBroken.category),
-                label: 'محافظ',
+                label: 'بادجت الشهر',
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.track_changes),
+              BottomNavigationBarItem(
+                icon: SvgImage(
+                  imagePath: 'assets/image/svg/mage_goals.svg',
+                  height: cubit.currentIndex == 4 ? 30.r : 24.r,
+                  color: cubit.currentIndex == 4
+                      ? AppColors.primaryColor
+                      : AppColors.textGreyColor,
+                ),
                 label: 'الأهداف',
               ),
             ],

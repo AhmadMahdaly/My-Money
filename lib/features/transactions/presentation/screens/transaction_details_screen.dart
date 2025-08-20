@@ -353,6 +353,12 @@ class _SingleSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       color: AppColors.cardColor,
+      elevation: 4,
+      shadowColor: AppColors.cardColor,
+      shape: RoundedRectangleBorder(
+        side: BorderSide.none,
+        borderRadius: BorderRadius.circular(15.r),
+      ),
       child: Column(
         children: [
           16.verticalSpace,

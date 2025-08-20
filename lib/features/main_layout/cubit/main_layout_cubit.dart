@@ -12,9 +12,9 @@ class MainLayoutCubit extends Cubit<MainLayoutState> {
   MainLayoutCubit() : super(MainLayoutInitial());
   List<Widget> screens = [
     const TransactionDetailsScreen(),
-    const MonthlyPlanScreen(),
-    const AddTransactionScreen(),
     const WalletsScreen(),
+    const AddTransactionScreen(),
+    const MonthlyPlanScreen(),
     const FinancialGoalsScreen(),
   ];
   int currentIndex = 2;

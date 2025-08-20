@@ -27,9 +27,11 @@ class Appthemes {
         surfaceTintColor: AppColors.scaffoldBackgroundLightColor,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.cardColor,
-        elevation: 2,
+        color: Colors.transparent,
+        shadowColor: Colors.transparent,
+        elevation: 0,
         shape: RoundedRectangleBorder(
+          side: const BorderSide(color: AppColors.secondaryColor),
           borderRadius: BorderRadius.circular(15.r),
         ),
       ),

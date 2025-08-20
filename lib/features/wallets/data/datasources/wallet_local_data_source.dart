@@ -21,14 +21,14 @@ class WalletLocalDataSourceImpl implements WalletLocalDataSource {
   final Uuid uuid;
 
   @override
-  Future<List<WalletModel>> getWallets() {
+  Future<List<WalletModel>> getWallets() async {
     final jsonString = sharedPreferences.getString(CacheKeys.cachedWallets);
-    if (jsonString != null) {
+    if (jsonString != null && jsonString.isNotEmpty) {
       final jsonList = json.decode(jsonString) as List<dynamic>;
       final wallets = jsonList
           .map((json) => WalletModel.fromJson(json as Map<String, dynamic>))
           .toList();
-      return Future.value(wallets);
+      return wallets;
     } else {
       final defaultWallet = WalletModel(
         id: uuid.v4(),
@@ -36,7 +36,10 @@ class WalletLocalDataSourceImpl implements WalletLocalDataSource {
         balance: 0,
         isMain: true,
       );
-      return Future.value([defaultWallet]);
+
+      await saveWallets([defaultWallet]);
+
+      return [defaultWallet];
     }
   }
 
@@ -60,8 +63,4 @@ class WalletLocalDataSourceImpl implements WalletLocalDataSource {
   Future<void> setShowMainWalletPref(bool show) {
     return sharedPreferences.setBool(CacheKeys.showMainWalletPref, show);
   }
-
-
-
-
 }
