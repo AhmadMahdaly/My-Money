@@ -63,7 +63,6 @@ class _GoalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.compactCurrency(
-      locale: 'ar_EG',
       symbol: 'ج.م',
     );
     final remaining = goal.targetAmount - goal.savedAmount;
@@ -117,7 +116,7 @@ class _GoalCard extends StatelessWidget {
             ),
             8.verticalSpace,
             Text(
-              'تم تجميع ${currencyFormat.format(goal.savedAmount)} من ${currencyFormat.format(goal.targetAmount)}',
+              'تم تجميع ${currencyFormat.format(goal.savedAmount.truncate())} من ${currencyFormat.format(goal.targetAmount.truncate())}',
               style: isCompleted
                   ? const TextStyle(
                       decoration: TextDecoration.lineThrough,
@@ -141,7 +140,7 @@ class _GoalCard extends StatelessWidget {
               children: [
                 if (!isCompleted)
                   Text(
-                    'اتبقى: ${currencyFormat.format(remaining)}',
+                    'اتبقى: ${currencyFormat.format(remaining.truncate())}',
                     style: TextStyle(color: Colors.grey.shade600),
                   )
                 else
@@ -175,10 +174,10 @@ void _showAddEditGoalDialog(BuildContext context, {FinancialGoal? goal}) {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController(text: goal?.name);
   final targetAmountController = TextEditingController(
-    text: isEditing ? goal.targetAmount.toString() : '',
+    text: isEditing ? goal.targetAmount.truncate().toString() : '',
   );
   final savedAmountController = TextEditingController(
-    text: isEditing ? goal.savedAmount.toString() : '0',
+    text: isEditing ? goal.savedAmount.truncate().toString() : '0',
   );
   var targetDate =
       goal?.targetDate ?? DateTime.now().add(const Duration(days: 365));
@@ -367,7 +366,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
                   4.horizontalSpace,
                   SvgImage(
                     imagePath: 'assets/image/svg/quote-1.svg',
-                    height: 14.h,
+                    height: 14.h, 
                   ),
                 ],
               ),

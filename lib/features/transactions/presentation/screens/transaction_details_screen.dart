@@ -209,13 +209,13 @@ class _CategoryTransactionList extends StatelessWidget {
                       type == TransactionType.income
                           ? Icons.arrow_upward
                           : Icons.arrow_downward,
-                      color: Colors.white,
+                      color: Colors.white, 
                       size: 16.r,
                     ),
                   ),
                   title: Text(category.name, style: AppTextStyles.style14W600),
                   trailing: Text(
-                    '$categoryTotal ج.م',
+                    '${categoryTotal.truncate()} ج.م',
                     style: AppTextStyles.style14W700.copyWith(
                       color: type == TransactionType.income
                           ? AppColors.greenLightColor

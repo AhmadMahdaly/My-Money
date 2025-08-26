@@ -56,7 +56,7 @@ class WalletsScreen extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      'الرصيد: ${wallet.balance.toStringAsFixed(2)} ج.م',
+                      'الرصيد: ${wallet.balance.truncate()} ج.م',
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                     trailing: PopupMenuButton<String>(
@@ -161,7 +161,7 @@ class WalletsScreen extends StatelessWidget {
                     name: nameController.text,
                     balance:
                         double.tryParse(balanceController.text) ??
-                        wallet!.balance,
+                        wallet!.balance, 
                     isMain: wallet?.isMain ?? false,
                   );
 
