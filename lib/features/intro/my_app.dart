@@ -42,6 +42,7 @@ class MyApp extends StatelessWidget {
               deleteCategoryUseCase: getIt(),
               getFilterSettingsUseCase: getIt(),
               saveFilterSettingsUseCase: getIt(),
+              walletCubit: getIt(),
             )..loadInitialData(),
           ),
           BlocProvider<MonthlyPlanCubit>(

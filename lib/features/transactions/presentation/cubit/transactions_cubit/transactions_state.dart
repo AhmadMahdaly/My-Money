@@ -1,6 +1,6 @@
 part of 'transactions_cubit.dart';
 
-enum PredefinedFilter { today, week, month, year, custom }
+enum PredefinedFilter { today, week, month, year, since, custom }
 
 @immutable
 class TransactionState extends Equatable {
@@ -12,6 +12,7 @@ class TransactionState extends Equatable {
     this.filterStartDate,
     this.filterEndDate,
     this.activeFilter = PredefinedFilter.month,
+    this.selectedWalletId,
   });
   final bool isLoading;
   final String? error;
@@ -20,6 +21,7 @@ class TransactionState extends Equatable {
   final DateTime? filterStartDate;
   final DateTime? filterEndDate;
   final PredefinedFilter activeFilter;
+  final String? selectedWalletId;
 
   List<Transaction> get filteredTransactions {
     if (filterStartDate == null || filterEndDate == null) {
@@ -33,10 +35,18 @@ class TransactionState extends Equatable {
       59,
       59,
     );
-    return allTransactions.where((t) {
+    var dateFilteredTransactions = allTransactions.where((t) {
       return !t.date.isBefore(filterStartDate!) &&
           !t.date.isAfter(inclusiveEndDate);
     }).toList();
+
+    if (selectedWalletId != null) {
+      dateFilteredTransactions = dateFilteredTransactions
+          .where((t) => t.walletId == selectedWalletId)
+          .toList();
+    }
+
+    return dateFilteredTransactions;
   }
 
   TransactionState copyWith({
@@ -47,6 +57,8 @@ class TransactionState extends Equatable {
     DateTime? filterStartDate,
     DateTime? filterEndDate,
     PredefinedFilter? activeFilter,
+    String? selectedWalletId,
+    bool clearSelectedWalletId = false,
   }) {
     return TransactionState(
       isLoading: isLoading ?? this.isLoading,
@@ -56,6 +68,9 @@ class TransactionState extends Equatable {
       filterStartDate: filterStartDate ?? this.filterStartDate,
       filterEndDate: filterEndDate ?? this.filterEndDate,
       activeFilter: activeFilter ?? this.activeFilter,
+      selectedWalletId: clearSelectedWalletId
+          ? null
+          : selectedWalletId ?? this.selectedWalletId,
     );
   }
 
@@ -68,5 +83,6 @@ class TransactionState extends Equatable {
     filterStartDate,
     filterEndDate,
     activeFilter,
+    selectedWalletId,
   ];
 }

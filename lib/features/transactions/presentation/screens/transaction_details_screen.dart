@@ -15,6 +15,8 @@ import 'package:opration/features/transactions/domain/entities/transaction.dart'
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
+import 'package:opration/features/wallets/domain/entities/wallet.dart';
+import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
   const TransactionDetailsScreen({super.key});
@@ -209,7 +211,7 @@ class _CategoryTransactionList extends StatelessWidget {
                       type == TransactionType.income
                           ? Icons.arrow_upward
                           : Icons.arrow_downward,
-                      color: Colors.white, 
+                      color: Colors.white,
                       size: 16.r,
                     ),
                   ),
@@ -444,28 +446,67 @@ class _SingleSummaryCard extends StatelessWidget {
 class _FilterControlBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final cubit = context.watch<TransactionCubit>();
-    final activeFilter = cubit.state.activeFilter;
-    final startDate = cubit.state.filterStartDate;
-    final endDate = cubit.state.filterEndDate;
+    final transactionCubit = context.watch<TransactionCubit>();
+    final transactionState = transactionCubit.state;
+    final walletState = context.watch<WalletCubit>().state;
 
-    final filterText = _getFilterText(activeFilter, startDate, endDate);
+    final filterText = _getFilterText(
+      transactionState.activeFilter,
+      transactionState.filterStartDate,
+      transactionState.filterEndDate,
+    );
 
-    return InkWell(
-      onTap: () => _showFilterOptions(context),
+    var wallets = <Wallet>[];
+    if (walletState is WalletLoaded) {
+      wallets = walletState.wallets;
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            filterText,
-            style: AppTextStyles.style14W600.copyWith(
-              color: AppColors.greenLightColor,
+          InkWell(
+            onTap: () => _showFilterOptions(context),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  filterText,
+                  style: AppTextStyles.style14W600.copyWith(
+                    color: AppColors.greenLightColor,
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_drop_down,
+                  color: AppColors.primaryTextColor,
+                ),
+              ],
             ),
           ),
-          const Icon(
-            Icons.arrow_drop_down,
-            color: AppColors.primaryTextColor,
-          ),
+
+          if (wallets.length > 1)
+            DropdownButton<String>(
+              value: transactionState.selectedWalletId,
+              hint: Text(
+                'كل المحافظ',
+                style: AppTextStyles.style14W500,
+              ),
+              underline: const SizedBox.shrink(),
+              onChanged: transactionCubit.setWalletFilter,
+              items: [
+                const DropdownMenuItem<String>(
+                  value: null, // القيمة null تعني "كل المحافظ"
+                  child: Text('كل المحافظ'),
+                ),
+                ...wallets.map<DropdownMenuItem<String>>((Wallet wallet) {
+                  return DropdownMenuItem<String>(
+                    value: wallet.id,
+                    child: Text(wallet.name),
+                  );
+                }),
+              ],
+            ),
         ],
       ),
     );
@@ -485,7 +526,12 @@ class _FilterControlBar extends StatelessWidget {
         return 'من أول الشهر';
       case PredefinedFilter.year:
         return 'السنادي كلها';
-
+      case PredefinedFilter.since:
+        if (start != null) {
+          final format = DateFormat('d MMM', 'ar');
+          return 'من ${format.format(start)}';
+        }
+        return 'من تاريخ معين';
       case PredefinedFilter.custom:
         if (start != null && end != null) {
           final format = DateFormat('d MMM');
@@ -540,6 +586,27 @@ class _FilterControlBar extends StatelessWidget {
                     PredefinedFilter.year,
                   );
                   sheetContext.pop();
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.event_repeat_outlined),
+                title: const Text('من تاريخ معين لحد النهاردة...'),
+                onTap: () async {
+                  sheetContext.pop();
+                  if (!context.mounted) return;
+                  final now = DateTime.now();
+                  final cubit = context.read<TransactionCubit>();
+                  final picked = await showDatePicker(
+                    context: context,
+                    helpText: 'اختار تاريخ البداية',
+                    initialDate: cubit.state.filterStartDate ?? now,
+                    firstDate: DateTime(now.year - 5),
+                    lastDate: now,
+                  );
+                  if (picked != null && context.mounted) {
+                    await cubit.setSinceFilter(picked);
+                  }
                 },
               ),
               const Divider(),

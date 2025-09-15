@@ -13,6 +13,7 @@ import 'package:opration/features/transactions/domain/usecases/get_transactions.
 import 'package:opration/features/transactions/domain/usecases/save_filter_settings.dart';
 import 'package:opration/features/transactions/domain/usecases/update_category.dart';
 import 'package:opration/features/transactions/domain/usecases/update_transaction.dart';
+import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 
 part 'transactions_state.dart';
 
@@ -28,6 +29,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     required this.deleteCategoryUseCase,
     required this.getFilterSettingsUseCase,
     required this.saveFilterSettingsUseCase,
+    required this.walletCubit,
   }) : super(const TransactionState());
   final GetTransactionsUseCase getTransactionsUseCase;
   final AddTransactionUseCase addTransactionUseCase;
@@ -39,7 +41,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   final DeleteCategoryUseCase deleteCategoryUseCase;
   final GetFilterSettingsUseCase getFilterSettingsUseCase;
   final SaveFilterSettingsUseCase saveFilterSettingsUseCase;
-
+  final WalletCubit walletCubit;
   Future<void> loadInitialData() async {
     emit(state.copyWith(isLoading: true));
     try {
@@ -99,16 +101,69 @@ class TransactionCubit extends Cubit<TransactionState> {
     await _performDatabaseOperation(() => addTransactionUseCase(transaction));
   }
 
-  Future<void> updateTransaction(Transaction transaction) async {
-    await _performDatabaseOperation(
-      () => updateTransactionUseCase(transaction),
-    );
+  Future<void> updateTransaction(Transaction updatedTransaction) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      // ١. الحصول على النسخة الأصلية من العملية قبل التعديل
+      final originalTransaction = state.allTransactions.firstWhere(
+        (t) => t.id == updatedTransaction.id,
+      );
+
+      // ٢. حساب الفرق في المبلغ
+      final oldSignedAmount =
+          originalTransaction.amount *
+          (originalTransaction.type == TransactionType.income ? 1 : -1);
+      final newSignedAmount =
+          updatedTransaction.amount *
+          (updatedTransaction.type == TransactionType.income ? 1 : -1);
+      final amountDifference = newSignedAmount - oldSignedAmount;
+
+      // ٣. تحديث العملية في قاعدة البيانات
+      await updateTransactionUseCase(updatedTransaction);
+
+      // ٤. تحديث رصيد المحفظة
+      // (يفترض أن المحفظة لم تتغير، لو تغيرت فالمنطق سيكون أعقد)
+      await walletCubit.updateWalletBalance(
+        updatedTransaction.walletId,
+        amountDifference,
+      );
+
+      // ٥. إعادة تحميل البيانات
+      final transactions = await getTransactionsUseCase();
+      emit(state.copyWith(isLoading: false, allTransactions: transactions));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
   }
 
   Future<void> deleteTransaction(String transactionId) async {
-    await _performDatabaseOperation(
-      () => deleteTransactionUseCase(transactionId),
-    );
+    emit(state.copyWith(isLoading: true));
+    try {
+      // ١. الحصول على العملية قبل حذفها
+      final transactionToDelete = state.allTransactions.firstWhere(
+        (t) => t.id == transactionId,
+      );
+
+      // ٢. حساب المبلغ الذي يجب إعادته للمحفظة
+      final amountToRevert =
+          transactionToDelete.amount *
+          (transactionToDelete.type == TransactionType.income ? -1 : 1);
+
+      // ٣. حذف العملية من قاعدة البيانات
+      await deleteTransactionUseCase(transactionId);
+
+      // ٤. تحديث رصيد المحفظة
+      await walletCubit.updateWalletBalance(
+        transactionToDelete.walletId,
+        amountToRevert,
+      );
+
+      // ٥. إعادة تحميل البيانات
+      final transactions = await getTransactionsUseCase();
+      emit(state.copyWith(isLoading: false, allTransactions: transactions));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
   }
 
   Future<void> addCategory(TransactionCategory category) async {
@@ -120,7 +175,58 @@ class TransactionCubit extends Cubit<TransactionState> {
   }
 
   Future<void> deleteCategory(String categoryId) async {
-    await _performDatabaseOperation(() => deleteCategoryUseCase(categoryId));
+    emit(state.copyWith(isLoading: true));
+    try {
+      // ١. إيجاد كل العمليات المرتبطة بهذه الفئة قبل حذفها
+      final transactionsToDelete = state.allTransactions
+          .where((t) => t.categoryId == categoryId)
+          .toList();
+
+      // ٢. حذف الفئة والعمليات المرتبطة بها
+      await deleteCategoryUseCase(categoryId);
+
+      // ٣. تحديث رصيد المحفظة لكل عملية تم حذفها
+      for (final transaction in transactionsToDelete) {
+        final amountToRevert =
+            transaction.amount *
+            (transaction.type == TransactionType.income ? -1 : 1);
+        await walletCubit.updateWalletBalance(
+          transaction.walletId,
+          amountToRevert,
+        );
+      }
+
+      // ٤. إعادة تحميل البيانات
+      final transactions = await getTransactionsUseCase();
+      final categories = await getCategoriesUseCase();
+      emit(
+        state.copyWith(
+          isLoading: false,
+          allTransactions: transactions,
+          allCategories: categories,
+        ),
+      );
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  Future<void> setSinceFilter(DateTime startDate) async {
+    emit(state.copyWith(isLoading: true));
+    final endDate = DateTime.now();
+    await saveFilterSettingsUseCase(
+      startDate: startDate,
+      endDate: endDate,
+      activeFilter: PredefinedFilter.since,
+    );
+    emit(
+      state.copyWith(
+        isLoading: false,
+        filterStartDate: startDate,
+        filterEndDate: endDate,
+        activeFilter: PredefinedFilter.since,
+      ),
+    );
   }
 
   Future<void> setPredefinedFilter(PredefinedFilter filter) async {
@@ -184,11 +290,22 @@ class TransactionCubit extends Cubit<TransactionState> {
         final startOfYear = DateTime(now.year, 1, 1);
         final endOfYear = DateTime(now.year, 12, 31);
         return DateTimeRange(start: startOfYear, end: endOfYear);
+      case PredefinedFilter.since:
+        final start = state.filterStartDate ?? DateTime(now.year, now.month, 1);
+        return DateTimeRange(start: start, end: now);
       case PredefinedFilter.custom:
         return DateTimeRange(
           start: state.filterStartDate ?? now,
           end: state.filterEndDate ?? now,
         );
+    }
+  }
+
+  void setWalletFilter(String? walletId) {
+    if (walletId == null) {
+      emit(state.copyWith(clearSelectedWalletId: true));
+    } else {
+      emit(state.copyWith(selectedWalletId: walletId));
     }
   }
 }

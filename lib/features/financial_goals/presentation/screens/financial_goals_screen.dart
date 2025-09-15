@@ -62,8 +62,10 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.compactCurrency(
+    final currencyFormat = NumberFormat.currency(
+      locale: 'ar_EG',
       symbol: 'ج.م',
+      decimalDigits: 0,
     );
     final remaining = goal.targetAmount - goal.savedAmount;
     final isCompleted = goal.progress >= 1.0;
@@ -366,7 +368,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
                   4.horizontalSpace,
                   SvgImage(
                     imagePath: 'assets/image/svg/quote-1.svg',
-                    height: 14.h, 
+                    height: 14.h,
                   ),
                 ],
               ),

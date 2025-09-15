@@ -7,7 +7,6 @@ import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
-import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
@@ -88,14 +87,14 @@ class _MonthlyPlanView extends StatelessWidget {
                         _PlannedIncomeSection(plan: planState.plan!),
                         16.verticalSpace,
                         _PlannedExpensesSection(plan: planState.plan!),
-                        20.verticalSpace,
-                        CustomPrimaryButton(
-                          width: double.infinity,
-                          text: 'احفظ حسبة الشهر',
-                          onPressed: () => context
-                              .read<MonthlyPlanCubit>()
-                              .saveCurrentPlan(),
-                        ),
+                        // 20.verticalSpace,
+                        // CustomPrimaryButton(
+                        //   width: double.infinity,
+                        //   text: 'احفظ حسبة الشهر',
+                        //   onPressed: () => context
+                        //       .read<MonthlyPlanCubit>()
+                        //       .saveCurrentPlan(),
+                        // ),
                         16.verticalSpace,
                       ],
                     ),
