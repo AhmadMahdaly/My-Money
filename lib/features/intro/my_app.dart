@@ -19,6 +19,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
+    final walletCubit = WalletCubit(
+      getWalletsUseCase: getIt(),
+      addWalletUseCase: getIt(),
+      updateWalletUseCase: getIt(),
+      deleteWalletUseCase: getIt(),
+      setMainWalletUseCase: getIt(),
+      getShowMainWalletPrefUseCase: getIt(),
+      saveShowMainWalletPrefUseCase: getIt(),
+    );
     return GestureDetector(
       onTap: () => unfocusScope(context),
       child: MultiBlocProvider(
@@ -42,7 +51,7 @@ class MyApp extends StatelessWidget {
               deleteCategoryUseCase: getIt(),
               getFilterSettingsUseCase: getIt(),
               saveFilterSettingsUseCase: getIt(),
-              walletCubit: getIt(),
+              walletCubit: walletCubit,
             )..loadInitialData(),
           ),
           BlocProvider<MonthlyPlanCubit>(
@@ -52,15 +61,7 @@ class MyApp extends StatelessWidget {
             )..loadPlanForMonth(DateTime.now()),
           ),
           BlocProvider<WalletCubit>(
-            create: (_) => WalletCubit(
-              getWalletsUseCase: getIt(),
-              addWalletUseCase: getIt(),
-              updateWalletUseCase: getIt(),
-              deleteWalletUseCase: getIt(),
-              setMainWalletUseCase: getIt(),
-              getShowMainWalletPrefUseCase: getIt(),
-              saveShowMainWalletPrefUseCase: getIt(),
-            )..loadWallets(),
+            create: (_) => walletCubit..loadWallets(),
           ),
           BlocProvider<FinancialGoalCubit>(
             create: (_) => FinancialGoalCubit(

@@ -466,6 +466,44 @@ class _FilterControlBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          if (wallets.length > 1)
+            DropdownButton<String>(
+              icon: const Icon(
+                Icons.arrow_drop_down,
+                color: AppColors.primaryTextColor,
+              ),
+              value: transactionState.selectedWalletId,
+              hint: Text(
+                'كل المحافظ',
+                style: AppTextStyles.style14W600.copyWith(
+                  color: AppColors.greenLightColor,
+                ),
+              ),
+              underline: const SizedBox.shrink(),
+              onChanged: transactionCubit.setWalletFilter,
+              items: [
+                DropdownMenuItem<String>(
+                  value: null, // القيمة null تعني "كل المحافظ"
+                  child: Text(
+                    'كل المحافظ',
+                    style: AppTextStyles.style14W600.copyWith(
+                      color: AppColors.greenLightColor,
+                    ),
+                  ),
+                ),
+                ...wallets.map<DropdownMenuItem<String>>((Wallet wallet) {
+                  return DropdownMenuItem<String>(
+                    value: wallet.id,
+                    child: Text(
+                      wallet.name,
+                      style: AppTextStyles.style14W600.copyWith(
+                        color: AppColors.greenLightColor,
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
           InkWell(
             onTap: () => _showFilterOptions(context),
             child: Row(
@@ -484,29 +522,6 @@ class _FilterControlBar extends StatelessWidget {
               ],
             ),
           ),
-
-          if (wallets.length > 1)
-            DropdownButton<String>(
-              value: transactionState.selectedWalletId,
-              hint: Text(
-                'كل المحافظ',
-                style: AppTextStyles.style14W500,
-              ),
-              underline: const SizedBox.shrink(),
-              onChanged: transactionCubit.setWalletFilter,
-              items: [
-                const DropdownMenuItem<String>(
-                  value: null, // القيمة null تعني "كل المحافظ"
-                  child: Text('كل المحافظ'),
-                ),
-                ...wallets.map<DropdownMenuItem<String>>((Wallet wallet) {
-                  return DropdownMenuItem<String>(
-                    value: wallet.id,
-                    child: Text(wallet.name),
-                  );
-                }),
-              ],
-            ),
         ],
       ),
     );
