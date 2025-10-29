@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_int_literals
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,7 +8,6 @@ import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
-import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
@@ -236,25 +237,39 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final existingExpenseCategoryIds = context
-        .watch<TransactionCubit>()
-        .state
-        .allCategories
-        .where((c) => c.type == TransactionType.expense)
-        .map((c) => c.id)
-        .toSet();
+    // --- الحسابات الفعلية ---
+    // 1. قراءة الـ state من الكيوبت الخاصة بالمعاملات والخطة
+    final transactionState = context.watch<TransactionCubit>().state;
+    final planState = context.watch<MonthlyPlanCubit>().state;
 
-    final validPlannedExpenses = plan.expenses.where(
-      (p) => existingExpenseCategoryIds.contains(p.categoryId),
-    );
+    // 2. تحديد الشهر والسنة الحالية من الخطة
+    final currentMonth = planState.currentMonth;
+    final year = currentMonth.year;
+    final month = currentMonth.month;
 
-    final totalBudgetedExpense = validPlannedExpenses.fold(
-      // ignore: prefer_int_literals
-      0.0,
-      (sum, item) => sum + item.budgetedAmount,
-    );
+    // 3. حساب "إجمالي الدخل الفعلي"
+    final actualTotalIncome = transactionState.allTransactions
+        .where(
+          (t) =>
+              t.type == TransactionType.income &&
+              t.date.year == year &&
+              t.date.month == month,
+        )
+        .fold(0.0, (sum, t) => sum + t.amount);
 
-    final projectedSavings = plan.totalPlannedIncome - totalBudgetedExpense;
+    // 4. حساب "إجمالي المصروف الفعلي"
+    final actualTotalExpense = transactionState.allTransactions
+        .where(
+          (t) =>
+              t.type == TransactionType.expense &&
+              t.date.year == year &&
+              t.date.month == month,
+        )
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    // 5. حساب "الباقي الفعلي"
+    final actualSavings = actualTotalIncome - actualTotalExpense;
+    // --- نهاية الحسابات الفعلية ---
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.r),
@@ -262,7 +277,7 @@ class _SummarySection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'ملخص الحسبة',
+            'ملخصك الفعلي', // تم تغيير العنوان للتوضيح
             style: AppTextStyles.style14W400.copyWith(
               color: AppColors.primaryColor,
             ),
@@ -273,18 +288,18 @@ class _SummarySection extends StatelessWidget {
             children: [
               _SummaryItem(
                 title: 'الدخل',
-                amount: plan.totalPlannedIncome,
+                amount: actualTotalIncome, // <-- استخدام الدخل الفعلي
                 color: AppColors.successColor,
               ),
               _SummaryItem(
                 title: 'المصروف',
-                amount: totalBudgetedExpense,
+                amount: actualTotalExpense, // <-- استخدام المصروف الفعلي
                 color: AppColors.errorColor,
               ),
               _SummaryItem(
                 title: 'الباقي',
-                amount: projectedSavings,
-                color: projectedSavings >= 0
+                amount: actualSavings, // <-- استخدام الباقي الفعلي
+                color: actualSavings >= 0
                     ? AppColors.primaryColor
                     : AppColors.orangeColor,
               ),
@@ -347,210 +362,286 @@ class _SummaryItem extends StatelessWidget {
 class _PlannedIncomeSection extends StatelessWidget {
   const _PlannedIncomeSection({required this.plan});
   final MonthlyPlan plan;
-  void _deleteIncome(BuildContext context, PlannedIncome incomeToDelete) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('متأكد؟'),
-        content: Text(
-          'أنت هتمسح "${incomeToDelete.name}"؟',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              final monthlyPlanCubit = context.read<MonthlyPlanCubit>();
-              final updatedIncomes = plan.incomes
-                  .where((i) => i.id != incomeToDelete.id)
-                  .toList();
-              monthlyPlanCubit.updatePlan(
-                plan.copyWith(incomes: updatedIncomes),
-              );
-              ctx.pop();
-            },
-            child: const Text('مسح', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _addOrEditIncome(BuildContext context, [PlannedIncome? income]) {
-    final monthlyPlanCubit = context.read<MonthlyPlanCubit>();
-    final transactionCubit = context.read<TransactionCubit>();
-
-    final incomeCategories = transactionCubit.state.allCategories
-        .where((c) => c.type == TransactionType.income)
-        .toList();
-
-    if (incomeCategories.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ضيف الفئة الأول!')),
-      );
-      return;
-    }
-
-    final amountController = TextEditingController(
-      text: income?.amount.truncate().toString() ?? '',
-    );
-    final selectedDate = income?.date ?? DateTime.now();
-    String? selectedCategoryId = incomeCategories
-        .firstWhere(
-          (cat) => cat.name == income?.name,
-          orElse: () => incomeCategories.first,
-        )
-        .id;
-
-    showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        return BlocProvider.value(
-          value: monthlyPlanCubit,
-          child: StatefulBuilder(
-            builder: (context, setDialogState) {
-              return AlertDialog(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      income == null ? 'إضافة دخل متوقع' : 'تعديل الدخل',
-                    ),
-                    if (income != null)
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete,
-                          size: 20.r,
-                          color: AppColors.errorColor,
-                        ),
-                        onPressed: () => _deleteIncome(context, income),
-                      )
-                    else
-                      const SizedBox.shrink(),
-                  ],
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomDropdownButtonFormField<String>(
-                      value: selectedCategoryId,
-                      hintText: 'تبع أنهي فئة',
-                      items: incomeCategories.map((
-                        TransactionCategory category,
-                      ) {
-                        return DropdownMenuItem<String>(
-                          value: category.id,
-                          child: Text(category.name),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setDialogState(() {
-                          selectedCategoryId = newValue;
-                        });
-                      },
-                    ),
-                    6.verticalSpace,
-                    CustomPrimaryTextfield(
-                      controller: amountController,
-                      text: 'المبلغ',
-                      keyboardType: TextInputType.number,
-                    ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => ctx.pop(),
-                    child: const Text('إلغاء'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      final amount =
-                          double.tryParse(amountController.text) ?? 0.0;
-                      final selectedCategory = incomeCategories.firstWhere(
-                        (cat) => cat.id == selectedCategoryId,
-                      );
-
-                      if (amount <= 0) return;
-
-                      final newIncome = PlannedIncome(
-                        id: income?.id ?? getIt<Uuid>().v4(),
-                        name: selectedCategory.name,
-                        amount: amount,
-                        date: selectedDate,
-                      );
-
-                      List<PlannedIncome> updatedIncomes;
-                      if (income == null) {
-                        updatedIncomes = [...plan.incomes, newIncome];
-                      } else {
-                        updatedIncomes = plan.incomes
-                            .map((i) => i.id == income.id ? newIncome : i)
-                            .toList();
-                      }
-                      monthlyPlanCubit.updatePlan(
-                        plan.copyWith(incomes: updatedIncomes),
-                      );
-                      ctx.pop();
-                    },
-                    child: const Text('سجل'),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
+    final incomeCategories = context
+        .watch<TransactionCubit>()
+        .state
+        .allCategories
+        .where((c) => c.type == TransactionType.income)
+        .toList();
+
     return Card(
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           title: Text(
-            'دخلك المتوقع',
+            'الدخل المتوقع (المخطط له)',
             style: AppTextStyles.style14W400.copyWith(
               color: AppColors.primaryColor,
             ),
           ),
           initiallyExpanded: false,
           children: [
-            ...plan.incomes.map(
-              (income) => ListTile(
-                title: Text(income.name),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+            if (incomeCategories.isEmpty)
+              Padding(
+                padding: EdgeInsets.all(16.r),
+                child: Column(
                   children: [
-                    Text(
-                      '${income.amount.truncate()} ج.م',
-                      style: AppTextStyles.style14Bold.copyWith(
-                        color: AppColors.primaryColor,
-                      ),
+                    const Text('لسا مضيفتش فئات للدخل'),
+                    8.verticalSpace,
+                    ElevatedButton(
+                      onPressed: () {
+                        context.push(AppRoutes.manageCategoriesScreen);
+                      },
+                      child: const Text('ضيف فئة دخل جديدة'),
                     ),
                   ],
                 ),
-                onTap: () => _addOrEditIncome(context, income),
-              ),
-            ),
+              )
+            else
+              ...incomeCategories.map((category) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 6.h),
+                  child: _IncomeBudgetTile(category: category, plan: plan),
+                );
+              }),
             ListTile(
-              title: Text(
-                'ضيف دخل جديد...',
-                style: AppTextStyles.style14W400.copyWith(
-                  color: AppColors.primaryTextColor,
-                ),
-              ),
-              leading: const Icon(Icons.add, color: AppColors.primaryTextColor),
-              onTap: () => _addOrEditIncome(context),
+              title: const Text('ضيف فئة جديدة لدخلك...'),
+              leading: Icon(Icons.add, color: AppColors.successColor),
+              onTap: () => _showAddIncomeCategoryDialog(context),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class _IncomeBudgetTile extends StatefulWidget {
+  const _IncomeBudgetTile({required this.category, required this.plan});
+  final TransactionCategory category;
+  final MonthlyPlan plan;
+
+  @override
+  State<_IncomeBudgetTile> createState() => _IncomeBudgetTileState();
+}
+
+class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    _updateControllerText();
+  }
+
+  @override
+  void didUpdateWidget(covariant _IncomeBudgetTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.plan != oldWidget.plan ||
+        widget.category.id != oldWidget.category.id) {
+      _updateControllerText();
+    }
+  }
+
+  void _updateControllerText() {
+    // نحسب إجمالي الدخل المخطط له لهذه الفئة
+    // (قد يكون المستخدم أدخل أكثر من دخل مخطط له قديماً)
+    final budgetedAmount = widget.plan.incomes
+        .where((i) => i.name == widget.category.name)
+        .fold(0.0, (sum, item) => sum + item.amount);
+
+    final textValue = (budgetedAmount == budgetedAmount.truncate())
+        ? budgetedAmount.truncate().toString()
+        : budgetedAmount.toString();
+
+    if (_controller.text != textValue) {
+      _controller.text = textValue;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // هذه الدالة تحدث "الدخل المخطط له" في الكيوبت
+  void _updateIncomeInCubit(double amount) {
+    final category = widget.category;
+    final planState = context.read<MonthlyPlanCubit>().state;
+
+    // 1. نحصل على كل الدخول المخطط لها *ما عدا* التي لهذه الفئة
+    final otherIncomes = widget.plan.incomes
+        .where((i) => i.name != category.name)
+        .toList();
+
+    // 2. ننشئ قائمة جديدة
+    final updatedIncomes = [...otherIncomes];
+
+    // 3. إذا كانت القيمة أكبر من صفر، ننشئ "بند دخل واحد" لهذه الفئة
+    if (amount > 0) {
+      // نحاول إعادة استخدام الـ ID القديم إن وجد
+      final existingIncome = widget.plan.incomes.firstWhere(
+        (i) => i.name == category.name,
+        orElse: () => PlannedIncome(
+          id: getIt<Uuid>().v4(),
+          name: '',
+          amount: 0,
+          date: DateTime.now(),
+        ),
+      );
+
+      final newIncome = PlannedIncome(
+        id: existingIncome.id, // نستخدم الـ ID القديم أو الـ UUID الجديد
+        name: category.name,
+        amount: amount,
+        // نستخدم تاريخ أول يوم في الشهر الحالي كافتراضي
+        date: DateTime(
+          planState.currentMonth.year,
+          planState.currentMonth.month,
+          1,
+        ),
+      );
+      updatedIncomes.add(newIncome);
+    }
+
+    // 4. نحدث الكيوبت
+    context.read<MonthlyPlanCubit>().updatePlan(
+      widget.plan.copyWith(incomes: updatedIncomes),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // --- حساب الدخل الفعلي ---
+    final transactionState = context.watch<TransactionCubit>().state;
+    final planState = context.watch<MonthlyPlanCubit>().state;
+
+    final currentMonth = planState.currentMonth;
+    final year = currentMonth.year;
+    final month = currentMonth.month;
+
+    // 1. الدخل المخطط له (الإجمالي لهذه الفئة)
+    final budgetedAmount = widget.plan.incomes
+        .where((i) => i.name == widget.category.name)
+        .fold(0.0, (sum, item) => sum + item.amount);
+
+    // 2. الدخل الفعلي (من المعاملات)
+    final actualReceivedAmount = transactionState.allTransactions
+        .where(
+          (t) =>
+              t.categoryId == widget.category.id &&
+              t.type == TransactionType.income &&
+              t.date.year == year &&
+              t.date.month == month,
+        )
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    // 3. نسبة التقدم
+    final progressValue = (budgetedAmount > 0)
+        ? (actualReceivedAmount / budgetedAmount).clamp(0.0, 1.0)
+        : 0.0;
+
+    // --- بناء الواجهة ---
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: widget.category.color,
+        radius: 15.r,
+      ),
+
+      // العنوان: اسم الفئة والمبلغ الفعلي المحقق
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(widget.category.name),
+          Text(
+            '${actualReceivedAmount.truncate()} ج.م', // <-- عرض الدخل الفعلي
+            style: AppTextStyles.style14W400.copyWith(
+              color: AppColors.successColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+
+      // العنوان الفرعي: شريط التقدم + المبلغ المخطط له
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          8.verticalSpace,
+          LinearProgressIndicator(
+            value: progressValue,
+            backgroundColor: AppColors.secondaryColor,
+            color: widget.category.color,
+            minHeight: 6.h,
+          ),
+          4.verticalSpace,
+          Text(
+            'المخطط له: ${budgetedAmount.truncate()} ج.م',
+            style: AppTextStyles.style12W400.copyWith(
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+        ],
+      ),
+
+      // الحقل الجانبي: لتحديد الدخل "المخطط له"
+      trailing: SizedBox(
+        // <-- الحقل يجب أن يكون هنا
+        width: 120.w, // يمكنك تعديل العرض حسب رغبتك
+        child: CustomPrimaryTextfield(
+          controller: _controller,
+          text: 'المخطط',
+          textAlign: TextAlign.center,
+          keyboardType: TextInputType.number,
+          suffix: IconButton(
+            // <-- إضافة أيقونة الآلة الحاسبة مجدداً
+            icon: Icon(
+              Icons.calculate_outlined,
+              size: 24.r,
+              color: AppColors.primaryColor,
+            ),
+            onPressed: () async {
+              final result = await showDialog<double>(
+                context: context,
+                builder: (_) => CalculatorDialog(
+                  initialValue: double.tryParse(_controller.text) ?? 0,
+                ),
+              );
+              if (result != null && mounted) {
+                _controller.text = result.truncate().toString();
+                _updateIncomeInCubit(result);
+              }
+            },
+          ),
+          onChanged: (value) {
+            final amount = double.tryParse(value) ?? 0.0;
+            _updateIncomeInCubit(amount);
+          },
+        ),
+      ),
+    );
+  }
+}
+
+void _showAddIncomeCategoryDialog(BuildContext context) {
+  final transactionCubit = context.read<TransactionCubit>();
+
+  showDialog<TransactionCategory>(
+    context: context,
+    builder: (_) => BlocProvider.value(
+      value: transactionCubit,
+      child: const AddCategoryDialog(type: TransactionType.income),
+    ),
+  ).then((newCategory) {
+    if (newCategory != null) {
+      transactionCubit.addCategory(newCategory);
+    }
+  });
 }
 
 void _showAddExpenseCategoryDialog(BuildContext context) {
@@ -587,13 +678,13 @@ class _PlannedExpensesSection extends StatelessWidget {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
+          initiallyExpanded: true,
           title: Text(
             'الإلتزامات الثابتة (مصاريفك المتوقعة)',
             style: AppTextStyles.style14W400.copyWith(
               color: AppColors.primaryColor,
             ),
           ),
-          initiallyExpanded: false,
           children: [
             if (expenseCategories.isEmpty)
               Padding(
@@ -652,21 +743,27 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
   @override
   void didUpdateWidget(covariant _ExpenseBudgetTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.plan != oldWidget.plan) {
+    // نتحقق من الخطة أو الفئة لضمان تحديث النص في الحقل
+    if (widget.plan != oldWidget.plan ||
+        widget.category.id != oldWidget.category.id) {
       _updateControllerText();
     }
   }
 
+  // هذه الدالة مسؤولة فقط عن تحديث "حقل إدخال الميزانية"
   void _updateControllerText() {
     final existingExpense = widget.plan.getExpenseForCategory(
       widget.category.id,
     );
     final amount = existingExpense?.budgetedAmount ?? 0.0;
 
-    if (amount == amount.truncate()) {
-      _controller.text = amount.truncate().toString();
-    } else {
-      _controller.text = amount.toString();
+    final textValue = (amount == amount.truncate())
+        ? amount.truncate().toString()
+        : amount.toString();
+
+    // نتأكد أن النص مختلف قبل التحديث لتجنب مشاكل مع المؤشر
+    if (_controller.text != textValue) {
+      _controller.text = textValue;
     }
   }
 
@@ -676,6 +773,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
     super.dispose();
   }
 
+  // هذه الدالة تحدث "الميزانية" نفسها عند التغيير في الحقل
   void _updateExpenseInCubit(double amount) {
     final newExpense = PlannedExpense(
       categoryId: widget.category.id,
@@ -684,7 +782,13 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
     final otherExpenses = widget.plan.expenses
         .where((e) => e.categoryId != widget.category.id)
         .toList();
-    final updatedExpenses = [...otherExpenses, newExpense];
+
+    // نضيف المصروف الجديد فقط إذا كانت قيمته أكبر من صفر
+    final updatedExpenses = [...otherExpenses];
+    if (amount > 0) {
+      updatedExpenses.add(newExpense);
+    }
+
     context.read<MonthlyPlanCubit>().updatePlan(
       widget.plan.copyWith(expenses: updatedExpenses),
     );
@@ -692,47 +796,112 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
 
   @override
   Widget build(BuildContext context) {
+    // --- الجزء الجديد: حساب المصروفات الفعلية ---
+
+    // 1. قراءة الـ state من الكيوبت الخاصة بالمعاملات والخطة
+    final transactionState = context.watch<TransactionCubit>().state;
+    final planState = context.watch<MonthlyPlanCubit>().state;
+
+    // 2. تحديد الشهر والسنة الحالية من الخطة
+    final currentMonth = planState.currentMonth;
+    final year = currentMonth.year;
+    final month = currentMonth.month;
+
+    // 3. حساب الميزانية المحددة لهذه الفئة
+    final existingExpense = widget.plan.getExpenseForCategory(
+      widget.category.id,
+    );
+    final budgetedAmount = existingExpense?.budgetedAmount ?? 0.0;
+
+    // 4. فلترة كل المعاملات لحساب "المصروف الفعلي"
+    final actualSpentAmount = transactionState.allTransactions
+        .where(
+          (t) =>
+              // مطابق لنفس الفئة
+              t.categoryId == widget.category.id &&
+              // ونوعه مصروف
+              t.type == TransactionType.expense &&
+              // وفي نفس الشهر
+              t.date.year == year &&
+              t.date.month == month,
+        )
+        .fold(0.0, (sum, t) => sum + t.amount); // جمع كل المبالغ
+
+    // 5. حساب المبلغ المتبقي
+    final remainingAmount = budgetedAmount - actualSpentAmount;
+
+    // 6. حساب نسبة شريط التقدم
+    final progressValue = (budgetedAmount > 0)
+        ? (actualSpentAmount / budgetedAmount).clamp(0.0, 1.0)
+        : 0.0;
+
+    // --- تعديل الـ UI لعرض البيانات الجديدة ---
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: widget.category.color,
         radius: 15.r,
       ),
-      title: Text(widget.category.name),
-      trailing: SizedBox(
-        width: 150.w,
-        child: CustomPrimaryTextfield(
-          controller: _controller,
-          textAlign: TextAlign.center,
-          keyboardType: TextInputType.number,
+      // العنوان سيعرض اسم الفئة والمبلغ المتبقي
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(widget.category.name),
+          SizedBox(
+            width: SizeConfig.screenWidth / 2 - 20.w,
+            child: CustomPrimaryTextfield(
+              controller: _controller,
+              text: 'الميزانية',
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
 
-          suffix: const Text(
-            '\n ج.م',
-            style: TextStyle(color: AppColors.primaryColor),
-          ),
-          prefix: IconButton(
-            icon: Icon(
-              Icons.calculate_outlined,
-              size: 24.r,
-              color: AppColors.primaryColor,
-            ),
-            onPressed: () async {
-              final result = await showDialog<double>(
-                context: context,
-                builder: (_) => CalculatorDialog(
-                  initialValue: double.tryParse(_controller.text) ?? 0,
+              suffix: InkWell(
+                child: Icon(
+                  Icons.calculate_outlined,
+                  size: 24.r,
+                  color: AppColors.primaryColor,
                 ),
-              );
-              if (result != null) {
-                _controller.text = result.truncate().toString();
-                _updateExpenseInCubit(result);
-              }
-            },
+                onTap: () async {
+                  final result = await showDialog<double>(
+                    context: context,
+                    builder: (_) => CalculatorDialog(
+                      initialValue: double.tryParse(_controller.text) ?? 0,
+                    ),
+                  );
+                  if (result != null && mounted) {
+                    _controller.text = result.truncate().toString();
+                    _updateExpenseInCubit(result);
+                  }
+                },
+              ),
+              onChanged: (value) {
+                final amount = double.tryParse(value) ?? 0.0;
+                _updateExpenseInCubit(amount);
+              },
+            ),
           ),
-          onChanged: (value) {
-            final amount = double.tryParse(value) ?? 0.0;
-            _updateExpenseInCubit(amount);
-          },
-        ),
+        ],
+      ),
+      // العنوان الفرعي سيعرض شريط التقدم والتفاصيل
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          8.verticalSpace,
+          LinearProgressIndicator(
+            value: progressValue,
+            backgroundColor: AppColors.secondaryColor,
+            color: widget.category.color,
+            minHeight: 6.h,
+          ),
+          4.verticalSpace,
+
+          Text(
+            'الميزانية المتوقعة: ${budgetedAmount.truncate()} ج.م\nالمصروف فعلياً: ${actualSpentAmount.truncate()} ج.م\nالباقي الفعلي: ${remainingAmount.truncate()} ج.م',
+            style: AppTextStyles.style12W400.copyWith(
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+        ],
       ),
     );
   }
