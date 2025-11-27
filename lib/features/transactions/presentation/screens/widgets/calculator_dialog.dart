@@ -15,17 +15,137 @@ class CalculatorDialog extends StatefulWidget {
 }
 
 class _CalculatorDialogState extends State<CalculatorDialog> {
-  String _output = '0';
-  String _currentNumber = '';
-  double? _num1;
-  String _operand = '';
+  String _expression = ''; // التعبير الكامل
+  String _output = '0'; // الناتج النهائي
   bool _justCalculated = false;
 
+  //--------------------------------------------------------------------
+  //  دالة حساب التعبير بالكامل مع دعم الأقواس
+  //--------------------------------------------------------------------
+  double _evaluateExpression(String expr) {
+    try {
+      expr = expr.replaceAll('×', '*').replaceAll('÷', '/');
+
+      final tokens = _tokenize(expr);
+      final postfix = _toPostfix(tokens);
+      return _evalPostfix(postfix);
+    } catch (e) {
+      return double.nan;
+    }
+  }
+
+  //--------------------------------------------------------------------
+  // تجزئة التعبير إلى Tokens
+  //--------------------------------------------------------------------
+  List<String> _tokenize(String expr) {
+    final tokens = <String>[];
+    var number = '';
+
+    for (var i = 0; i < expr.length; i++) {
+      final c = expr[i];
+
+      if ('0123456789.'.contains(c)) {
+        number += c;
+      } else {
+        if (number.isNotEmpty) {
+          tokens.add(number);
+          number = '';
+        }
+        tokens.add(c);
+      }
+    }
+    if (number.isNotEmpty) tokens.add(number);
+
+    return tokens;
+  }
+
+  //--------------------------------------------------------------------
+  // تحويل INFIX → POSTFIX (خوارزمية Shunting Yard)
+  //--------------------------------------------------------------------
+  List<String> _toPostfix(List<String> tokens) {
+    final output = <String>[];
+    final stack = <String>[];
+
+    final prec = {'+': 1, '-': 1, '*': 2, '/': 2};
+
+    for (final token in tokens) {
+      if (double.tryParse(token) != null) {
+        output.add(token);
+      } else if ('+-*/'.contains(token)) {
+        while (stack.isNotEmpty &&
+            '+-*/'.contains(stack.last) &&
+            prec[stack.last]! >= prec[token]!) {
+          output.add(stack.removeLast());
+        }
+        stack.add(token);
+      } else if (token == '(') {
+        stack.add(token);
+      } else if (token == ')') {
+        while (stack.isNotEmpty && stack.last != '(') {
+          output.add(stack.removeLast());
+        }
+        if (stack.isNotEmpty) stack.removeLast(); // remove "("
+      }
+    }
+
+    while (stack.isNotEmpty) {
+      output.add(stack.removeLast());
+    }
+
+    return output;
+  }
+
+  //--------------------------------------------------------------------
+  // تنفيذ POSTFIX
+  //--------------------------------------------------------------------
+  double _evalPostfix(List<String> postfix) {
+    final stack = <double>[];
+
+    for (final token in postfix) {
+      if (double.tryParse(token) != null) {
+        stack.add(double.parse(token));
+      } else {
+        final b = stack.removeLast();
+        final a = stack.removeLast();
+
+        switch (token) {
+          case '+':
+            stack.add(a + b);
+            break;
+          case '-':
+            stack.add(a - b);
+            break;
+          case '*':
+            stack.add(a * b);
+            break;
+          case '/':
+            stack.add(a / b);
+            break;
+        }
+      }
+    }
+    return stack.first;
+  }
+
+  //--------------------------------------------------------------------
+  // ضغط الأزرار
+  //--------------------------------------------------------------------
   void _buttonPressed(String buttonText) {
-    if ('0123456789.'.contains(buttonText)) {
-      _enterNumber(buttonText);
-    } else if ('+-*/'.contains(buttonText)) {
-      _chooseOperation(buttonText);
+    if (buttonText == '⌫') {
+      _backspace();
+      return;
+    }
+
+    if (_justCalculated && '0123456789('.contains(buttonText)) {
+      _expression = '';
+      _justCalculated = false;
+    }
+
+    if ('0123456789.+-*/()'.contains(buttonText)) {
+      setState(() {
+        _expression += buttonText;
+        _output = _expression;
+      });
     } else if (buttonText == 'C') {
       _clear();
     } else if (buttonText == '=') {
@@ -33,107 +153,58 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
     }
   }
 
-  void _enterNumber(String digit) {
-    setState(() {
-      if (_justCalculated) {
-        _currentNumber = '';
-        _justCalculated = false;
-      }
-      if (_currentNumber.contains('.') && digit == '.') return;
-      if (_currentNumber.isEmpty && digit == '.') {
-        _currentNumber = '0.';
-      } else {
-        _currentNumber += digit;
-      }
-      _output = _currentNumber;
-    });
-  }
-
-  void _chooseOperation(String op) {
-    setState(() {
-      if (_currentNumber.isEmpty && _num1 == null) {
-        return;
-      }
-
-      if (_currentNumber.isNotEmpty) {
-        if (_num1 == null) {
-          _num1 = double.parse(_currentNumber);
-        } else if (!_justCalculated) {
-          _calculate();
-        }
-      }
-
-      _operand = op;
-      _currentNumber = '';
-      _justCalculated = false;
-    });
-  }
-
   void _calculate() {
-    if (_currentNumber.isEmpty || _operand.isEmpty || _num1 == null) return;
-
-    final num2 = double.parse(_currentNumber);
-    double result = 0;
-
-    switch (_operand) {
-      case '+':
-        result = _num1! + num2;
-        break;
-      case '-':
-        result = _num1! - num2;
-        break;
-      case '*':
-        result = _num1! * num2;
-        break;
-      case '/':
-        if (num2 == 0) {
-          setState(() {
-            _output = 'غلطة';
-            _currentNumber = '';
-            _num1 = null;
-            _operand = '';
-          });
-          return;
-        }
-        result = _num1! / num2;
-        break;
-    }
+    final result = _evaluateExpression(_expression);
 
     setState(() {
-      _output = result.toStringAsFixed(2);
-      _currentNumber = _output;
-      _num1 = result;
-      _operand = '';
+      if (result.isNaN) {
+        _output = 'غلطة';
+      } else {
+        // إذا كان الناتج عددًا صحيحًا → عرضه بدون كسور
+        if (result % 1 == 0) {
+          _output = result.toInt().toString();
+        } else {
+          _output = result.toString();
+        }
+      }
+
       _justCalculated = true;
+    });
+  }
+
+  void _backspace() {
+    setState(() {
+      if (_expression.isNotEmpty) {
+        _expression = _expression.substring(0, _expression.length - 1);
+        _output = _expression.isEmpty ? '0' : _expression;
+      }
     });
   }
 
   void _clear() {
     setState(() {
+      _expression = '';
       _output = '0';
-      _currentNumber = '';
-      _num1 = null;
-      _operand = '';
       _justCalculated = false;
     });
   }
 
-  Widget _buildButton(String buttonText, {Color? color}) {
+  //--------------------------------------------------------------------
+  // زر واحد
+  //--------------------------------------------------------------------
+  Widget _buildButton(String text, {Color? color}) {
     return Expanded(
       child: Padding(
         padding: EdgeInsets.all(4.r),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.all(10.r),
             backgroundColor: color ?? AppColors.primaryColor,
+            padding: EdgeInsets.all(10.r),
           ),
-          onPressed: () => _buttonPressed(buttonText),
+          onPressed: () => _buttonPressed(text),
           child: Text(
-            buttonText,
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-            ),
+            text,
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -144,12 +215,14 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
   void initState() {
     super.initState();
     if (widget.initialValue != 0.0) {
-      _currentNumber = widget.initialValue.toString();
-      _output = _currentNumber;
-      _num1 = widget.initialValue;
+      _expression = widget.initialValue.toString();
+      _output = _expression;
     }
   }
 
+  //--------------------------------------------------------------------
+  // واجهة الـ Dialog
+  //--------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -162,35 +235,39 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (_num1 != null && _operand.isNotEmpty)
-              Container(
-                alignment: Alignment.centerRight,
-                padding: EdgeInsets.symmetric(horizontal: 12.w),
-                child: Text(
-                  '${_num1!.toStringAsFixed(2)} $_operand',
-                  style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
-                ),
-              ),
             Container(
               alignment: Alignment.centerRight,
               padding: EdgeInsets.all(12.r),
-              child: Text(
-                _output,
-                style: TextStyle(
-                  fontSize: 48.sp,
-                  fontWeight: FontWeight.bold,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _output,
+                  style: TextStyle(
+                    fontSize: 48.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
             const Divider(),
+
+            // الأزرار
             Column(
               children: [
+                Row(
+                  children: [
+                    _buildButton('('),
+                    _buildButton(')'),
+                    _buildButton('C', color: Colors.grey),
+                    _buildButton('/', color: Colors.orange),
+                  ],
+                ),
                 Row(
                   children: [
                     _buildButton('7'),
                     _buildButton('8'),
                     _buildButton('9'),
-                    _buildButton('/', color: Colors.orange),
+                    _buildButton('*', color: Colors.orange),
                   ],
                 ),
                 Row(
@@ -198,7 +275,7 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                     _buildButton('4'),
                     _buildButton('5'),
                     _buildButton('6'),
-                    _buildButton('*', color: Colors.orange),
+                    _buildButton('-', color: Colors.orange),
                   ],
                 ),
                 Row(
@@ -206,19 +283,14 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                     _buildButton('1'),
                     _buildButton('2'),
                     _buildButton('3'),
-                    _buildButton('-', color: Colors.orange),
-                  ],
-                ),
-                Row(
-                  children: [
-                    _buildButton('.'),
-                    _buildButton('0'),
-                    _buildButton('C', color: Colors.grey),
                     _buildButton('+', color: Colors.orange),
                   ],
                 ),
                 Row(
                   children: [
+                    _buildButton('0'),
+                    _buildButton('.'),
+                    _buildButton('⌫', color: Colors.red),
                     _buildButton('=', color: Colors.green),
                   ],
                 ),
@@ -229,12 +301,12 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.pop(context),
           child: const Text('إلغاء'),
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop(double.tryParse(_output) ?? 0.0);
+            Navigator.pop(context, double.tryParse(_output) ?? 0.0);
           },
           child: const Text('استخدم الناتج'),
         ),

@@ -26,7 +26,9 @@ class TransactionDetailsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: const PageHeader(),
+        appBar: const PageHeader(isLeading: true,
+     
+        ),
         body: BlocBuilder<TransactionCubit, TransactionState>(
           builder: (context, state) {
             if (state.isLoading && state.allTransactions.isEmpty) {

@@ -161,7 +161,7 @@ class WalletsScreen extends StatelessWidget {
                     name: nameController.text,
                     balance:
                         double.tryParse(balanceController.text) ??
-                        wallet!.balance, 
+                        wallet!.balance,
                     isMain: wallet?.isMain ?? false,
                   );
 
@@ -204,7 +204,10 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
           colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
         ),
       ),
-      child: const WelcomeUserWidget(),
+      child: const WelcomeUserWidget(
+        isLeading: true,
+        title: 'المحافظ',
+      ),
     );
   }
 }

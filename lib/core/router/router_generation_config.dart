@@ -10,6 +10,7 @@ import 'package:opration/features/transactions/presentation/screens/edit_transac
 import 'package:opration/features/transactions/presentation/screens/monthly_plan_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/transaction_details_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/manage_categories_drawer.dart';
+import 'package:opration/features/wallets/presentation/screens/wallets_screen.dart';
 
 class RouterGenerationConfig {
   static GoRouter goRouter = GoRouter(
@@ -64,6 +65,11 @@ class RouterGenerationConfig {
         path: AppRoutes.financialGoalsScreen,
         name: AppRoutes.financialGoalsScreen,
         builder: (context, state) => const FinancialGoalsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.walletsScreen,
+        name: AppRoutes.walletsScreen,
+        builder: (context, state) => const WalletsScreen(),
       ),
     ],
   );

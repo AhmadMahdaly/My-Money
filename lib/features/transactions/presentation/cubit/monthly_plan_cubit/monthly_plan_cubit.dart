@@ -71,8 +71,17 @@ class MonthlyPlanCubit extends Cubit<MonthlyPlanState> {
     }
   }
 
-  void updatePlan(MonthlyPlan plan) {
+  Future<void> updatePlan(MonthlyPlan plan) async {
     if (isClosed) return;
-    emit(state.copyWith(plan: plan, status: MonthlyPlanStatus.loaded));
+
+    emit(state.copyWith(plan: plan));
+
+    try {
+      await saveMonthlyPlanUseCase(plan);
+    } catch (e) {
+      if (!isClosed) {
+        emit(state.copyWith(error: 'فشل الحفظ التلقائي: $e'));
+      }
+    }
   }
 }

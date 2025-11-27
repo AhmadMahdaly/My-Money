@@ -33,7 +33,7 @@ class _SplashBodyState extends State<SplashBody> {
       listener: (context, state) async {
         Future.delayed(const Duration(seconds: 2), () {
           if (state is Authenticated) {
-            context.go(AppRoutes.mainLayout);
+            context.go(AppRoutes.addTransactionScreen);
           } else if (state is Unauthenticated) {
             context.go(AppRoutes.loginScreen);
           }

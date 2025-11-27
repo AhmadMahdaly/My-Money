@@ -349,7 +349,10 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const WelcomeUserWidget(),
+              const WelcomeUserWidget(
+                isLeading: true,
+                title: 'الأهداف المالية',
+              ),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

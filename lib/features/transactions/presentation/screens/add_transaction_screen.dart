@@ -32,20 +32,24 @@ class AddTransactionScreen extends StatelessWidget {
     return const DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: PageHeader(),
+        appBar: PageHeader(
+          isLeading: false,
+        ),
         body: TabBarView(
           children: [
             _TransactionForm(type: TransactionType.expense),
             _TransactionForm(type: TransactionType.income),
           ],
         ),
+        bottomNavigationBar: AppBottomBar(),
       ),
     );
   }
 }
 
 class PageHeader extends StatelessWidget implements PreferredSizeWidget {
-  const PageHeader({super.key});
+  const PageHeader({required this.isLeading, super.key});
+  final bool isLeading;
 
   @override
   Size get preferredSize => Size.fromHeight(150.h);
@@ -85,11 +89,14 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  WelcomeUserWidget(),
+                  WelcomeUserWidget(
+                    isLeading: isLeading,
+                    title: 'مصاريفك وفلوسك',
+                  ),
                 ],
               ),
               if (walletState is WalletLoaded && mainWallet != null)
@@ -496,4 +503,139 @@ void playTimerSound() {
   final player = AudioPlayer();
   const sound = appSound;
   player.play(AssetSource(sound));
+}
+
+class AppBottomBar extends StatelessWidget {
+  const AppBottomBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 20.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          1.horizontalSpace,
+          SizedBox(
+            height: 56.h,
+            width: 70.w,
+            child: IconButton(
+              onPressed: () {
+                context.pushNamed(AppRoutes.transactionDetailsScreen);
+              },
+              icon: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgImage(
+                    imagePath: 'assets/image/svg/money-bag-outline.svg',
+                    height: 24.r,
+                    color: AppColors.textGreyColor,
+                  ),
+                  4.verticalSpace,
+                  Text(
+                    'الفلوس',
+                    style: AppTextStyles.style10W400.copyWith(
+                      color: AppColors.textGreyColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 56.h,
+            width: 70.w,
+            child: IconButton(
+              onPressed: () {
+                context.pushNamed(AppRoutes.walletsScreen);
+              },
+              icon: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgImage(
+                    imagePath: 'assets/image/svg/wallet-money (1).svg',
+                    height: 24.r,
+                    color: AppColors.textGreyColor,
+                  ),
+                  4.verticalSpace,
+                  Text(
+                    'المحافظ',
+                    style: AppTextStyles.style10W400.copyWith(
+                      color: AppColors.textGreyColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          1.horizontalSpace,
+          Container(
+            padding: EdgeInsets.all(4.r),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor,
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: const Icon(
+              Icons.add,
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+          ),
+          1.horizontalSpace,
+          SizedBox(
+            height: 56.h,
+            width: 70.w,
+            child: IconButton(
+              onPressed: () {
+                context.pushNamed(AppRoutes.monthlyPlanScreen);
+              },
+              icon: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgImage(
+                    imagePath: 'assets/image/svg/big-data-analytics 1.svg',
+                    height: 24.r,
+                    color: AppColors.textGreyColor,
+                  ),
+                  4.verticalSpace,
+                  Text(
+                    'بادجت الشهر',
+                    style: AppTextStyles.style10W400.copyWith(
+                      color: AppColors.textGreyColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 56.h,
+            width: 70.w,
+            child: IconButton(
+              onPressed: () {
+                context.pushNamed(AppRoutes.financialGoalsScreen);
+              },
+              icon: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgImage(
+                    imagePath: 'assets/image/svg/mage_goals.svg',
+                    height: 24.r,
+                    color: AppColors.textGreyColor,
+                  ),
+                  4.verticalSpace,
+                  Text(
+                    'الأهداف',
+                    style: AppTextStyles.style10W400.copyWith(
+                      color: AppColors.textGreyColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          1.horizontalSpace,
+        ],
+      ),
+    );
+  }
 }
