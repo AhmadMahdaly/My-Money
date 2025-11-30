@@ -10,7 +10,6 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
-import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
@@ -26,8 +25,8 @@ class TransactionDetailsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: const PageHeader(isLeading: true,
-     
+        appBar: const PageHeader(
+          isLeading: true,
         ),
         body: BlocBuilder<TransactionCubit, TransactionState>(
           builder: (context, state) {
@@ -421,7 +420,7 @@ class _SingleSummaryCard extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
             child: InkWell(
               onTap: () {
-                context.read<MainLayoutCubit>().changeNavBarIndex(2);
+                context.pop();
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
