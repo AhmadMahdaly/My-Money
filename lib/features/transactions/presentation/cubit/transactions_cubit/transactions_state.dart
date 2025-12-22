@@ -1,6 +1,6 @@
 part of 'transactions_cubit.dart';
 
-enum PredefinedFilter { today, week, month, year, since, custom }
+enum PredefinedFilter { today, week, month, year, since, custom, singleDay }
 
 @immutable
 class TransactionState extends Equatable {

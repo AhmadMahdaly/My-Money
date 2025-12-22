@@ -533,6 +533,7 @@ class _FilterControlBar extends StatelessWidget {
     DateTime? start,
     DateTime? end,
   ) {
+    final format = DateFormat('d MMM', 'ar');
     switch (filter) {
       case PredefinedFilter.today:
         return 'النهاردة';
@@ -542,15 +543,12 @@ class _FilterControlBar extends StatelessWidget {
         return 'من أول الشهر';
       case PredefinedFilter.year:
         return 'السنادي كلها';
+      case PredefinedFilter.singleDay:
+        return start != null ? 'يوم ${format.format(start)}' : 'يوم محدد';
       case PredefinedFilter.since:
-        if (start != null) {
-          final format = DateFormat('d MMM', 'ar');
-          return 'من ${format.format(start)}';
-        }
-        return 'من تاريخ معين';
+        return start != null ? 'من ${format.format(start)}' : 'من تاريخ معين';
       case PredefinedFilter.custom:
         if (start != null && end != null) {
-          final format = DateFormat('d MMM');
           return '${format.format(start)} - ${format.format(end)}';
         }
         return 'فترة معينة';
@@ -622,6 +620,25 @@ class _FilterControlBar extends StatelessWidget {
                   );
                   if (picked != null && context.mounted) {
                     await cubit.setSinceFilter(picked);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.event),
+                title: const Text('يوم واحد محدد'),
+                onTap: () async {
+                  sheetContext.pop();
+                  final now = DateTime.now();
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: now,
+                    firstDate: DateTime(now.year - 5),
+                    lastDate: now,
+                  );
+                  if (picked != null && context.mounted) {
+                    await context.read<TransactionCubit>().setSingleDayFilter(
+                      picked,
+                    );
                   }
                 },
               ),

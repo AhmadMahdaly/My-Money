@@ -50,9 +50,13 @@ class TransactionCubit extends Cubit<TransactionState> {
       var startDate = filterSettings['startDate'] as DateTime?;
       var endDate = filterSettings['endDate'] as DateTime?;
 
-      if (startDate == null ||
-          endDate == null ||
-          lastFilter != PredefinedFilter.custom) {
+      // المنطق الجديد:
+      // إذا كان الفلتر (اليوم، الأسبوع، الشهر، السنة) نعيد حسابه بناءً على تاريخ "الآن"
+      // أما إذا كان (منذ تاريخ، فترة مخصصة، يوم محدد) نستخدم التواريخ المحفوظة
+      if (lastFilter == PredefinedFilter.today ||
+          lastFilter == PredefinedFilter.week ||
+          lastFilter == PredefinedFilter.month ||
+          lastFilter == PredefinedFilter.year) {
         final range = _getDateRangeForFilter(lastFilter, DateTime.now());
         startDate = range.start;
         endDate = range.end;
@@ -73,6 +77,61 @@ class TransactionCubit extends Cubit<TransactionState> {
       );
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
+    }
+  }
+
+  // إضافة ميثود لفلتر اليوم الواحد
+  Future<void> setSingleDayFilter(DateTime date) async {
+    emit(state.copyWith(isLoading: true));
+    // بداية اليوم ونهايته
+    final start = DateTime(date.year, date.month, date.day, 0, 0, 0);
+    final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
+
+    await saveFilterSettingsUseCase(
+      startDate: start,
+      endDate: end,
+      activeFilter: PredefinedFilter.singleDay,
+    );
+
+    emit(
+      state.copyWith(
+        isLoading: false,
+        filterStartDate: start,
+        filterEndDate: end,
+        activeFilter: PredefinedFilter.singleDay,
+      ),
+    );
+  }
+
+  // تحديث دالة حساب المدى الزمني
+  DateTimeRange _getDateRangeForFilter(PredefinedFilter filter, DateTime now) {
+    switch (filter) {
+      case PredefinedFilter.today:
+        final start = DateTime(now.year, now.month, now.day);
+        return DateTimeRange(start: start, end: start);
+      case PredefinedFilter.week:
+        // بداية الأسبوع (السبت مثلاً)
+        final daysToSubtract = (now.weekday == DateTime.saturday)
+            ? 0
+            : (now.weekday + 1) % 7;
+        final start = DateTime(now.year, now.month, now.day - daysToSubtract);
+        return DateTimeRange(start: start, end: now);
+      case PredefinedFilter.month:
+        return DateTimeRange(start: DateTime(now.year, now.month, 1), end: now);
+      case PredefinedFilter.year:
+        return DateTimeRange(start: DateTime(now.year, 1, 1), end: now);
+      case PredefinedFilter.singleDay:
+        return DateTimeRange(
+          start: state.filterStartDate ?? now,
+          end: state.filterEndDate ?? now,
+        );
+      case PredefinedFilter.since:
+        return DateTimeRange(start: state.filterStartDate ?? now, end: now);
+      case PredefinedFilter.custom:
+        return DateTimeRange(
+          start: state.filterStartDate ?? now,
+          end: state.filterEndDate ?? now,
+        );
     }
   }
 
@@ -262,43 +321,6 @@ class TransactionCubit extends Cubit<TransactionState> {
         activeFilter: PredefinedFilter.custom,
       ),
     );
-  }
-
-  DateTimeRange _getDateRangeForFilter(PredefinedFilter filter, DateTime now) {
-    switch (filter) {
-      case PredefinedFilter.today:
-        final startOfDay = DateTime(now.year, now.month, now.day);
-        return DateTimeRange(start: startOfDay, end: startOfDay);
-      case PredefinedFilter.week:
-        final daysToSubtract = (now.weekday == DateTime.saturday)
-            ? 0
-            : (now.weekday + 1) % 7;
-        final startOfWeek = DateTime(
-          now.year,
-          now.month,
-          now.day - daysToSubtract,
-        );
-        final endOfWeek = startOfWeek.add(
-          const Duration(days: 6),
-        ); // End of Friday
-        return DateTimeRange(start: startOfWeek, end: endOfWeek);
-      case PredefinedFilter.month:
-        final startOfMonth = DateTime(now.year, now.month, 1);
-        final endOfMonth = DateTime(now.year, now.month + 1, 0);
-        return DateTimeRange(start: startOfMonth, end: endOfMonth);
-      case PredefinedFilter.year:
-        final startOfYear = DateTime(now.year, 1, 1);
-        final endOfYear = DateTime(now.year, 12, 31);
-        return DateTimeRange(start: startOfYear, end: endOfYear);
-      case PredefinedFilter.since:
-        final start = state.filterStartDate ?? DateTime(now.year, now.month, 1);
-        return DateTimeRange(start: start, end: now);
-      case PredefinedFilter.custom:
-        return DateTimeRange(
-          start: state.filterStartDate ?? now,
-          end: state.filterEndDate ?? now,
-        );
-    }
   }
 
   void setWalletFilter(String? walletId) {
