@@ -377,7 +377,32 @@ class _TransactionFormState extends State<_TransactionForm> {
         final categories = state.allCategories
             .where((c) => c.type == widget.type)
             .toList();
-
+        // في بناء الواجهة (Build Method)
+        if (state.pendingTransactions.isNotEmpty)
+          Container(
+            margin: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(12.r),
+            decoration: BoxDecoration(
+              color: AppColors.orangeColor.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, color: AppColors.orangeColor),
+                8.horizontalSpace,
+                const Expanded(
+                  child: Text('عندك مصاريف دورية النهاردة، سجلتها؟'),
+                ),
+                TextButton(
+                  onPressed: () => _showPendingDialog(
+                    context,
+                    state.pendingTransactions,
+                  ),
+                  child: const Text('مراجعة الآن'),
+                ),
+              ],
+            ),
+          );
         return BlocBuilder<WalletCubit, WalletState>(
           builder: (context, walletState) {
             final wallets = (walletState is WalletLoaded)
@@ -482,6 +507,87 @@ class _TransactionFormState extends State<_TransactionForm> {
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  void _showPendingDialog(
+    BuildContext context,
+    List<TransactionCategory> pendingCategories,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.pending_actions, color: AppColors.orangeColor),
+              8.horizontalSpace,
+              const Text('عمليات بانتظار تأكيدك'),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: pendingCategories.length,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (context, index) {
+                final category = pendingCategories[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: category.color,
+                    radius: 15.r,
+                  ),
+                  title: Text(category.name),
+                  subtitle: Text(
+                    'المبلغ المتوقع: ${category.fixedAmount?.truncate()} ج.م',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // زر الرفض/التجاهل
+                      IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: AppColors.errorColor,
+                        ),
+                        onPressed: () {
+                          // هنا يمكنك إضافة منطق لإزالة العملية من القائمة المؤقتة فقط
+                          Navigator.of(ctx).pop();
+                        },
+                      ),
+                      // زر التأكيد
+                      IconButton(
+                        icon: Icon(
+                          Icons.check_circle,
+                          color: AppColors.successColor,
+                        ),
+                        onPressed: () {
+                          // تنفيذ العملية فوراً
+                          context.read<TransactionCubit>().executeRecurring(
+                            category,
+                          );
+                          Navigator.of(ctx).pop();
+                          showCustomSnackBar(
+                            context,
+                            message: 'تم تسجيل ${category.name} بنجاح',
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('راجع لاحقاً'),
+            ),
+          ],
         );
       },
     );

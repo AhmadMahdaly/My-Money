@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/domain/usecases/add_category.dart';
@@ -14,11 +15,15 @@ import 'package:opration/features/transactions/domain/usecases/save_filter_setti
 import 'package:opration/features/transactions/domain/usecases/update_category.dart';
 import 'package:opration/features/transactions/domain/usecases/update_transaction.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 part 'transactions_state.dart';
 
 class TransactionCubit extends Cubit<TransactionState> {
   TransactionCubit({
+    required this.uuid,
+    required this.sharedPreferences,
     required this.getTransactionsUseCase,
     required this.addTransactionUseCase,
     required this.updateTransactionUseCase,
@@ -42,6 +47,8 @@ class TransactionCubit extends Cubit<TransactionState> {
   final GetFilterSettingsUseCase getFilterSettingsUseCase;
   final SaveFilterSettingsUseCase saveFilterSettingsUseCase;
   final WalletCubit walletCubit;
+  final SharedPreferences sharedPreferences;
+  final Uuid uuid;
   Future<void> loadInitialData() async {
     emit(state.copyWith(isLoading: true));
     try {
@@ -50,9 +57,6 @@ class TransactionCubit extends Cubit<TransactionState> {
       var startDate = filterSettings['startDate'] as DateTime?;
       var endDate = filterSettings['endDate'] as DateTime?;
 
-      // المنطق الجديد:
-      // إذا كان الفلتر (اليوم، الأسبوع، الشهر، السنة) نعيد حسابه بناءً على تاريخ "الآن"
-      // أما إذا كان (منذ تاريخ، فترة مخصصة، يوم محدد) نستخدم التواريخ المحفوظة
       if (lastFilter == PredefinedFilter.today ||
           lastFilter == PredefinedFilter.week ||
           lastFilter == PredefinedFilter.month ||
@@ -80,10 +84,125 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  // إضافة ميثود لفلتر اليوم الواحد
+  // داخل TransactionCubit
+
+  Future<void> checkScheduledTransactions() async {
+    final now = DateTime.now();
+    final pending = <TransactionCategory>[];
+
+    for (final category in state.allCategories.where((c) => c.isRecurring)) {
+      var isDue = false;
+
+      // فحص الشهري
+      if (category.dayOfMonth != null && now.day == category.dayOfMonth) {
+        isDue = true;
+      }
+      // فحص الأسبوعي
+      if (category.daysOfWeek != null &&
+          category.daysOfWeek!.contains(now.weekday)) {
+        isDue = true;
+      }
+
+      if (isDue) {
+        // إذا كان خصم تلقائي، نفذه فوراً
+        if (category.autoDeduct) {
+          await executeScheduledTransaction(category);
+        } else {
+          // إذا كان يحتاج تأكيد، أضفه للقائمة
+          pending.add(category);
+        }
+      }
+    }
+    emit(state.copyWith(pendingTransactions: pending));
+  }
+
+  Future<void> executeScheduledTransaction(TransactionCategory category) async {
+    final transaction = Transaction(
+      id: const Uuid().v4(),
+      amount: category.fixedAmount ?? 0,
+      categoryId: category.id,
+      date: DateTime.now(),
+      type: category.type,
+      walletId: 'default_wallet', // يمكن تعديله ليأخذ محفظة محددة
+      note: 'معاملة دورية تلقائية',
+    );
+    await addTransaction(transaction);
+  }
+
+  Future<void> processRecurringTransactions() async {
+    final now = DateTime.now();
+    final lastCheck = sharedPreferences.getString('last_recurring_check');
+
+    // نتجنب التكرار في نفس اليوم
+    if (lastCheck == DateFormat('yyyy-MM-dd').format(now)) return;
+
+    for (final category in state.allCategories.where((c) => c.isRecurring)) {
+      var shouldProcess = false;
+
+      // منطق التحقق من الموعد
+      if (category.recurrenceType == RecurrenceType.monthly &&
+          now.day == category.dayOfMonth) {
+        shouldProcess = true;
+      } else if (category.recurrenceType == RecurrenceType.weekly &&
+          category.daysOfWeek!.contains(now.weekday)) {
+        shouldProcess = true;
+      }
+
+      if (shouldProcess) {
+        if (category.autoDeduct) {
+          // تنفيذ فوري
+          await executeRecurring(category);
+        } else {
+          // إضافة لقائمة "بانتظار التأكيد" - تحتاج لإضافة state جديد لهذه القائمة
+          emit(
+            state.copyWith(
+              pendingTransactions: [...state.pendingTransactions, category],
+            ),
+          );
+        }
+      }
+    }
+    await sharedPreferences.setString(
+      'last_recurring_check',
+      DateFormat('yyyy-MM-dd').format(now),
+    );
+  }
+
+  Future<void> executeRecurring(TransactionCategory category) async {
+    // جلب المحفظة الافتراضية إذا لم يتم تحديد محفظة في الكاتيجوري
+    var finalWalletId = category.targetWalletId ?? '';
+
+    if (finalWalletId.isEmpty) {
+      final walletState = walletCubit.state;
+      if (walletState is WalletLoaded) {
+        finalWalletId = walletState.wallets.firstWhere((w) => w.isMain).id;
+      }
+    }
+
+    final newTx = Transaction(
+      id: const Uuid().v4(),
+      amount: category.fixedAmount ?? 0,
+      categoryId: category.id,
+      date: DateTime.now(),
+      type: category.type,
+      walletId: finalWalletId,
+      note: 'تلقائي: ${category.name}',
+    );
+
+    // إضافة العملية
+    await addTransaction(newTx);
+
+    // تحديث رصيد المحفظة فوراً
+    final amountWithSign = category.type == TransactionType.income
+        ? category.fixedAmount!
+        : -category.fixedAmount!;
+
+    await walletCubit.updateWalletBalance(finalWalletId, amountWithSign);
+  }
+
   Future<void> setSingleDayFilter(DateTime date) async {
     emit(state.copyWith(isLoading: true));
-    // بداية اليوم ونهايته
+
     final start = DateTime(date.year, date.month, date.day, 0, 0, 0);
     final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
 
@@ -103,14 +222,12 @@ class TransactionCubit extends Cubit<TransactionState> {
     );
   }
 
-  // تحديث دالة حساب المدى الزمني
   DateTimeRange _getDateRangeForFilter(PredefinedFilter filter, DateTime now) {
     switch (filter) {
       case PredefinedFilter.today:
         final start = DateTime(now.year, now.month, now.day);
         return DateTimeRange(start: start, end: start);
       case PredefinedFilter.week:
-        // بداية الأسبوع (السبت مثلاً)
         final daysToSubtract = (now.weekday == DateTime.saturday)
             ? 0
             : (now.weekday + 1) % 7;
@@ -141,7 +258,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(isLoading: true));
     try {
       await operation();
-      // After operation, reload all data
+
       final transactions = await getTransactionsUseCase();
       final categories = await getCategoriesUseCase();
       emit(
@@ -163,12 +280,10 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<void> updateTransaction(Transaction updatedTransaction) async {
     emit(state.copyWith(isLoading: true));
     try {
-      // ١. الحصول على النسخة الأصلية من العملية قبل التعديل
       final originalTransaction = state.allTransactions.firstWhere(
         (t) => t.id == updatedTransaction.id,
       );
 
-      // ٢. حساب الفرق في المبلغ
       final oldSignedAmount =
           originalTransaction.amount *
           (originalTransaction.type == TransactionType.income ? 1 : -1);
@@ -177,17 +292,13 @@ class TransactionCubit extends Cubit<TransactionState> {
           (updatedTransaction.type == TransactionType.income ? 1 : -1);
       final amountDifference = newSignedAmount - oldSignedAmount;
 
-      // ٣. تحديث العملية في قاعدة البيانات
       await updateTransactionUseCase(updatedTransaction);
 
-      // ٤. تحديث رصيد المحفظة
-      // (يفترض أن المحفظة لم تتغير، لو تغيرت فالمنطق سيكون أعقد)
       await walletCubit.updateWalletBalance(
         updatedTransaction.walletId,
         amountDifference,
       );
 
-      // ٥. إعادة تحميل البيانات
       final transactions = await getTransactionsUseCase();
       emit(state.copyWith(isLoading: false, allTransactions: transactions));
     } catch (e) {
@@ -198,26 +309,21 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<void> deleteTransaction(String transactionId) async {
     emit(state.copyWith(isLoading: true));
     try {
-      // ١. الحصول على العملية قبل حذفها
       final transactionToDelete = state.allTransactions.firstWhere(
         (t) => t.id == transactionId,
       );
 
-      // ٢. حساب المبلغ الذي يجب إعادته للمحفظة
       final amountToRevert =
           transactionToDelete.amount *
           (transactionToDelete.type == TransactionType.income ? -1 : 1);
 
-      // ٣. حذف العملية من قاعدة البيانات
       await deleteTransactionUseCase(transactionId);
 
-      // ٤. تحديث رصيد المحفظة
       await walletCubit.updateWalletBalance(
         transactionToDelete.walletId,
         amountToRevert,
       );
 
-      // ٥. إعادة تحميل البيانات
       final transactions = await getTransactionsUseCase();
       emit(state.copyWith(isLoading: false, allTransactions: transactions));
     } catch (e) {
@@ -236,15 +342,12 @@ class TransactionCubit extends Cubit<TransactionState> {
   Future<void> deleteCategory(String categoryId) async {
     emit(state.copyWith(isLoading: true));
     try {
-      // ١. إيجاد كل العمليات المرتبطة بهذه الفئة قبل حذفها
       final transactionsToDelete = state.allTransactions
           .where((t) => t.categoryId == categoryId)
           .toList();
 
-      // ٢. حذف الفئة والعمليات المرتبطة بها
       await deleteCategoryUseCase(categoryId);
 
-      // ٣. تحديث رصيد المحفظة لكل عملية تم حذفها
       for (final transaction in transactionsToDelete) {
         final amountToRevert =
             transaction.amount *
@@ -255,7 +358,6 @@ class TransactionCubit extends Cubit<TransactionState> {
         );
       }
 
-      // ٤. إعادة تحميل البيانات
       final transactions = await getTransactionsUseCase();
       final categories = await getCategoriesUseCase();
       emit(

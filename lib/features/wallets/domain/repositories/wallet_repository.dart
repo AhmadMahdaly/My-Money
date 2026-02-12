@@ -10,4 +10,9 @@ abstract class WalletRepository {
   Future<void> setMainWallet(String walletId);
   Future<bool> getShowMainWalletPref();
   Future<void> setShowMainWalletPref(bool show);
+  Future<void> transferBalance(
+    String fromWalletId,
+    String toWalletId,
+    double amount,
+  );
 }

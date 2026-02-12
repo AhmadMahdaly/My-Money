@@ -3,13 +3,13 @@ import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/features/financial_goals/presentation/screens/financial_goals_screen.dart';
 import 'package:opration/features/intro/login/presentation/views/login_view.dart';
 import 'package:opration/features/intro/splash/views/splash_view.dart';
-import 'package:opration/features/main_layout/views/main_layout.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/edit_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/monthly_plan_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/transaction_details_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/manage_categories_drawer.dart';
+import 'package:opration/features/wallets/presentation/screens/transfer_history_screen.dart';
 import 'package:opration/features/wallets/presentation/screens/wallets_screen.dart';
 
 class RouterGenerationConfig {
@@ -26,11 +26,11 @@ class RouterGenerationConfig {
         name: AppRoutes.loginScreen,
         builder: (context, state) => const LoginScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.mainLayout,
-        name: AppRoutes.mainLayout,
-        builder: (context, state) => const MainLayout(),
-      ),
+      // GoRoute(
+      //   path: AppRoutes.mainLayout,
+      //   name: AppRoutes.mainLayout,
+      //   builder: (context, state) => const MainLayout(),
+      // ),
       GoRoute(
         path: AppRoutes.addTransactionScreen,
         name: AppRoutes.addTransactionScreen,
@@ -70,6 +70,11 @@ class RouterGenerationConfig {
         path: AppRoutes.walletsScreen,
         name: AppRoutes.walletsScreen,
         builder: (context, state) => const WalletsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.transferHistoryScreen,
+        name: AppRoutes.transferHistoryScreen,
+        builder: (context, state) => const TransferHistoryScreen(),
       ),
     ],
   );

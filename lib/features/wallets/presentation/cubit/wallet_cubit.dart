@@ -7,12 +7,14 @@ import 'package:opration/features/wallets/domain/usecases/get_show_main_wallet_p
 import 'package:opration/features/wallets/domain/usecases/get_wallets.dart';
 import 'package:opration/features/wallets/domain/usecases/set_main_wallet.dart';
 import 'package:opration/features/wallets/domain/usecases/set_show_main_wallet_pref.dart';
+import 'package:opration/features/wallets/domain/usecases/transfer_balance_usecase.dart';
 import 'package:opration/features/wallets/domain/usecases/update_wallet.dart';
 
 part 'wallet_state.dart';
 
 class WalletCubit extends Cubit<WalletState> {
   WalletCubit({
+    required this.transferBalanceUseCase,
     required this.getWalletsUseCase,
     required this.addWalletUseCase,
     required this.updateWalletUseCase,
@@ -28,7 +30,7 @@ class WalletCubit extends Cubit<WalletState> {
   final SetMainWalletUseCase setMainWalletUseCase;
   final GetShowMainWalletPrefUseCase getShowMainWalletPrefUseCase;
   final SaveShowMainWalletPrefUseCase saveShowMainWalletPrefUseCase;
-
+  final TransferBalanceUseCase transferBalanceUseCase;
   Future<void> loadWallets() async {
     try {
       emit(WalletLoading());
@@ -88,5 +90,16 @@ class WalletCubit extends Cubit<WalletState> {
     final newPref = !currentState.showMainWallet;
     await saveShowMainWalletPrefUseCase(newPref);
     emit(WalletLoaded(currentState.wallets, showMainWallet: newPref));
+  }
+
+  Future<void> transferBalance(
+    String fromId,
+    String toId,
+    double amount,
+  ) async {
+    await _performOperation(() async {
+      // استدعاء الـ UseCase
+      await transferBalanceUseCase(fromId, toId, amount);
+    });
   }
 }

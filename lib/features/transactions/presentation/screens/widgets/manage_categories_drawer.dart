@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
-import 'package:uuid/uuid.dart';
+import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 
 class ManageCategoriesDrawer extends StatelessWidget {
   const ManageCategoriesDrawer({super.key});
@@ -16,6 +15,13 @@ class ManageCategoriesDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('إدارة فئاتك', style: AppTextStyles.style20Bold),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {
           final incomeCategories = state.allCategories
@@ -27,34 +33,6 @@ class ManageCategoriesDrawer extends StatelessWidget {
 
           return ListView(
             children: [
-              SizedBox(
-                height: 100.h,
-                child: DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                        child: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: AppColors.scaffoldBackgroundLightColor,
-                        ),
-                        onTap: () => context.pop(),
-                      ),
-
-                      Text(
-                        'إدارة فئاتك',
-                        style: AppTextStyles.style20Bold.copyWith(
-                          color: AppColors.scaffoldBackgroundLightColor,
-                        ),
-                      ),
-                      24.verticalSpace,
-                    ],
-                  ),
-                ),
-              ),
               ListTile(
                 leading: Icon(
                   Icons.add,
@@ -67,9 +45,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
                     color: AppColors.primaryColor,
                   ),
                 ),
-                onTap: () {
-                  _showAddCategoryDialog(context);
-                },
+                onTap: () => _showAddTypeSelectionDialog(context),
               ),
               const Divider(),
               _CategoryListSection(
@@ -87,6 +63,56 @@ class ManageCategoriesDrawer extends StatelessWidget {
       ),
     );
   }
+
+  void _showAddTypeSelectionDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('اختار نوع الفئة'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('دخل (Income)'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _openCategoryDialog(context, TransactionType.income);
+              },
+            ),
+            ListTile(
+              title: const Text('صرف (Expense)'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _openCategoryDialog(context, TransactionType.expense);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openCategoryDialog(
+    BuildContext context,
+    TransactionType type, [
+    TransactionCategory? category,
+  ]) {
+    showDialog<TransactionCategory>(
+      context: context,
+      builder: (_) => AddCategoryDialog(
+        type: type,
+        categoryToEdit: category,
+      ),
+    ).then((result) {
+      if (result != null) {
+        if (category == null) {
+          context.read<TransactionCubit>().addCategory(result);
+        } else {
+          context.read<TransactionCubit>().updateCategory(result);
+        }
+      }
+    });
+  }
 }
 
 class _CategoryListSection extends StatelessWidget {
@@ -101,29 +127,53 @@ class _CategoryListSection extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.all(16.r),
-          child: Text(title, style: AppTextStyles.style16W300),
+          child: Text(title, style: AppTextStyles.style16W600),
         ),
         ...categories.map(
           (category) => ListTile(
             leading: CircleAvatar(
               backgroundColor: category.color,
-              radius: 10.r,
+              radius: 12.r,
+              child: category.isRecurring
+                  ? const Icon(Icons.refresh, size: 12, color: Colors.white)
+                  : null,
             ),
             title: Text(category.name),
+            subtitle: category.isRecurring
+                ? Text(
+                    'مكرر: ${category.fixedAmount?.truncate()} ج.م',
+                    style: AppTextStyles.style10W400,
+                  )
+                : null,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: Icon(Icons.edit_outlined, size: 20.r),
-                  onPressed: () => _showEditCategoryDialog(context, category),
+                  onPressed: () {
+                    // هنا نقوم باستدعاء الديالوج الجديد للتعديل
+                    showDialog<TransactionCategory>(
+                      context: context,
+                      builder: (_) => AddCategoryDialog(
+                        type: category.type,
+                        categoryToEdit: category,
+                      ),
+                    ).then((updated) {
+                      if (updated != null) {
+                        context.read<TransactionCubit>().updateCategory(
+                          updated,
+                        );
+                      }
+                    });
+                  },
                 ),
                 IconButton(
                   icon: Icon(
-                    Icons.delete,
+                    Icons.delete_outline,
                     size: 20.r,
                     color: AppColors.errorColor,
                   ),
-                  onPressed: () => _confirmDeleteCategory(context, category),
+                  onPressed: () => _confirmDelete(context, category),
                 ),
               ],
             ),
@@ -132,234 +182,32 @@ class _CategoryListSection extends StatelessWidget {
       ],
     );
   }
-}
 
-void _showAddCategoryDialog(BuildContext context) {
-  showDialog<void>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('اختار نوع الفئة'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            title: const Text('دخل'),
-            onTap: () {
-              Navigator.of(ctx).pop();
-              showDialog<TransactionCategory>(
-                context: context,
-                builder: (_) =>
-                    const AddCategoryDialog(type: TransactionType.income),
-              ).then((newCategory) {
-                if (newCategory != null) {
-                  context.read<TransactionCubit>().addCategory(newCategory);
-                }
-              });
-            },
+  void _confirmDelete(BuildContext context, TransactionCategory category) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('حذف الفئة؟'),
+        content: Text(
+          'سيتم حذف "${category.name}" وجميع العمليات المرتبطة بها.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: const Text('إلغاء'),
           ),
-          ListTile(
-            title: const Text('صرف'),
-            onTap: () {
-              Navigator.of(ctx).pop();
-              showDialog<TransactionCategory>(
-                context: context,
-                builder: (_) =>
-                    const AddCategoryDialog(type: TransactionType.expense),
-              ).then((newCategory) {
-                if (newCategory != null) {
-                  context.read<TransactionCubit>().addCategory(newCategory);
-                }
-              });
+          TextButton(
+            onPressed: () {
+              context.read<TransactionCubit>().deleteCategory(category.id);
+              context.pop();
             },
+            child: const Text(
+              'حذف',
+              style: TextStyle(color: AppColors.errorColor),
+            ),
           ),
         ],
       ),
-    ),
-  );
-}
-
-void _showEditCategoryDialog(
-  BuildContext context,
-  TransactionCategory category,
-) {
-  showDialog<TransactionCategory>(
-    context: context,
-    builder: (_) => AddCategoryDialog(
-      type: category.type,
-      categoryToEdit: category,
-    ),
-  ).then((updatedCategory) {
-    if (updatedCategory != null) {
-      context.read<TransactionCubit>().updateCategory(updatedCategory);
-    }
-  });
-}
-
-void _confirmDeleteCategory(
-  BuildContext context,
-  TransactionCategory category,
-) {
-  showDialog<void>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('متأكد؟'),
-      content: Text(
-        'أنت كدا هتمسح "${category.name}"؟ كل اللي سجلته فيها هيتمسح',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('إلغاء'),
-        ),
-        TextButton(
-          child: const Text(
-            'مسح',
-            style: TextStyle(color: AppColors.errorColor),
-          ),
-          onPressed: () {
-            context.read<TransactionCubit>().deleteCategory(category.id);
-            ctx.pop();
-          },
-        ),
-      ],
-    ),
-  );
-}
-
-class AddCategoryDialog extends StatefulWidget {
-  const AddCategoryDialog({required this.type, super.key, this.categoryToEdit});
-  final TransactionType type;
-  final TransactionCategory? categoryToEdit;
-
-  @override
-  State<AddCategoryDialog> createState() => _AddCategoryDialogState();
-}
-
-class _AddCategoryDialogState extends State<AddCategoryDialog> {
-  late TextEditingController _nameController;
-  late Color _selectedColor;
-
-  final _formKey = GlobalKey<FormState>();
-  final List<Color> _availableColors = [
-    Colors.blue,
-    Colors.green,
-    Colors.red,
-    Colors.orange,
-    Colors.purple,
-    Colors.teal,
-    Colors.pink,
-    Colors.amber,
-    Colors.cyan,
-    Colors.brown,
-    Colors.black,
-    Colors.indigo,
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.categoryToEdit?.name);
-    _selectedColor = widget.categoryToEdit?.color ?? AppColors.primaryColor;
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-
-    final category = TransactionCategory(
-      id: widget.categoryToEdit?.id ?? getIt<Uuid>().v4(),
-      name: _nameController.text,
-      colorValue: _selectedColor.toARGB32(),
-      type: widget.type,
-    );
-    Navigator.of(context).pop(category);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isEditing = widget.categoryToEdit != null;
-    return AlertDialog(
-      title: Text(isEditing ? 'عدّل' : 'ضيف'),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'اسم الفئة'),
-              autofocus: true,
-              validator: (v) => v == null || v.isEmpty ? 'سجل الاسم' : null,
-            ),
-            20.verticalSpace,
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _availableColors.map((color) {
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedColor = color),
-                  child: CircleAvatar(
-                    backgroundColor: color,
-                    radius: 20.r,
-                    child: _selectedColor.toARGB32() == color.toARGB32()
-                        ? const Icon(Icons.check, color: Colors.white)
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => context.pop(),
-          child: const Text('إلغاء'),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          child: Text(isEditing ? 'حفظ' : 'إضافة'),
-        ),
-      ],
-    );
-  }
-}
-
-class CategorySelector extends StatelessWidget {
-  const CategorySelector({
-    required this.categories,
-    required this.selectedCategoryId,
-    required this.onCategorySelected,
-    super.key,
-  });
-  final List<TransactionCategory> categories;
-  final String? selectedCategoryId;
-  final ValueChanged<String> onCategorySelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: categories.map((category) {
-        final isSelected = category.id == selectedCategoryId;
-        return ChoiceChip(
-          label: Text(category.name),
-          avatar: CircleAvatar(backgroundColor: category.color, radius: 10.r),
-          selected: isSelected,
-          onSelected: (selected) {
-            if (selected) {
-              onCategorySelected(category.id);
-            }
-          },
-          selectedColor: category.color.withAlpha(55),
-        );
-      }).toList(),
     );
   }
 }

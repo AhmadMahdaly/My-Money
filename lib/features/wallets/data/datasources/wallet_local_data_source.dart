@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:opration/core/services/cache_helper/cache_values.dart';
+import 'package:opration/features/wallets/data/models/transfer_record_model.dart';
 import 'package:opration/features/wallets/data/models/wallet_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -10,6 +11,8 @@ abstract class WalletLocalDataSource {
   Future<void> saveWallets(List<WalletModel> wallets);
   Future<bool> getShowMainWalletPref();
   Future<void> setShowMainWalletPref(bool show);
+  Future<void> saveTransferRecord(TransferRecordModel record);
+  Future<List<TransferRecordModel>> getTransferHistory();
 }
 
 class WalletLocalDataSourceImpl implements WalletLocalDataSource {
@@ -62,5 +65,26 @@ class WalletLocalDataSourceImpl implements WalletLocalDataSource {
   @override
   Future<void> setShowMainWalletPref(bool show) {
     return sharedPreferences.setBool(CacheKeys.showMainWalletPref, show);
+  }
+
+  @override
+  Future<void> saveTransferRecord(TransferRecordModel record) async {
+    final records = await getTransferHistory();
+    records.insert(0, record); // إضافة الأحدث في البداية
+    final jsonList = records.map((r) => r.toJson()).toList();
+    await sharedPreferences.setString(
+      'transfer_history',
+      json.encode(jsonList),
+    );
+  }
+
+  @override
+  Future<List<TransferRecordModel>> getTransferHistory() async {
+    final jsonString = sharedPreferences.getString('transfer_history');
+    if (jsonString == null) return [];
+    final jsonList = json.decode(jsonString) as List<dynamic>;
+    return jsonList
+        .map((j) => TransferRecordModel.fromJson(j as Map<String, dynamic>))
+        .toList();
   }
 }

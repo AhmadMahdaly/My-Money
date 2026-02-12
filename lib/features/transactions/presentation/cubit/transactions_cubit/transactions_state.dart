@@ -5,6 +5,7 @@ enum PredefinedFilter { today, week, month, year, since, custom, singleDay }
 @immutable
 class TransactionState extends Equatable {
   const TransactionState({
+    this.pendingTransactions = const [],
     this.isLoading = false,
     this.error,
     this.allTransactions = const [],
@@ -22,7 +23,7 @@ class TransactionState extends Equatable {
   final DateTime? filterEndDate;
   final PredefinedFilter activeFilter;
   final String? selectedWalletId;
-
+  final List<TransactionCategory> pendingTransactions;
   List<Transaction> get filteredTransactions {
     if (filterStartDate == null || filterEndDate == null) {
       return [];
@@ -59,6 +60,7 @@ class TransactionState extends Equatable {
     PredefinedFilter? activeFilter,
     String? selectedWalletId,
     bool clearSelectedWalletId = false,
+    List<TransactionCategory>? pendingTransactions,
   }) {
     return TransactionState(
       isLoading: isLoading ?? this.isLoading,
@@ -71,6 +73,7 @@ class TransactionState extends Equatable {
       selectedWalletId: clearSelectedWalletId
           ? null
           : selectedWalletId ?? this.selectedWalletId,
+      pendingTransactions: pendingTransactions ?? this.pendingTransactions,
     );
   }
 
@@ -84,5 +87,6 @@ class TransactionState extends Equatable {
     filterEndDate,
     activeFilter,
     selectedWalletId,
+    pendingTransactions,
   ];
 }

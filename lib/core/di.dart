@@ -36,6 +36,7 @@ import 'package:opration/features/wallets/domain/usecases/get_show_main_wallet_p
 import 'package:opration/features/wallets/domain/usecases/get_wallets.dart';
 import 'package:opration/features/wallets/domain/usecases/set_main_wallet.dart';
 import 'package:opration/features/wallets/domain/usecases/set_show_main_wallet_pref.dart';
+import 'package:opration/features/wallets/domain/usecases/transfer_balance_usecase.dart';
 import 'package:opration/features/wallets/domain/usecases/update_wallet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -63,13 +64,11 @@ Future<void> setupGetIt() async {
       ),
     )
     ..registerFactory<WalletLocalDataSource>(
-      () => WalletLocalDataSourceImpl(
-        sharedPreferences: getIt(),
-        uuid: getIt(),
-      ),
+      () =>
+          WalletLocalDataSourceImpl(sharedPreferences: getIt(), uuid: getIt()),
     )
     ..registerFactory<WalletRepository>(
-      () => WalletRepositoryImpl(localDataSource: getIt()),
+      () => WalletRepositoryImpl(localDataSource: getIt(), uuid: getIt()),
     )
     ..registerFactory<TransactionRepository>(
       () => TransactionRepositoryImpl(localDataSource: getIt()),
@@ -93,6 +92,7 @@ Future<void> setupGetIt() async {
     ..registerFactory(() => GetShowMainWalletPrefUseCase(repository: getIt()))
     ..registerFactory(() => DeleteWalletUseCase(repository: getIt()))
     ..registerFactory(() => AddWalletUseCase(repository: getIt()))
+    ..registerFactory(() => TransferBalanceUseCase(repository: getIt()))
     ..registerLazySingleton<FinancialGoalLocalDataSource>(
       () => FinancialGoalLocalDataSourceImpl(sharedPreferences: getIt()),
     )
