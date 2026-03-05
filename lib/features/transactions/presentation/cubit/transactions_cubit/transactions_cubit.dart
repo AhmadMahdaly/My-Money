@@ -79,13 +79,13 @@ class TransactionCubit extends Cubit<TransactionState> {
           allCategories: categories,
         ),
       );
+      await checkScheduledTransactions();
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
-  // داخل TransactionCubit
-
+  // 1. دالة الفحص الرئيسية
   Future<void> checkScheduledTransactions() async {
     final now = DateTime.now();
     final pending = <TransactionCategory>[];
@@ -93,28 +93,116 @@ class TransactionCubit extends Cubit<TransactionState> {
     for (final category in state.allCategories.where((c) => c.isRecurring)) {
       var isDue = false;
 
-      // فحص الشهري
-      if (category.dayOfMonth != null && now.day == category.dayOfMonth) {
-        isDue = true;
+      // أ. فحص الموعد الشهري
+      if (category.recurrenceType == RecurrenceType.monthly &&
+          category.dayOfMonth != null) {
+        // إذا جاء يوم الخصم أو تعديناه في هذا الشهر
+        if (now.day >= category.dayOfMonth!) {
+          isDue = true;
+        }
       }
-      // فحص الأسبوعي
-      if (category.daysOfWeek != null &&
-          category.daysOfWeek!.contains(now.weekday)) {
-        isDue = true;
+      // ب. فحص الموعد الأسبوعي
+      else if (category.recurrenceType == RecurrenceType.weekly &&
+          category.daysOfWeek != null) {
+        if (category.daysOfWeek!.contains(now.weekday)) {
+          isDue = true;
+        }
       }
 
       if (isDue) {
-        // إذا كان خصم تلقائي، نفذه فوراً
-        if (category.autoDeduct) {
-          await executeScheduledTransaction(category);
-        } else {
-          // إذا كان يحتاج تأكيد، أضفه للقائمة
-          pending.add(category);
+        // ج. التأكد من أننا لم نقم بخصمها بالفعل في هذه الفترة
+        final alreadyExecuted = _checkIfAlreadyExecuted(category, now);
+
+        if (!alreadyExecuted) {
+          if (category.autoDeduct) {
+            await executeRecurringTransaction(category);
+          } else {
+            pending.add(category); // في انتظار موافقتك
+          }
         }
       }
     }
-    emit(state.copyWith(pendingTransactions: pending));
+
+    if (pending.isNotEmpty || state.pendingTransactions.isNotEmpty) {
+      emit(state.copyWith(pendingTransactions: pending));
+    }
   }
+
+  // 2. دالة للتأكد من عدم التكرار في نفس الشهر/اليوم
+  bool _checkIfAlreadyExecuted(TransactionCategory category, DateTime now) {
+    final categoryTransactions = state.allTransactions.where(
+      (t) => t.categoryId == category.id,
+    );
+
+    if (category.recurrenceType == RecurrenceType.monthly) {
+      // هل توجد معاملة لهذه الفئة في هذا الشهر وهذا العام بكلمة "تلقائي"؟
+      return categoryTransactions.any(
+        (t) =>
+            t.date.year == now.year &&
+            t.date.month == now.month &&
+            t.note != null &&
+            t.note!.contains('تلقائي'),
+      );
+    } else if (category.recurrenceType == RecurrenceType.weekly) {
+      // هل توجد معاملة لهذه الفئة اليوم تحديداً بكلمة "تلقائي"؟
+      return categoryTransactions.any(
+        (t) =>
+            t.date.year == now.year &&
+            t.date.month == now.month &&
+            t.date.day == now.day &&
+            t.note != null &&
+            t.note!.contains('تلقائي'),
+      );
+    }
+    return false;
+  }
+
+  // 3. دالة تنفيذ الخصم/الإيداع
+  Future<void> executeRecurringTransaction(TransactionCategory category) async {
+    // تحديد المحفظة (إما المحفظة المستهدفة أو المحفظة الرئيسية)
+    var finalWalletId = category.targetWalletId ?? '';
+
+    if (finalWalletId.isEmpty) {
+      final walletState = walletCubit.state;
+      if (walletState is WalletLoaded && walletState.wallets.isNotEmpty) {
+        final mainWallet = walletState.wallets.firstWhere(
+          (w) => w.isMain,
+          orElse: () => walletState.wallets.first,
+        );
+        finalWalletId = mainWallet.id;
+      } else {
+        return; // لا توجد محافظ للتنفيذ
+      }
+    }
+
+    final amount = category.fixedAmount ?? 0.0;
+    if (amount <= 0) return;
+
+    // إنشاء المعاملة
+    final newTx = Transaction(
+      id: const Uuid().v4(),
+      amount: amount,
+      categoryId: category.id,
+      date: DateTime.now(),
+      type: category.type,
+      walletId: finalWalletId,
+      note: 'عملية تسجيل تلقائي',
+    );
+
+    // الحفظ في قاعدة البيانات
+    await addTransactionUseCase(newTx);
+
+    // تحديث رصيد المحفظة
+    final amountWithSign = category.type == TransactionType.income
+        ? amount
+        : -amount;
+    await walletCubit.updateWalletBalance(finalWalletId, amountWithSign);
+
+    // إعادة تحميل البيانات لتظهر في الواجهة
+    final transactions = await getTransactionsUseCase();
+    emit(state.copyWith(allTransactions: transactions));
+  }
+  // داخل TransactionCubit
 
   Future<void> executeScheduledTransaction(TransactionCategory category) async {
     final transaction = Transaction(

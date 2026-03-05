@@ -146,7 +146,7 @@ class WalletsScreen extends StatelessWidget {
         return AlertDialog(
           title: Text(
             isEditing ? 'عدّل المحفظة' : 'ضيف محفظة جديدة',
-            style: AppTextStyles.style14W500,
+            style: AppTextStyles.style18W800,
           ),
           content: Form(
             key: formKey,
@@ -212,7 +212,9 @@ class WalletsScreen extends StatelessWidget {
               },
               child: Text(
                 'حفظ',
-                style: AppTextStyles.style14W500,
+                style: AppTextStyles.style14W500.copyWith(
+                  color: AppColors.scaffoldBackgroundLightColor,
+                ),
               ),
             ),
           ],

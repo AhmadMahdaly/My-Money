@@ -16,6 +16,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text('إدارة فئاتك', style: AppTextStyles.style20Bold),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),

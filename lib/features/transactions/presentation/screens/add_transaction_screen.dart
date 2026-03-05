@@ -634,7 +634,7 @@ class AppBottomBar extends StatelessWidget {
                 children: [
                   SvgImage(
                     imagePath: 'assets/image/svg/money-bag-outline.svg',
-                    height: 24.r,
+                    height: 22.r,
                     color: AppColors.textGreyColor,
                   ),
                   4.verticalSpace,
@@ -660,7 +660,7 @@ class AppBottomBar extends StatelessWidget {
                 children: [
                   SvgImage(
                     imagePath: 'assets/image/svg/wallet-money (1).svg',
-                    height: 24.r,
+                    height: 22.r,
                     color: AppColors.textGreyColor,
                   ),
                   4.verticalSpace,
@@ -699,7 +699,7 @@ class AppBottomBar extends StatelessWidget {
                 children: [
                   SvgImage(
                     imagePath: 'assets/image/svg/big-data-analytics 1.svg',
-                    height: 24.r,
+                    height: 22.r,
                     color: AppColors.textGreyColor,
                   ),
                   4.verticalSpace,
@@ -718,19 +718,19 @@ class AppBottomBar extends StatelessWidget {
             width: 70.w,
             child: IconButton(
               onPressed: () {
-                context.pushNamed(AppRoutes.financialGoalsScreen);
+                context.pushNamed(AppRoutes.moreScreen);
               },
               icon: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SvgImage(
-                    imagePath: 'assets/image/svg/mage_goals.svg',
-                    height: 24.r,
+                  Image.asset(
+                    'assets/image/png/more.png',
+                    height: 22.r,
                     color: AppColors.textGreyColor,
                   ),
                   4.verticalSpace,
                   Text(
-                    'الأهداف',
+                    'المزيد',
                     style: AppTextStyles.style10W400.copyWith(
                       color: AppColors.textGreyColor,
                     ),
@@ -739,6 +739,32 @@ class AppBottomBar extends StatelessWidget {
               ),
             ),
           ),
+          // SizedBox(
+          //   height: 56.h,
+          //   width: 70.w,
+          //   child: IconButton(
+          //     onPressed: () {
+          //       context.pushNamed(AppRoutes.financialGoalsScreen);
+          //     },
+          //     icon: Column(
+          //       mainAxisSize: MainAxisSize.min,
+          //       children: [
+          //         SvgImage(
+          //           imagePath: 'assets/image/svg/mage_goals.svg',
+          //           height: 24.r,
+          //           color: AppColors.textGreyColor,
+          //         ),
+          //         4.verticalSpace,
+          //         Text(
+          //           'الأهداف',
+          //           style: AppTextStyles.style10W400.copyWith(
+          //             color: AppColors.textGreyColor,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
           1.horizontalSpace,
         ],
       ),
