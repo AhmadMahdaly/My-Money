@@ -163,8 +163,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                       value: _isRecurring,
                       onChanged: (v) => setState(() {
                         _isRecurring = v;
-                        if (v && _recurrenceType == RecurrenceType.none)
+                        if (v && _recurrenceType == RecurrenceType.none) {
                           _recurrenceType = RecurrenceType.monthly;
+                        }
                       }),
                     ),
 

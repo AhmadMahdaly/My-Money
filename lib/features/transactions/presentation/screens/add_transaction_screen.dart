@@ -378,7 +378,7 @@ class _TransactionFormState extends State<_TransactionForm> {
             .where((c) => c.type == widget.type)
             .toList();
         // في بناء الواجهة (Build Method)
-        if (state.pendingTransactions.isNotEmpty)
+        if (state.pendingTransactions.isNotEmpty) {
           Container(
             margin: EdgeInsets.all(8.r),
             padding: EdgeInsets.all(12.r),
@@ -403,6 +403,7 @@ class _TransactionFormState extends State<_TransactionForm> {
               ],
             ),
           );
+        }
         return BlocBuilder<WalletCubit, WalletState>(
           builder: (context, walletState) {
             final wallets = (walletState is WalletLoaded)
