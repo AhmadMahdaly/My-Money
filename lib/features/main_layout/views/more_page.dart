@@ -29,7 +29,7 @@ class MoreView extends StatelessWidget {
 
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'الأهداف',
+            text: 'أهدافك المالية',
             onTap: () => context.pushNamed(AppRoutes.financialGoalsScreen),
           ),
           4.verticalSpace,
@@ -40,7 +40,7 @@ class MoreView extends StatelessWidget {
 
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'إدارة الفئات',
+            text: 'إدارة فئات الدخل والمصاريف',
             onTap: () => context.pushNamed(AppRoutes.manageCategoriesScreen),
           ),
         ],

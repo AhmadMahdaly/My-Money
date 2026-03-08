@@ -1,4 +1,4 @@
-// ignore_for_file: inference_failure_on_collection_literal
+// ignore_for_file: deprecated_member_use, avoid_dynamic_calls, inference_failure_on_collection_literal
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

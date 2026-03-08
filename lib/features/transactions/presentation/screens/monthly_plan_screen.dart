@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
-import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/monthly_plan.dart';
@@ -83,11 +81,17 @@ class _MonthlyPlanView extends StatelessWidget {
                     child: ListView(
                       padding: EdgeInsets.all(8.r),
                       children: [
+                        // Column(
+                        //   children: [
+                        // 16.verticalSpace,
                         _PlannedSummarySection(plan: planState.plan!),
-
-                        16.verticalSpace,
+                        8.verticalSpace,
                         _SummarySection(plan: planState.plan!),
-                        16.verticalSpace,
+
+                        // 16.verticalSpace,
+                        //   ],
+                        // ),
+                        32.verticalSpace,
                         _PlannedIncomeSection(plan: planState.plan!),
                         16.verticalSpace,
                         _PlannedExpensesSection(plan: planState.plan!),
@@ -99,7 +103,7 @@ class _MonthlyPlanView extends StatelessWidget {
                         //       .read<MonthlyPlanCubit>()
                         //       .saveCurrentPlan(),
                         // ),
-                        16.verticalSpace,
+                        60.verticalSpace,
                       ],
                     ),
                   ),
@@ -124,9 +128,9 @@ class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top,
-        right: 16.w,
-        left: 16.w,
-        bottom: 10.h,
+        // right: 16.w,
+        // left: 16.w,
+        // bottom: 10.h,
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -135,52 +139,53 @@ class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
           colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const WelcomeUserWidget(isLeading: true, title: 'الخطة الشهرية'),
+      child:
+          //  Column(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   crossAxisAlignment: CrossAxisAlignment.start,
+          //   children: [
+          //     Column(
+          //       crossAxisAlignment: CrossAxisAlignment.stretch,
+          //       mainAxisSize: MainAxisSize.min,
+          //       children: [
+          const WelcomeUserWidget(isLeading: true, title: 'الخطة الشهرية'),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgImage(
-                    imagePath: 'assets/image/svg/quote-1.svg',
-                    height: 14.h,
-                  ),
-                  4.horizontalSpace,
-                  Text(
-                    kAppQuote,
-                    style: AppTextStyles.style14W400.copyWith(
-                      color: AppColors.scaffoldBackgroundLightColor,
-                    ),
-                  ),
-                  4.horizontalSpace,
-                  SvgImage(
-                    imagePath: 'assets/image/svg/quote-1.svg',
-                    height: 14.h,
-                  ),
-                ],
-              ),
-              8.verticalSpace,
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  'احسب هنا بادجت الشهر بعد أي إلتزامات ثابتة',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.style14Bold.copyWith(
-                    color: AppColors.scaffoldBackgroundLightColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      //   Row(
+      //     mainAxisAlignment: MainAxisAlignment.center,
+      //     children: [
+      //       SvgImage(
+      //         imagePath: 'assets/image/svg/quote-1.svg',
+      //         height: 14.h,
+      //       ),
+      //       4.horizontalSpace,
+      //       Text(
+      //         kAppQuote,
+      //         style: AppTextStyles.style14W400.copyWith(
+      //           color: AppColors.scaffoldBackgroundLightColor,
+      //         ),
+      //       ),
+      //       4.horizontalSpace,
+      //       SvgImage(
+      //         imagePath: 'assets/image/svg/quote-1.svg',
+      //         height: 14.h,
+      //       ),
+      //     ],
+      //   ),
+      //   8.verticalSpace,
+      //   FittedBox(
+      //     fit: BoxFit.scaleDown,
+      //     child: Text(
+      //       'احسب هنا بادجت الشهر بعد أي إلتزامات ثابتة',
+      //       textAlign: TextAlign.center,
+      //       style: AppTextStyles.style14Bold.copyWith(
+      //         color: AppColors.scaffoldBackgroundLightColor,
+      //       ),
+      //     ),
+      //   ),
+      // ],
+      //   ),
+      // ],
+      // ),
     );
   }
 }
@@ -267,42 +272,43 @@ class _SummarySection extends StatelessWidget {
 
     final actualSavings = actualTotalIncome - actualTotalExpense;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.r),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'ملخصك الفعلي',
-            style: AppTextStyles.style14W400.copyWith(
-              color: AppColors.primaryColor,
-            ),
-          ),
-          16.verticalSpace,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _SummaryItem(
-                title: 'الدخل',
-                amount: actualTotalIncome,
-                color: AppColors.successColor.withAlpha(200),
-              ),
-              _SummaryItem(
-                title: 'المصروف',
-                amount: actualTotalExpense,
-                color: AppColors.errorColor.withAlpha(200),
-              ),
-              _SummaryItem(
-                title: 'الباقي',
-                amount: actualSavings,
-                color: actualSavings >= 0
-                    ? AppColors.primaryColor.withAlpha(200)
-                    : AppColors.orangeColor.withAlpha(200),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return
+    //  Padding(
+    //   padding: EdgeInsets.symmetric(horizontal: 16.r),
+    //   child: Column(
+    //     crossAxisAlignment: CrossAxisAlignment.stretch,
+    //     children: [
+    // Text(
+    //   'ملخصك الفعلي',
+    //   style: AppTextStyles.style14W400.copyWith(
+    //     color: AppColors.primaryColor,
+    //   ),
+    // ),
+    // 8.verticalSpace,
+    Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _SummaryItem(
+          title: 'الدخل الفعلي',
+          amount: actualTotalIncome,
+          color: AppColors.successColor.withAlpha(200),
+        ),
+        _SummaryItem(
+          title: 'المصروف الفعلي',
+          amount: actualTotalExpense,
+          color: AppColors.errorColor.withAlpha(200),
+        ),
+        _SummaryItem(
+          title: 'الباقي الفعلي',
+          amount: actualSavings,
+          color: actualSavings >= 0
+              ? AppColors.primaryColor.withAlpha(200)
+              : AppColors.orangeColor.withAlpha(200),
+        ),
+      ],
+      //     ),
+      //   ],
+      // ),
     );
   }
 }
@@ -317,42 +323,44 @@ class _PlannedSummarySection extends StatelessWidget {
     final plannedExpense = plan.totalBudgetedExpense;
     final expectedSavings = plan.projectedSavings;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.r),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'ملخص خطتك (المتوقع)',
-            style: AppTextStyles.style14W400.copyWith(
-              color: AppColors.primaryColor,
-            ),
-          ),
-          16.verticalSpace,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _SummaryItem(
-                title: 'دخل متوقع',
-                amount: plannedIncome,
-                color: AppColors.successColor.withAlpha(200),
-              ),
-              _SummaryItem(
-                title: 'الميزانية',
-                amount: plannedExpense,
-                color: AppColors.errorColor.withAlpha(200),
-              ),
-              _SummaryItem(
-                title: 'توفير متوقع',
-                amount: expectedSavings,
-                color: expectedSavings >= 0
-                    ? AppColors.primaryColor.withAlpha(200)
-                    : AppColors.orangeColor.withAlpha(200),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return
+    // Padding(
+    //   padding: EdgeInsets.symmetric(horizontal: 16.r),
+    //   child:
+    //  Column(
+    //   crossAxisAlignment: CrossAxisAlignment.stretch,
+    //   children: [
+    // Text(
+    //   'المتوقع',
+    //   style: AppTextStyles.style14W400.copyWith(
+    //     color: AppColors.primaryColor,
+    //   ),
+    // ),
+    // 8.verticalSpace,
+    Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _SummaryItem(
+          title: 'دخل متوقع',
+          amount: plannedIncome,
+          color: AppColors.successColor.withAlpha(200),
+        ),
+        _SummaryItem(
+          title: 'الميزانية',
+          amount: plannedExpense,
+          color: AppColors.errorColor.withAlpha(200),
+        ),
+        _SummaryItem(
+          title: 'توفير متوقع',
+          amount: expectedSavings,
+          color: expectedSavings >= 0
+              ? AppColors.primaryColor.withAlpha(200)
+              : AppColors.orangeColor.withAlpha(200),
+        ),
+      ],
+      // ),
+      //   ],
+      // ),
     );
   }
 }
@@ -423,7 +431,7 @@ class _PlannedIncomeSection extends StatelessWidget {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           title: Text(
-            'الدخل المتوقع (المخطط له)',
+            'الدخل المتوقع',
             style: AppTextStyles.style14W400.copyWith(
               color: AppColors.primaryColor,
             ),
@@ -700,47 +708,44 @@ class _PlannedExpensesSection extends StatelessWidget {
         .toList();
 
     return Card(
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: true,
-          title: Text(
-            'الإلتزامات الثابتة (مصاريفك المتوقعة)',
-            style: AppTextStyles.style14W400.copyWith(
-              color: AppColors.primaryColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16.r),
+            child: Text(
+              'مصاريفك المتوقعة (الإلتزامات الثابتة)',
+              style: AppTextStyles.style14W400.copyWith(
+                color: AppColors.primaryColor,
+              ),
             ),
           ),
-          children: [
-            if (expenseCategories.isEmpty)
-              Padding(
-                padding: EdgeInsets.all(16.r),
-                child: Column(
-                  children: [
-                    const Text('لسا مضيفتش فئات'),
-                    8.verticalSpace,
-                    ElevatedButton(
-                      onPressed: () {
-                        context.push(AppRoutes.manageCategoriesScreen);
-                      },
-                      child: const Text('ضيف فئة جديدة'),
-                    ),
-                  ],
-                ),
-              )
-            else
-              ...expenseCategories.map((category) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: 6.h),
-                  child: _ExpenseBudgetTile(category: category, plan: plan),
-                );
-              }),
-            ListTile(
-              title: const Text('ضيف فئة جديدة لمصاريفك...'),
-              leading: const Icon(Icons.add, color: Colors.red),
-              onTap: () => _showAddExpenseCategoryDialog(context),
-            ),
-          ],
-        ),
+          if (expenseCategories.isEmpty)
+            Padding(
+              padding: EdgeInsets.all(16.r),
+              child: Column(
+                children: [
+                  const Text('لسا مضيفتش فئات'),
+                  8.verticalSpace,
+                  ElevatedButton(
+                    onPressed: () {
+                      context.push(AppRoutes.manageCategoriesScreen);
+                    },
+                    child: const Text('ضيف فئة جديدة'),
+                  ),
+                ],
+              ),
+            )
+          else
+            ...expenseCategories.map((category) {
+              return _ExpenseBudgetTile(category: category, plan: plan);
+            }),
+          ListTile(
+            title: const Text('ضيف فئة جديدة لمصاريفك...'),
+            leading: const Icon(Icons.add, color: Colors.red),
+            onTap: () => _showAddExpenseCategoryDialog(context),
+          ),
+        ],
       ),
     );
   }
@@ -851,77 +856,191 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         : 0.0;
 
     return ListTile(
+      contentPadding: EdgeInsets.all(16.r),
+      tileColor: widget.category.color.withAlpha(8),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: widget.category.color.withAlpha(50),
+        ),
+      ),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CircleAvatar(
-            backgroundColor: widget.category.color,
-            radius: 10.r,
-          ),
-          SizedBox(
-            width: SizeConfig.screenWidth / 3 - 10.w,
-            child: Text(
-              widget.category.name,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: widget.category.color),
-            ),
-          ),
-          SizedBox(
-            width: SizeConfig.screenWidth / 2 - 40.w,
-            child: CustomPrimaryTextfield(
-              controller: _controller,
-              text: 'الميزانية',
-              textAlign: TextAlign.center,
-              keyboardType: TextInputType.number,
-
-              suffix: InkWell(
-                child: Icon(
-                  Icons.calculate_outlined,
-                  size: 24.r,
-                  color: AppColors.primaryColor,
-                ),
-                onTap: () async {
-                  final result = await showDialog<double>(
-                    context: context,
-                    builder: (_) => CalculatorDialog(
-                      initialValue: double.tryParse(_controller.text) ?? 0,
-                    ),
-                  );
-                  if (result != null && mounted) {
-                    _controller.text = result.truncate().toString();
-                    _updateExpenseInCubit(result);
-                  }
-                },
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: widget.category.color,
+                radius: 10.r,
               ),
-              onChanged: (value) {
-                final amount = double.tryParse(value) ?? 0.0;
-                _updateExpenseInCubit(amount);
-              },
+              8.horizontalSpace,
+              SizedBox(
+                width: SizeConfig.screenWidth / 3 - 20.w,
+                child: Text(
+                  widget.category.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: widget.category.color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // هذا هو الجزء المستبدل: كونتينر بدلاً من التيكست فيلد
+          GestureDetector(
+            onTap: () => _showEditBudgetSheet(context),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: widget.category.color.withAlpha(16),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: widget.category.color.withAlpha(77),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _controller.text.isEmpty ? '0' : '${_controller.text}  ج.م',
+                    style: AppTextStyles.style14W500.copyWith(
+                      color: widget.category.color,
+                    ),
+                  ),
+                  8.horizontalSpace,
+                  Icon(
+                    Icons.edit_note,
+                    size: 18.r,
+                    color: widget.category.color,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
-      // العنوان الفرعي سيعرض شريط التقدم والتفاصيل
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          8.verticalSpace,
+          16.verticalSpace,
           LinearProgressIndicator(
             value: progressValue,
             backgroundColor: AppColors.secondaryColor,
             color: widget.category.color,
             minHeight: 6.h,
           ),
-          4.verticalSpace,
-
-          Text(
-            'الميزانية المتوقعة: ${budgetedAmount.truncate()} ج.م\nالمصروف فعلياً: ${actualSpentAmount.truncate()} ج.م\nالباقي الفعلي: ${remainingAmount.truncate()} ج.م',
-            style: AppTextStyles.style12W400.copyWith(
-              color: widget.category.color,
-            ),
+          8.verticalSpace,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'صرفت: ${actualSpentAmount.truncate()}  ج.م.',
+                style: AppTextStyles.style12W400.copyWith(
+                  color: widget.category.color,
+                ),
+              ),
+              Text(
+                'باقي لك: ${remainingAmount.truncate()}  ج.م.',
+                style: AppTextStyles.style12W400.copyWith(
+                  color: widget.category.color,
+                ),
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  void _showEditBudgetSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true, // للسماح للكيبورد بعدم تغطية الحقل
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(
+              context,
+            ).viewInsets.bottom, // التعامل مع الكيبورد
+            left: 20.w,
+            right: 20.w,
+            top: 20.h,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'تعديل ميزانية ${widget.category.name}',
+                style: AppTextStyles.style16W600,
+              ),
+              20.verticalSpace,
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomPrimaryTextfield(
+                      controller: _controller,
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      // autofocus: true, // يفتح الكيبورد تلقائياً
+                      text: 'المبلغ',
+                    ),
+                  ),
+                  10.horizontalSpace,
+                  // أيقونة الحاسبة
+                  IconButton(
+                    onPressed: () async {
+                      final result = await showDialog<double>(
+                        context: context,
+                        builder: (_) => CalculatorDialog(
+                          initialValue: double.tryParse(_controller.text) ?? 0,
+                        ),
+                      );
+                      if (result != null) {
+                        _controller.text = result.truncate().toString();
+                      }
+                    },
+                    icon: Icon(
+                      Icons.calculate_outlined,
+                      size: 35.r,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+              20.verticalSpace,
+              // زر الحفظ
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                  ),
+                  onPressed: () {
+                    final amount = double.tryParse(_controller.text) ?? 0.0;
+                    _updateExpenseInCubit(amount);
+                    Navigator.pop(context); // إغلاق الشيت
+                    setState(
+                      () {},
+                    ); // تحديث الواجهة لعرض الرقم الجديد في الكونتينر
+                  },
+                  child: const Text(
+                    'حفظ',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+              20.verticalSpace,
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
@@ -383,7 +385,7 @@ class _TransactionFormState extends State<_TransactionForm> {
             margin: EdgeInsets.all(8.r),
             padding: EdgeInsets.all(12.r),
             decoration: BoxDecoration(
-              color: AppColors.orangeColor.withOpacity(0.2),
+              color: AppColors.orangeColor.withAlpha(55),
               borderRadius: BorderRadius.circular(10.r),
             ),
             child: Row(

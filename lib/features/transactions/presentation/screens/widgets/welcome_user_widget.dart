@@ -30,7 +30,7 @@ class WelcomeUserWidget extends StatelessWidget {
               Text(
                 title!,
                 textAlign: TextAlign.center,
-                style: AppTextStyles.style20W700.copyWith(
+                style: AppTextStyles.style18W700.copyWith(
                   color: AppColors.scaffoldBackgroundLightColor,
                 ),
               ),

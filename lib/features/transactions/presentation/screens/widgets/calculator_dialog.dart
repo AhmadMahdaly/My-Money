@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_breaks
+// ignore_for_file: parameter_assignments, unnecessary_breaks
 
 import 'package:flutter/material.dart';
 import 'package:opration/core/constants.dart';
