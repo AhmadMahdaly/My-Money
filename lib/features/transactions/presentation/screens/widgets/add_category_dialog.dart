@@ -10,6 +10,7 @@ import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
+import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
 
@@ -28,13 +29,16 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   late TextEditingController _amountController;
   late Color _selectedColor;
 
-  // حقول التكرار والجدولة
   bool _isRecurring = false;
   RecurrenceType _recurrenceType = RecurrenceType.none;
   int? _dayOfMonth;
-  List<int> _selectedDaysOfWeek = []; // 1 للاثنين ... 7 للأحد
+  List<int> _selectedDaysOfWeek = [];
   bool _autoDeduct = false;
   String? _targetWalletId;
+
+  // --- حقول الفئة الفرعية ---
+  bool _isSubCategory = false;
+  String? _selectedParentId;
 
   final List<Color> _availableColors = [
     Colors.blue,
@@ -66,6 +70,10 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     _selectedDaysOfWeek = List.from(edit?.daysOfWeek ?? []);
     _autoDeduct = edit?.autoDeduct ?? false;
     _targetWalletId = edit?.targetWalletId;
+
+    // إعدادات الفئة الفرعية
+    _isSubCategory = edit?.parentId != null;
+    _selectedParentId = edit?.parentId;
   }
 
   @override
@@ -90,12 +98,21 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
       daysOfWeek: _selectedDaysOfWeek,
       autoDeduct: _autoDeduct,
       targetWalletId: _targetWalletId,
+      parentId: _isSubCategory ? _selectedParentId : null, // تمرير الأب
     );
     context.pop(category);
   }
 
   @override
   Widget build(BuildContext context) {
+    final allCategories = context.read<TransactionCubit>().state.allCategories;
+    final hasSubCategories =
+        widget.categoryToEdit != null &&
+        allCategories.any((c) => c.parentId == widget.categoryToEdit!.id);
+    final mainCategories = allCategories
+        .where((c) => c.type == widget.type && c.parentId == null)
+        .toList();
+
     return BlocBuilder<WalletCubit, WalletState>(
       builder: (context, walletState) {
         final wallets = (walletState is WalletLoaded)
@@ -118,10 +135,64 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                   children: [
                     CustomPrimaryTextfield(
                       controller: _nameController,
-                      text: 'اسم الفئة (إيجار، مواصلات...)',
+                      text: 'اسم الفئة',
                       validator: (v) => v!.isEmpty ? 'سجل الاسم' : null,
                     ),
                     16.verticalSpace,
+
+                    // --- قسم اختيار الفئة الفرعية ---
+                    // 1. التحقق مما إذا كانت هذه الفئة أباً لفئات أخرى
+                    if (mainCategories
+                        .where((c) => c.id != widget.categoryToEdit?.id)
+                        .isNotEmpty) ...[
+                      // 2. إذا كان بداخلها فئات فرعية، نمنع تحويلها
+                      if (hasSubCategories)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 16.h),
+                          child: Text(
+                            '⚠️ لا يمكن تحويل هذه الفئة إلى فرعية لأن بداخلها فئات فرعية بالفعل.',
+                            style: AppTextStyles.style12W400.copyWith(
+                              color: AppColors.orangeColor,
+                            ),
+                          ),
+                        )
+                      else ...[
+                        // 3. أما إذا كانت فارغة (أو جديدة)، نظهر الخيارات بشكل طبيعي
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            'هل هذه فئة فرعية؟',
+                            style: AppTextStyles.style14W600,
+                          ),
+                          value: _isSubCategory,
+                          onChanged: (v) => setState(() => _isSubCategory = v),
+                        ),
+                        if (_isSubCategory) ...[
+                          DropdownButtonFormField<String>(
+                            value: _selectedParentId,
+                            decoration: const InputDecoration(
+                              labelText: 'تندرج تحت فئة:',
+                            ),
+                            items: mainCategories
+                                .where((c) => c.id != widget.categoryToEdit?.id)
+                                .map(
+                                  (c) => DropdownMenuItem(
+                                    value: c.id,
+                                    child: Text(c.name),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) =>
+                                setState(() => _selectedParentId = v),
+                            validator: (v) => _isSubCategory && v == null
+                                ? 'اختر الفئة الرئيسية'
+                                : null,
+                          ),
+                          16.verticalSpace,
+                        ],
+                      ],
+                      const Divider(),
+                    ],
 
                     Text('اختر اللون:', style: AppTextStyles.style12W300),
                     8.verticalSpace,
@@ -150,6 +221,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
 
                     const Divider(height: 32),
 
+                    // ... (باقي كود التكرار الثابت الذي كتبناه سابقاً دون تغيير) ...
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
@@ -168,11 +240,10 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                         }
                       }),
                     ),
-
                     if (_isRecurring) ...[
                       12.verticalSpace,
                       DropdownButtonFormField<RecurrenceType>(
-                        initialValue: _recurrenceType == RecurrenceType.none
+                        value: _recurrenceType == RecurrenceType.none
                             ? RecurrenceType.monthly
                             : _recurrenceType,
                         decoration: const InputDecoration(
@@ -181,11 +252,11 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                         items: const [
                           DropdownMenuItem(
                             value: RecurrenceType.weekly,
-                            child: Text('أيام محددة في الأسبوع (مواصلات)'),
+                            child: Text('أسبوعي'),
                           ),
                           DropdownMenuItem(
                             value: RecurrenceType.monthly,
-                            child: Text('يوم محدد في الشهر (إيجار/دخل)'),
+                            child: Text('شهري'),
                           ),
                         ],
                         onChanged: (v) => setState(() => _recurrenceType = v!),
@@ -201,25 +272,23 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                             : null,
                       ),
                       12.verticalSpace,
-                      DropdownButtonFormField<dynamic>(
-                        initialValue: _targetWalletId,
+                      DropdownButtonFormField<String>(
+                        value: _targetWalletId,
                         decoration: const InputDecoration(
                           labelText: 'من أي محفظة؟',
                         ),
                         items: wallets
                             .map(
-                              (w) => DropdownMenuItem<dynamic>(
-                                value: w.id,
-                                child: Text(w.name as String),
+                              (w) => DropdownMenuItem(
+                                value: w.id.toString(),
+                                child: Text(w.name.toString()),
                               ),
                             )
                             .toList(),
-                        onChanged: (v) =>
-                            setState(() => _targetWalletId = v as String),
+                        onChanged: (v) => setState(() => _targetWalletId = v),
                         validator: (v) =>
                             _isRecurring && v == null ? 'اختر محفظة' : null,
                       ),
-
                       if (_recurrenceType == RecurrenceType.weekly) ...[
                         16.verticalSpace,
                         Text(
@@ -264,7 +333,6 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                           onChanged: (v) => setState(() => _dayOfMonth = v),
                         ),
                       ],
-
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(

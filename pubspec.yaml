@@ -1,7 +1,7 @@
 name: opration
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.17+17
+version: 1.0.18+18
 
 environment:
   sdk: ^3.8.1
@@ -22,6 +22,7 @@ dependencies:
   flutter_iconly: ^1.0.2
   flutter_vector_icons: ^2.0.0
   audioplayers: ^6.5.0
+  url_launcher: ^6.3.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

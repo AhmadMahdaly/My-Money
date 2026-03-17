@@ -283,6 +283,8 @@ class _TransactionFormState extends State<_TransactionForm> {
   String? _selectedCategoryId;
   DateTime _selectedDate = DateTime.now();
   String? _selectedWalletId;
+  String? _selectedMainCategoryId;
+  String? _selectedSubCategoryId;
   @override
   void dispose() {
     _amountController.dispose();
@@ -292,17 +294,29 @@ class _TransactionFormState extends State<_TransactionForm> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      if (_selectedCategoryId == null) {
+      final finalCategoryId = _selectedSubCategoryId ?? _selectedMainCategoryId;
+
+      if (finalCategoryId == null) {
         showCustomSnackBar(
           context,
           message: widget.type == TransactionType.expense
               ? 'متنساش تسجل صرفت على ايه'
               : 'متنساش تسجل الفلوس جاية منين',
-          msgColor: AppColors.scaffoldBackgroundLightColor,
           backgroundColor: AppColors.orangeColor,
         );
         return;
       }
+      // if (_selectedCategoryId == null) {
+      //   showCustomSnackBar(
+      //     context,
+      //     message: widget.type == TransactionType.expense
+      //         ? 'متنساش تسجل صرفت على ايه'
+      //         : 'متنساش تسجل الفلوس جاية منين',
+      //     msgColor: AppColors.scaffoldBackgroundLightColor,
+      //     backgroundColor: AppColors.orangeColor,
+      //   );
+      //   return;
+      // }
       final walletState = context.read<WalletCubit>().state;
       if (walletState is! WalletLoaded || walletState.wallets.isEmpty) {
         showCustomSnackBar(
@@ -376,10 +390,19 @@ class _TransactionFormState extends State<_TransactionForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionCubit, TransactionState>(
       builder: (context, state) {
-        final categories = state.allCategories
+        final allCategories = state.allCategories
             .where((c) => c.type == widget.type)
             .toList();
-        // في بناء الواجهة (Build Method)
+        final mainCategories = allCategories
+            .where((c) => c.parentId == null)
+            .toList();
+
+        // جلب الفئات الفرعية للفئة الرئيسية المختارة حالياً
+        final subCategories = _selectedMainCategoryId != null
+            ? allCategories
+                  .where((c) => c.parentId == _selectedMainCategoryId)
+                  .toList()
+            : <TransactionCategory>[];
         if (state.pendingTransactions.isNotEmpty) {
           Container(
             margin: EdgeInsets.all(8.r),
@@ -454,39 +477,75 @@ class _TransactionFormState extends State<_TransactionForm> {
                           value == null || value.isEmpty ? 'سجل المبلغ' : null,
                     ),
 
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     Text(
+                    //       widget.type == TransactionType.income
+                    //           ? 'الفلوس دي جاية منين (الفئة)'
+                    //           : 'صرفتها على ايه (الفئة)',
+                    //       style: AppTextStyles.style14W400.copyWith(
+                    //         color: AppColors.primaryColor,
+                    //       ),
+                    //     ),
+                    //     InkWell(
+                    //       child: Text(
+                    //         'عدّل',
+                    //         style: AppTextStyles.style12W300.copyWith(
+                    //           color: AppColors.primaryColor,
+                    //         ),
+                    //       ),
+                    //       onTap: () => context.pushNamed(
+                    //         AppRoutes.manageCategoriesScreen,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           widget.type == TransactionType.income
-                              ? 'الفلوس دي جاية منين (الفئة)'
-                              : 'صرفتها على ايه (الفئة)',
+                              ? 'الفلوس دي جاية منين (الرئيسية)'
+                              : 'صرفت على ايه (الرئيسية)',
                           style: AppTextStyles.style14W400.copyWith(
                             color: AppColors.primaryColor,
-                          ),
-                        ),
-                        InkWell(
-                          child: Text(
-                            'عدّل',
-                            style: AppTextStyles.style12W300.copyWith(
-                              color: AppColors.primaryColor,
-                            ),
-                          ),
-                          onTap: () => context.pushNamed(
-                            AppRoutes.manageCategoriesScreen,
                           ),
                         ),
                       ],
                     ),
 
+                    // 10.verticalSpace,
                     CategorySelector(
-                      categories: categories,
-                      selectedCategoryId: _selectedCategoryId,
-                      onCategorySelected: (id) =>
-                          setState(() => _selectedCategoryId = id),
+                      categories: mainCategories,
+                      selectedCategoryId: _selectedMainCategoryId,
+                      onCategorySelected: (id) {
+                        setState(() {
+                          _selectedMainCategoryId = id;
+                          _selectedSubCategoryId =
+                              null; // تصفير الفرعي عند تغيير الرئيسي
+                        });
+                      },
                       onAddCategory: () =>
                           _showAddCategoryDialog(context, widget.type),
                     ),
+
+                    if (subCategories.isNotEmpty) ...[
+                      8.verticalSpace,
+                      Text(
+                        'اختر الفئة الفرعية (اختياري):',
+                        style: AppTextStyles.style12W300,
+                      ),
+                      CategorySelector(
+                        categories: subCategories,
+                        selectedCategoryId: _selectedSubCategoryId,
+                        onCategorySelected: (id) =>
+                            setState(() => _selectedSubCategoryId = id),
+                        // زر الإضافة في الفرعي يفتح نفس الديالوج
+                        onAddCategory: () =>
+                            _showAddCategoryDialog(context, widget.type),
+                      ),
+                    ],
 
                     Text(
                       'ملاحظات',
@@ -707,7 +766,7 @@ class AppBottomBar extends StatelessWidget {
                   ),
                   4.verticalSpace,
                   Text(
-                    'بادجت الشهر',
+                    'الميزانية',
                     style: AppTextStyles.style10W400.copyWith(
                       color: AppColors.textGreyColor,
                     ),

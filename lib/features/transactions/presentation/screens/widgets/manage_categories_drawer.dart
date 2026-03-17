@@ -123,6 +123,9 @@ class _CategoryListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // تصفية الفئات الرئيسية فقط
+    final mainCategories = categories.where((c) => c.parentId == null).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -130,58 +133,107 @@ class _CategoryListSection extends StatelessWidget {
           padding: EdgeInsets.all(16.r),
           child: Text(title, style: AppTextStyles.style16W600),
         ),
-        ...categories.map(
-          (category) => ListTile(
-            leading: CircleAvatar(
-              backgroundColor: category.color,
-              radius: 12.r,
-              child: category.isRecurring
-                  ? const Icon(Icons.refresh, size: 12, color: Colors.white)
-                  : null,
-            ),
-            title: Text(category.name),
-            subtitle: category.isRecurring
-                ? Text(
-                    'مكرر: ${category.fixedAmount?.truncate()} ج.م',
-                    style: AppTextStyles.style10W400,
-                  )
-                : null,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit_outlined, size: 20.r),
-                  onPressed: () {
-                    // هنا نقوم باستدعاء الديالوج الجديد للتعديل
-                    showDialog<TransactionCategory>(
-                      context: context,
-                      builder: (_) => AddCategoryDialog(
-                        type: category.type,
-                        categoryToEdit: category,
-                      ),
-                    ).then((updated) {
-                      if (updated != null) {
-                        context.read<TransactionCubit>().updateCategory(
-                          updated,
-                        );
-                      }
-                    });
-                  },
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    size: 20.r,
-                    color: AppColors.errorColor,
+        ...mainCategories.map((mainCat) {
+          // جلب الفئات الفرعية التابعة لهذا الأب
+          final subCategories = categories
+              .where((c) => c.parentId == mainCat.id)
+              .toList();
+
+          return Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              // نفتحها تلقائياً إذا كان بداخلها فئات فرعية
+              initiallyExpanded: subCategories.isNotEmpty,
+              leading: CircleAvatar(
+                backgroundColor: mainCat.color,
+                radius: 14.r,
+                child: mainCat.isRecurring
+                    ? const Icon(Icons.refresh, size: 12, color: Colors.white)
+                    : null,
+              ),
+              title: Text(
+                mainCat.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.edit_outlined, size: 20.r),
+                    onPressed: () => _editCategory(context, mainCat),
                   ),
-                  onPressed: () => _confirmDelete(context, category),
-                ),
-              ],
+                  IconButton(
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 20.r,
+                      color: AppColors.errorColor,
+                    ),
+                    onPressed: () => _confirmDelete(context, mainCat),
+                  ),
+                ],
+              ),
+              // عرض الفئات الفرعية كـ Children
+              children: subCategories
+                  .map(
+                    (subCat) => Padding(
+                      padding: EdgeInsets.only(
+                        right: 32.w,
+                      ), // إزاحة لليسار لتبدو كفرعية
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: subCat.color,
+                          radius: 8.r,
+                        ),
+                        title: Text(
+                          subCat.name, //      '↳ ${subCat.name}',
+                          style: AppTextStyles.style12W400,
+                        ),
+                        subtitle: subCat.isRecurring
+                            ? Text(
+                                'مكرر: ${subCat.fixedAmount?.truncate()} ج.م',
+                                style: AppTextStyles.style10W400,
+                              )
+                            : null,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit_outlined, size: 16.r),
+                              onPressed: () => _editCategory(context, subCat),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete_outline,
+                                size: 16.r,
+                                color: AppColors.errorColor,
+                              ),
+                              onPressed: () => _confirmDelete(context, subCat),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
-          ),
-        ),
+          );
+        }),
       ],
     );
+  }
+
+  void _editCategory(BuildContext context, TransactionCategory category) {
+    showDialog<TransactionCategory>(
+      context: context,
+      builder: (_) => AddCategoryDialog(
+        type: category.type,
+        categoryToEdit: category,
+      ),
+    ).then((updated) {
+      if (updated != null) {
+        context.read<TransactionCubit>().updateCategory(updated);
+      }
+    });
   }
 
   void _confirmDelete(BuildContext context, TransactionCategory category) {

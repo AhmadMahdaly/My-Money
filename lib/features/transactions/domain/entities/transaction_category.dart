@@ -18,6 +18,7 @@ class TransactionCategory {
     this.daysOfWeek,
     this.autoDeduct = false,
     this.targetWalletId,
+    this.parentId,
   });
 
   factory TransactionCategory.fromJson(Map<String, dynamic> json) =>
@@ -35,6 +36,7 @@ class TransactionCategory {
           (e) => e.name == (json['recurrenceType'] ?? 'none'),
           orElse: () => RecurrenceType.none,
         ),
+        parentId: json['parentId']?.toString(),
         dayOfMonth: json['dayOfMonth'] as int?,
         daysOfWeek: (json['daysOfWeek'] as List<dynamic>?)?.cast<int>(),
         autoDeduct: json['autoDeduct'] as bool? ?? false,
@@ -43,7 +45,7 @@ class TransactionCategory {
   final String name;
   final int colorValue;
   final TransactionType type;
-
+  final String? parentId;
   final String? targetWalletId;
   final bool isRecurring;
   final double? fixedAmount;
@@ -66,5 +68,6 @@ class TransactionCategory {
     'dayOfMonth': dayOfMonth,
     'daysOfWeek': daysOfWeek,
     'autoDeduct': autoDeduct,
+    'parentId': parentId,
   };
 }

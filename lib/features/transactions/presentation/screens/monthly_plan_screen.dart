@@ -15,7 +15,6 @@ import 'package:opration/features/transactions/domain/entities/transaction.dart'
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/calculator_dialog.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:uuid/uuid.dart';
@@ -419,11 +418,15 @@ class _PlannedIncomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final incomeCategories = context
+    final allIncomeCategories = context
         .watch<TransactionCubit>()
         .state
         .allCategories
         .where((c) => c.type == TransactionType.income)
+        .toList();
+
+    final mainCategories = allIncomeCategories
+        .where((c) => c.parentId == null)
         .toList();
 
     return Card(
@@ -438,7 +441,7 @@ class _PlannedIncomeSection extends StatelessWidget {
           ),
           initiallyExpanded: false,
           children: [
-            if (incomeCategories.isEmpty)
+            if (mainCategories.isEmpty)
               Padding(
                 padding: EdgeInsets.all(16.r),
                 child: Column(
@@ -455,16 +458,55 @@ class _PlannedIncomeSection extends StatelessWidget {
                 ),
               )
             else
-              ...incomeCategories.map((category) {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: 6.h),
-                  child: _IncomeBudgetTile(category: category, plan: plan),
+              ...mainCategories.map((mainCat) {
+                final subCategories = allIncomeCategories
+                    .where((c) => c.parentId == mainCat.id)
+                    .toList();
+
+                return Column(
+                  children: [
+                    // تم إزالة الـ Expanded تماماً من هنا
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 6.h),
+                      child: _IncomeBudgetTile(
+                        category: mainCat,
+                        plan: plan,
+                        isSubCategory: false,
+                      ),
+                    ),
+                    if (subCategories.isNotEmpty)
+                      // وتم إزالة الـ Expanded تماماً من هنا أيضاً
+                      Padding(
+                        padding: EdgeInsets.only(right: 24.w),
+                        child: Column(
+                          children: subCategories.map((subCat) {
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 6.h),
+                              child: _IncomeBudgetTile(
+                                category: subCat,
+                                plan: plan,
+                                isSubCategory: true,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                  ],
                 );
               }),
             ListTile(
-              title: const Text('ضيف فئة جديدة لدخلك...'),
-              leading: Icon(Icons.add, color: AppColors.successColor),
-              onTap: () => _showAddIncomeCategoryDialog(context),
+              title: Text(
+                'إدارة فئات الدخل...',
+                style: AppTextStyles.style12Bold.copyWith(
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              leading: Icon(
+                Icons.settings,
+                size: 16.r,
+                color: AppColors.primaryColor,
+              ),
+              onTap: () => context.push(AppRoutes.manageCategoriesScreen),
             ),
           ],
         ),
@@ -474,9 +516,14 @@ class _PlannedIncomeSection extends StatelessWidget {
 }
 
 class _IncomeBudgetTile extends StatefulWidget {
-  const _IncomeBudgetTile({required this.category, required this.plan});
+  const _IncomeBudgetTile({
+    required this.category,
+    required this.plan,
+    this.isSubCategory = false,
+  });
   final TransactionCategory category;
   final MonthlyPlan plan;
+  final bool isSubCategory;
 
   @override
   State<_IncomeBudgetTile> createState() => _IncomeBudgetTileState();
@@ -588,14 +635,36 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
         : 0.0;
 
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: widget.category.color,
-        radius: 15.r,
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.r),
+      // حذفنا الـ leading تماماً لنتجنب خطأ المساحة
+      title: Row(
+        children: [
+          if (widget.isSubCategory) ...[
+            Icon(
+              Icons.subdirectory_arrow_left,
+              size: 16.r,
+              color: widget.category.color.withAlpha(150),
+            ),
+            4.horizontalSpace,
+          ],
+          CircleAvatar(
+            backgroundColor: widget.category.color,
+            radius: widget.isSubCategory ? 12.r : 15.r,
+          ),
+          8.horizontalSpace,
+          // استخدام Expanded لحماية النص من الطفح (Overflow)
+          Expanded(
+            child: Text(
+              widget.category.name,
+              style: TextStyle(
+                fontSize: widget.isSubCategory ? 12.sp : 14.sp,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
-
-      title: Text(widget.category.name),
-
-      // العنوان الفرعي: شريط التقدم + المبلغ المخطط له
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -621,18 +690,14 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
           ),
         ],
       ),
-
-      // الحقل الجانبي: لتحديد الدخل "المخطط له"
       trailing: SizedBox(
-        // <-- الحقل يجب أن يكون هنا
-        width: 120.w, // يمكنك تعديل العرض حسب رغبتك
+        width: 120.w,
         child: CustomPrimaryTextfield(
           controller: _controller,
           text: 'المخطط',
           textAlign: TextAlign.center,
           keyboardType: TextInputType.number,
           suffix: IconButton(
-            // <-- إضافة أيقونة الآلة الحاسبة مجدداً
             icon: Icon(
               Icons.calculate_outlined,
               size: 24.r,
@@ -661,38 +726,38 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
   }
 }
 
-void _showAddIncomeCategoryDialog(BuildContext context) {
-  final transactionCubit = context.read<TransactionCubit>();
+// void _showAddIncomeCategoryDialog(BuildContext context) {
+//   final transactionCubit = context.read<TransactionCubit>();
 
-  showDialog<TransactionCategory>(
-    context: context,
-    builder: (_) => BlocProvider.value(
-      value: transactionCubit,
-      child: const AddCategoryDialog(type: TransactionType.income),
-    ),
-  ).then((newCategory) {
-    if (newCategory != null) {
-      transactionCubit.addCategory(newCategory);
-    }
-  });
-}
+//   showDialog<TransactionCategory>(
+//     context: context,
+//     builder: (_) => BlocProvider.value(
+//       value: transactionCubit,
+//       child: const AddCategoryDialog(type: TransactionType.income),
+//     ),
+//   ).then((newCategory) {
+//     if (newCategory != null) {
+//       transactionCubit.addCategory(newCategory);
+//     }
+//   });
+// }
 
-void _showAddExpenseCategoryDialog(BuildContext context) {
-  final transactionCubit = context.read<TransactionCubit>();
+// void _showAddExpenseCategoryDialog(BuildContext context) {
+//   final transactionCubit = context.read<TransactionCubit>();
 
-  showDialog<TransactionCategory>(
-    context: context,
-    builder: (_) => BlocProvider.value(
-      value: transactionCubit,
+//   showDialog<TransactionCategory>(
+//     context: context,
+//     builder: (_) => BlocProvider.value(
+//       value: transactionCubit,
 
-      child: const AddCategoryDialog(type: TransactionType.expense),
-    ),
-  ).then((newCategory) {
-    if (newCategory != null) {
-      transactionCubit.addCategory(newCategory);
-    }
-  });
-}
+//       child: const AddCategoryDialog(type: TransactionType.expense),
+//     ),
+//   ).then((newCategory) {
+//     if (newCategory != null) {
+//       transactionCubit.addCategory(newCategory);
+//     }
+//   });
+// }
 
 class _PlannedExpensesSection extends StatelessWidget {
   const _PlannedExpensesSection({required this.plan});
@@ -700,11 +765,15 @@ class _PlannedExpensesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final expenseCategories = context
+    final allExpenseCategories = context
         .watch<TransactionCubit>()
         .state
         .allCategories
         .where((c) => c.type == TransactionType.expense)
+        .toList();
+
+    final mainCategories = allExpenseCategories
+        .where((c) => c.parentId == null)
         .toList();
 
     return Card(
@@ -720,7 +789,7 @@ class _PlannedExpensesSection extends StatelessWidget {
               ),
             ),
           ),
-          if (expenseCategories.isEmpty)
+          if (mainCategories.isEmpty)
             Padding(
               padding: EdgeInsets.all(16.r),
               child: Column(
@@ -731,19 +800,54 @@ class _PlannedExpensesSection extends StatelessWidget {
                     onPressed: () {
                       context.push(AppRoutes.manageCategoriesScreen);
                     },
-                    child: const Text('ضيف فئة جديدة'),
+                    child: const Text('إدارة الفئات'),
                   ),
                 ],
               ),
             )
           else
-            ...expenseCategories.map((category) {
-              return _ExpenseBudgetTile(category: category, plan: plan);
+            ...mainCategories.map((mainCat) {
+              final subCategories = allExpenseCategories
+                  .where((c) => c.parentId == mainCat.id)
+                  .toList();
+
+              return Column(
+                children: [
+                  _ExpenseBudgetTile(
+                    category: mainCat,
+                    plan: plan,
+                    isSubCategory: false,
+                  ),
+
+                  if (subCategories.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(right: 24.w),
+                      child: Column(
+                        children: subCategories.map((subCat) {
+                          return _ExpenseBudgetTile(
+                            category: subCat,
+                            plan: plan,
+                            isSubCategory: true,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                ],
+              );
             }),
           ListTile(
-            title: const Text('ضيف فئة جديدة لمصاريفك...'),
-            leading: const Icon(Icons.add, color: Colors.red),
-            onTap: () => _showAddExpenseCategoryDialog(context),
+            title: Text(
+              'إدارة فئات المصاريف...',
+              style: AppTextStyles.style12Bold.copyWith(
+                color: AppColors.primaryColor,
+              ),
+            ),
+            leading: Icon(
+              Icons.settings,
+              size: 18.r,
+              color: AppColors.primaryColor,
+            ),
+            onTap: () => context.push(AppRoutes.manageCategoriesScreen),
           ),
         ],
       ),
@@ -752,9 +856,14 @@ class _PlannedExpensesSection extends StatelessWidget {
 }
 
 class _ExpenseBudgetTile extends StatefulWidget {
-  const _ExpenseBudgetTile({required this.category, required this.plan});
+  const _ExpenseBudgetTile({
+    required this.isSubCategory,
+    required this.category,
+    required this.plan,
+  });
   final TransactionCategory category;
   final MonthlyPlan plan;
+  final bool isSubCategory;
 
   @override
   State<_ExpenseBudgetTile> createState() => _ExpenseBudgetTileState();
@@ -856,36 +965,53 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         : 0.0;
 
     return ListTile(
-      contentPadding: EdgeInsets.all(16.r),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       tileColor: widget.category.color.withAlpha(8),
       shape: RoundedRectangleBorder(
         side: BorderSide(
           color: widget.category.color.withAlpha(50),
         ),
       ),
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.isSubCategory) ...[
+            Icon(
+              Icons.subdirectory_arrow_left,
+              size: 16.r,
+              color: widget.category.color.withAlpha(150),
+            ),
+            4.horizontalSpace,
+          ],
+          CircleAvatar(
+            backgroundColor: widget.category.color,
+            radius: widget.isSubCategory ? 12.r : 15.r, // تصغير الحجم لو فرعية
+          ),
+        ],
+      ),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: widget.category.color,
-                radius: 10.r,
+          // Row(
+          //   children: [
+          // CircleAvatar(
+          //   backgroundColor: widget.category.color,
+          //   radius: 10.r,
+          // ),
+          // 8.horizontalSpace,
+          SizedBox(
+            width: SizeConfig.screenWidth / 3 - 20.w,
+            child: Text(
+              widget.category.name,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: widget.category.color,
+                fontWeight: FontWeight.bold,
               ),
-              8.horizontalSpace,
-              SizedBox(
-                width: SizeConfig.screenWidth / 3 - 20.w,
-                child: Text(
-                  widget.category.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: widget.category.color,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
+          //   ],
+          // ),
           // هذا هو الجزء المستبدل: كونتينر بدلاً من التيكست فيلد
           GestureDetector(
             onTap: () => _showEditBudgetSheet(context),
