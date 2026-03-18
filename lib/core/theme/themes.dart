@@ -14,8 +14,12 @@ class Appthemes {
       fontFamily: kPrimaryFont,
 
       textTheme: TextTheme(
-        titleLarge: AppTextStyles.style18W800,
-        titleMedium: AppTextStyles.style16W500,
+        titleLarge: AppTextStyles.style18W800.copyWith(
+          fontFamily: kPrimaryFont,
+        ),
+        titleMedium: AppTextStyles.style16W500.copyWith(
+          fontFamily: kPrimaryFont,
+        ),
       ),
       appBarTheme: AppBarTheme(
         iconTheme: const IconThemeData(
@@ -23,6 +27,7 @@ class Appthemes {
         ),
         titleTextStyle: AppTextStyles.style18Bold.copyWith(
           color: AppColors.primaryTextColor,
+          fontFamily: kPrimaryFont,
         ),
         surfaceTintColor: AppColors.scaffoldBackgroundLightColor,
       ),
@@ -47,7 +52,9 @@ class Appthemes {
           borderRadius: BorderRadius.circular(20.r),
         ),
         elevation: 5,
-        titleTextStyle: AppTextStyles.style20Bold,
+        titleTextStyle: AppTextStyles.style20Bold.copyWith(
+          fontFamily: kPrimaryFont,
+        ),
       ),
 
       /// ستايل الزر الرئيسي (ElevatedButton)

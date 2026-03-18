@@ -1,11 +1,13 @@
 analyzer:
   errors:
     avoid_catches_without_on_clauses: ignore
+    avoid_positional_boolean_parameters: ignore
     avoid_redundant_argument_values: ignore
     depend_on_referenced_packages: ignore
     document_ignores: ignore
     inference_failure_on_instance_creation: ignore
     lines_longer_than_80_chars: ignore
+    prefer_int_literals: ignore
     strict_raw_type: ignore
     unnecessary_null_comparison: ignore
     use_build_context_synchronously: ignore
