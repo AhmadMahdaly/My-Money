@@ -4,8 +4,6 @@ import 'package:opration/features/transactions/domain/entities/transaction.dart'
 enum RecurrenceType { none, weekly, monthly }
 
 class TransactionCategory {
-  // خصم تلقائي أم انتظار تأكيد
-
   TransactionCategory({
     required this.id,
     required this.name,
@@ -50,11 +48,10 @@ class TransactionCategory {
   final bool isRecurring;
   final double? fixedAmount;
   final RecurrenceType recurrenceType;
-  final int? dayOfMonth; // ليوم محدد في الشهر (مثل الإيجار)
-  final List<int>? daysOfWeek; // لأيام الأسبوع (1 = الاثنين، 7 = الأحد)
+  final int? dayOfMonth;
+  final List<int>? daysOfWeek;
   final bool autoDeduct;
 
-  // هذا هو الـ Getter الذي كان مفقوداً ويسبب الخطأ
   Color get color => Color(colorValue);
 
   Map<String, dynamic> toJson() => {
@@ -70,4 +67,33 @@ class TransactionCategory {
     'autoDeduct': autoDeduct,
     'parentId': parentId,
   };
+  TransactionCategory copyWith({
+    String? id,
+    String? name,
+    int? colorValue,
+    TransactionType? type,
+    bool? isRecurring,
+    double? fixedAmount,
+    RecurrenceType? recurrenceType,
+    int? dayOfMonth,
+    List<int>? daysOfWeek,
+    bool? autoDeduct,
+    String? targetWalletId,
+    String? parentId,
+  }) {
+    return TransactionCategory(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      colorValue: colorValue ?? this.colorValue,
+      type: type ?? this.type,
+      isRecurring: isRecurring ?? this.isRecurring,
+      fixedAmount: fixedAmount ?? this.fixedAmount,
+      recurrenceType: recurrenceType ?? this.recurrenceType,
+      dayOfMonth: dayOfMonth ?? this.dayOfMonth,
+      daysOfWeek: daysOfWeek ?? this.daysOfWeek,
+      autoDeduct: autoDeduct ?? this.autoDeduct,
+      targetWalletId: targetWalletId ?? this.targetWalletId,
+      parentId: parentId ?? this.parentId,
+    );
+  }
 }

@@ -85,7 +85,6 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  // 1. دالة الفحص الرئيسية
   Future<void> checkScheduledTransactions() async {
     final now = DateTime.now();
     final pending = <TransactionCategory>[];
@@ -93,16 +92,12 @@ class TransactionCubit extends Cubit<TransactionState> {
     for (final category in state.allCategories.where((c) => c.isRecurring)) {
       var isDue = false;
 
-      // أ. فحص الموعد الشهري
       if (category.recurrenceType == RecurrenceType.monthly &&
           category.dayOfMonth != null) {
-        // إذا جاء يوم الخصم أو تعديناه في هذا الشهر
         if (now.day >= category.dayOfMonth!) {
           isDue = true;
         }
-      }
-      // ب. فحص الموعد الأسبوعي
-      else if (category.recurrenceType == RecurrenceType.weekly &&
+      } else if (category.recurrenceType == RecurrenceType.weekly &&
           category.daysOfWeek != null) {
         if (category.daysOfWeek!.contains(now.weekday)) {
           isDue = true;
@@ -110,14 +105,13 @@ class TransactionCubit extends Cubit<TransactionState> {
       }
 
       if (isDue) {
-        // ج. التأكد من أننا لم نقم بخصمها بالفعل في هذه الفترة
         final alreadyExecuted = _checkIfAlreadyExecuted(category, now);
 
         if (!alreadyExecuted) {
           if (category.autoDeduct) {
             await executeRecurringTransaction(category);
           } else {
-            pending.add(category); // في انتظار موافقتك
+            pending.add(category);
           }
         }
       }
@@ -128,14 +122,12 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  // 2. دالة للتأكد من عدم التكرار في نفس الشهر/اليوم
   bool _checkIfAlreadyExecuted(TransactionCategory category, DateTime now) {
     final categoryTransactions = state.allTransactions.where(
       (t) => t.categoryId == category.id,
     );
 
     if (category.recurrenceType == RecurrenceType.monthly) {
-      // هل توجد معاملة لهذه الفئة في هذا الشهر وهذا العام بكلمة "تلقائي"؟
       return categoryTransactions.any(
         (t) =>
             t.date.year == now.year &&
@@ -144,7 +136,6 @@ class TransactionCubit extends Cubit<TransactionState> {
             t.note!.contains('تلقائي'),
       );
     } else if (category.recurrenceType == RecurrenceType.weekly) {
-      // هل توجد معاملة لهذه الفئة اليوم تحديداً بكلمة "تلقائي"؟
       return categoryTransactions.any(
         (t) =>
             t.date.year == now.year &&
@@ -157,9 +148,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     return false;
   }
 
-  // 3. دالة تنفيذ الخصم/الإيداع
   Future<void> executeRecurringTransaction(TransactionCategory category) async {
-    // تحديد المحفظة (إما المحفظة المستهدفة أو المحفظة الرئيسية)
     var finalWalletId = category.targetWalletId ?? '';
 
     if (finalWalletId.isEmpty) {
@@ -171,14 +160,13 @@ class TransactionCubit extends Cubit<TransactionState> {
         );
         finalWalletId = mainWallet.id;
       } else {
-        return; // لا توجد محافظ للتنفيذ
+        return;
       }
     }
 
     final amount = category.fixedAmount ?? 0.0;
     if (amount <= 0) return;
 
-    // إنشاء المعاملة
     final newTx = Transaction(
       id: const Uuid().v4(),
       amount: amount,
@@ -189,20 +177,16 @@ class TransactionCubit extends Cubit<TransactionState> {
       note: 'عملية تسجيل تلقائي',
     );
 
-    // الحفظ في قاعدة البيانات
     await addTransactionUseCase(newTx);
 
-    // تحديث رصيد المحفظة
     final amountWithSign = category.type == TransactionType.income
         ? amount
         : -amount;
     await walletCubit.updateWalletBalance(finalWalletId, amountWithSign);
 
-    // إعادة تحميل البيانات لتظهر في الواجهة
     final transactions = await getTransactionsUseCase();
     emit(state.copyWith(allTransactions: transactions));
   }
-  // داخل TransactionCubit
 
   Future<void> executeScheduledTransaction(TransactionCategory category) async {
     final transaction = Transaction(
@@ -211,7 +195,7 @@ class TransactionCubit extends Cubit<TransactionState> {
       categoryId: category.id,
       date: DateTime.now(),
       type: category.type,
-      walletId: 'default_wallet', // يمكن تعديله ليأخذ محفظة محددة
+      walletId: 'default_wallet',
       note: 'معاملة دورية تلقائية',
     );
     await addTransaction(transaction);
@@ -221,13 +205,11 @@ class TransactionCubit extends Cubit<TransactionState> {
     final now = DateTime.now();
     final lastCheck = sharedPreferences.getString('last_recurring_check');
 
-    // نتجنب التكرار في نفس اليوم
     if (lastCheck == DateFormat('yyyy-MM-dd').format(now)) return;
 
     for (final category in state.allCategories.where((c) => c.isRecurring)) {
       var shouldProcess = false;
 
-      // منطق التحقق من الموعد
       if (category.recurrenceType == RecurrenceType.monthly &&
           now.day == category.dayOfMonth) {
         shouldProcess = true;
@@ -238,10 +220,8 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       if (shouldProcess) {
         if (category.autoDeduct) {
-          // تنفيذ فوري
           await executeRecurring(category);
         } else {
-          // إضافة لقائمة "بانتظار التأكيد" - تحتاج لإضافة state جديد لهذه القائمة
           emit(
             state.copyWith(
               pendingTransactions: [...state.pendingTransactions, category],
@@ -257,7 +237,6 @@ class TransactionCubit extends Cubit<TransactionState> {
   }
 
   Future<void> executeRecurring(TransactionCategory category) async {
-    // جلب المحفظة الافتراضية إذا لم يتم تحديد محفظة في الكاتيجوري
     var finalWalletId = category.targetWalletId ?? '';
 
     if (finalWalletId.isEmpty) {
@@ -277,10 +256,8 @@ class TransactionCubit extends Cubit<TransactionState> {
       note: 'تلقائي: ${category.name}',
     );
 
-    // إضافة العملية
     await addTransaction(newTx);
 
-    // تحديث رصيد المحفظة فوراً
     final amountWithSign = category.type == TransactionType.income
         ? category.fixedAmount!
         : -category.fixedAmount!;

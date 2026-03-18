@@ -280,7 +280,7 @@ class _TransactionFormState extends State<_TransactionForm> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
-  String? _selectedCategoryId;
+
   DateTime _selectedDate = DateTime.now();
   String? _selectedWalletId;
   String? _selectedMainCategoryId;
@@ -306,17 +306,7 @@ class _TransactionFormState extends State<_TransactionForm> {
         );
         return;
       }
-      // if (_selectedCategoryId == null) {
-      //   showCustomSnackBar(
-      //     context,
-      //     message: widget.type == TransactionType.expense
-      //         ? 'متنساش تسجل صرفت على ايه'
-      //         : 'متنساش تسجل الفلوس جاية منين',
-      //     msgColor: AppColors.scaffoldBackgroundLightColor,
-      //     backgroundColor: AppColors.orangeColor,
-      //   );
-      //   return;
-      // }
+
       final walletState = context.read<WalletCubit>().state;
       if (walletState is! WalletLoaded || walletState.wallets.isEmpty) {
         showCustomSnackBar(
@@ -325,30 +315,38 @@ class _TransactionFormState extends State<_TransactionForm> {
         );
         return;
       }
+
       final mainWallet = walletState.wallets.firstWhere(
         (w) => w.isMain,
         orElse: () => walletState.wallets.first,
       );
+
       final amount = double.parse(_amountController.text);
+
       final transaction = Transaction(
         id: getIt<Uuid>().v4(),
         amount: amount,
-        categoryId: _selectedCategoryId!,
+        categoryId: finalCategoryId,
         date: _selectedDate,
         note: _noteController.text.isNotEmpty ? _noteController.text : '',
         type: widget.type,
         walletId: mainWallet.id,
       );
+
       context.read<TransactionCubit>().addTransaction(transaction);
+
       context.read<WalletCubit>().updateWalletBalance(
         mainWallet.id,
         widget.type == TransactionType.income ? amount : -amount,
       );
+
       playTimerSound();
+
       _amountController.clear();
       _noteController.clear();
       setState(() {
-        _selectedCategoryId = null;
+        _selectedMainCategoryId = null;
+        _selectedSubCategoryId = null;
         _selectedDate = DateTime.now();
       });
     }
@@ -397,7 +395,6 @@ class _TransactionFormState extends State<_TransactionForm> {
             .where((c) => c.parentId == null)
             .toList();
 
-        // جلب الفئات الفرعية للفئة الرئيسية المختارة حالياً
         final subCategories = _selectedMainCategoryId != null
             ? allCategories
                   .where((c) => c.parentId == _selectedMainCategoryId)
@@ -477,30 +474,6 @@ class _TransactionFormState extends State<_TransactionForm> {
                           value == null || value.isEmpty ? 'سجل المبلغ' : null,
                     ),
 
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     Text(
-                    //       widget.type == TransactionType.income
-                    //           ? 'الفلوس دي جاية منين (الفئة)'
-                    //           : 'صرفتها على ايه (الفئة)',
-                    //       style: AppTextStyles.style14W400.copyWith(
-                    //         color: AppColors.primaryColor,
-                    //       ),
-                    //     ),
-                    //     InkWell(
-                    //       child: Text(
-                    //         'عدّل',
-                    //         style: AppTextStyles.style12W300.copyWith(
-                    //           color: AppColors.primaryColor,
-                    //         ),
-                    //       ),
-                    //       onTap: () => context.pushNamed(
-                    //         AppRoutes.manageCategoriesScreen,
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -515,15 +488,13 @@ class _TransactionFormState extends State<_TransactionForm> {
                       ],
                     ),
 
-                    // 10.verticalSpace,
                     CategorySelector(
                       categories: mainCategories,
                       selectedCategoryId: _selectedMainCategoryId,
                       onCategorySelected: (id) {
                         setState(() {
                           _selectedMainCategoryId = id;
-                          _selectedSubCategoryId =
-                              null; // تصفير الفرعي عند تغيير الرئيسي
+                          _selectedSubCategoryId = null;
                         });
                       },
                       onAddCategory: () =>
@@ -541,7 +512,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                         selectedCategoryId: _selectedSubCategoryId,
                         onCategorySelected: (id) =>
                             setState(() => _selectedSubCategoryId = id),
-                        // زر الإضافة في الفرعي يفتح نفس الديالوج
+
                         onAddCategory: () =>
                             _showAddCategoryDialog(context, widget.type),
                       ),
@@ -609,25 +580,22 @@ class _TransactionFormState extends State<_TransactionForm> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // زر الرفض/التجاهل
                       IconButton(
                         icon: const Icon(
                           Icons.close,
                           color: AppColors.errorColor,
                         ),
                         onPressed: () {
-                          // هنا يمكنك إضافة منطق لإزالة العملية من القائمة المؤقتة فقط
                           Navigator.of(ctx).pop();
                         },
                       ),
-                      // زر التأكيد
+
                       IconButton(
                         icon: Icon(
                           Icons.check_circle,
                           color: AppColors.successColor,
                         ),
                         onPressed: () {
-                          // تنفيذ العملية فوراً
                           context.read<TransactionCubit>().executeRecurring(
                             category,
                           );
@@ -659,7 +627,7 @@ class _TransactionFormState extends State<_TransactionForm> {
 void _showAddCategoryDialog(BuildContext context, TransactionType type) {
   showDialog<TransactionCategory>(
     context: context,
-    builder: (_) => AddCategoryDialog(type: type),
+    builder: (_) => AddCategoryWidget(type: type),
   ).then((newCategory) {
     if (newCategory != null) {
       context.read<TransactionCubit>().addCategory(newCategory);
@@ -801,32 +769,7 @@ class AppBottomBar extends StatelessWidget {
               ),
             ),
           ),
-          // SizedBox(
-          //   height: 56.h,
-          //   width: 70.w,
-          //   child: IconButton(
-          //     onPressed: () {
-          //       context.pushNamed(AppRoutes.financialGoalsScreen);
-          //     },
-          //     icon: Column(
-          //       mainAxisSize: MainAxisSize.min,
-          //       children: [
-          //         SvgImage(
-          //           imagePath: 'assets/image/svg/mage_goals.svg',
-          //           height: 24.r,
-          //           color: AppColors.textGreyColor,
-          //         ),
-          //         4.verticalSpace,
-          //         Text(
-          //           'الأهداف',
-          //           style: AppTextStyles.style10W400.copyWith(
-          //             color: AppColors.textGreyColor,
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // ),
+
           1.horizontalSpace,
         ],
       ),
