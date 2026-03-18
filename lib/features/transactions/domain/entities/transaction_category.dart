@@ -35,10 +35,12 @@ class TransactionCategory {
           orElse: () => RecurrenceType.none,
         ),
         parentId: json['parentId']?.toString(),
+        targetWalletId: json['targetWalletId']?.toString(),
         dayOfMonth: json['dayOfMonth'] as int?,
         daysOfWeek: (json['daysOfWeek'] as List<dynamic>?)?.cast<int>(),
         autoDeduct: json['autoDeduct'] as bool? ?? false,
       );
+
   final String id;
   final String name;
   final int colorValue;
@@ -66,7 +68,9 @@ class TransactionCategory {
     'daysOfWeek': daysOfWeek,
     'autoDeduct': autoDeduct,
     'parentId': parentId,
+    'targetWalletId': targetWalletId,
   };
+
   TransactionCategory copyWith({
     String? id,
     String? name,

@@ -1,4 +1,4 @@
-// ignore_for_file: inference_failure_on_collection_literal
+// ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +11,7 @@ import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
 
@@ -161,7 +162,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
           IconButton(
             icon: Icon(
               Icons.save,
-              size: 16.r,
+              size: 20.r,
               color: AppColors.primaryColor,
             ),
             onPressed: _submit,
@@ -169,7 +170,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
           IconButton(
             icon: Icon(
               Icons.delete_outline,
-              size: 16.r,
+              size: 20.r,
               color: AppColors.errorColor,
             ),
             onPressed: () => _confirmDelete(context, widget.categoryToEdit!),
@@ -177,7 +178,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
           IconButton(
             icon: Icon(
               Icons.close,
-              size: 16.r,
+              size: 20.r,
               color: AppColors.forthColor,
             ),
             onPressed: () => context.pop(),
@@ -189,7 +190,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
         builder: (context, walletState) {
           final wallets = (walletState is WalletLoaded)
               ? walletState.wallets
-              : [];
+              : <Wallet>[];
 
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -343,20 +344,30 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                           ),
                           12.verticalSpace,
                           DropdownButtonFormField<String>(
-                            initialValue: _targetWalletId,
+                            // تحديد النوع Wallet w يحل المشكلة تماماً
+                            value:
+                                wallets.any(
+                                  (Wallet w) => w.id == _targetWalletId,
+                                )
+                                ? _targetWalletId
+                                : null,
                             decoration: const InputDecoration(
                               labelText: 'من أي محفظة؟',
                             ),
                             items: wallets
                                 .map(
-                                  (w) => DropdownMenuItem(
-                                    value: w.id.toString(),
-                                    child: Text(w.name.toString()),
+                                  (Wallet w) => DropdownMenuItem<String>(
+                                    value: w
+                                        .id, // لا داعي لـ toString() إذا كان الـ id أصلاً String
+                                    child: Text(w.name),
                                   ),
                                 )
                                 .toList(),
-                            onChanged: (v) =>
-                                setState(() => _targetWalletId = v),
+                            onChanged: (v) {
+                              setState(() {
+                                _targetWalletId = v;
+                              });
+                            },
                             validator: (v) =>
                                 _isRecurring && v == null ? 'اختر محفظة' : null,
                           ),

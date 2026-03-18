@@ -139,10 +139,21 @@ class _CategoryTransactionList extends StatelessWidget {
   Widget build(BuildContext context) {
     final groupedTransactions = <String, List<Transaction>>{};
     for (final transaction in transactions) {
-      (groupedTransactions[transaction.categoryId] ??= []).add(transaction);
+      final category = categories.firstWhere(
+        (c) => c.id == transaction.categoryId,
+        orElse: () => TransactionCategory(
+          id: '',
+          name: 'في المجهول',
+          colorValue: 0,
+          type: type,
+        ),
+      );
+
+      final mainCategoryId = category.parentId ?? category.id;
+      (groupedTransactions[mainCategoryId] ??= []).add(transaction);
     }
 
-    final sortedCategoryIds = groupedTransactions.keys.toList()
+    final sortedMainCategoryIds = groupedTransactions.keys.toList()
       ..sort((a, b) {
         final totalA = groupedTransactions[a]!.fold(
           0.0,
@@ -172,22 +183,22 @@ class _CategoryTransactionList extends StatelessWidget {
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: sortedCategoryIds.length,
+          itemCount: sortedMainCategoryIds.length,
           separatorBuilder: (context, index) => 8.verticalSpace,
           itemBuilder: (context, index) {
-            final categoryId = sortedCategoryIds[index];
-            final categoryTransactions = groupedTransactions[categoryId]!;
+            final mainCategoryId = sortedMainCategoryIds[index];
+            final categoryTransactions = groupedTransactions[mainCategoryId]!;
             final categoryTotal = categoryTransactions.fold(
               0.0,
               (sum, item) => sum + item.amount,
             );
 
-            final category = categories.firstWhere(
-              (c) => c.id == categoryId,
+            final mainCategory = categories.firstWhere(
+              (c) => c.id == mainCategoryId,
               orElse: () => TransactionCategory(
                 id: '',
                 name: 'في المجهول',
-                colorValue: 0,
+                colorValue: Colors.grey.value,
                 type: type,
               ),
             );
@@ -197,14 +208,14 @@ class _CategoryTransactionList extends StatelessWidget {
                 borderRadius: BorderRadius.circular(kRadius),
               ),
               clipBehavior: Clip.antiAlias,
-              margin: EdgeInsets.zero,
+              margin: EdgeInsets.only(bottom: 10.h),
               child: Theme(
                 data: Theme.of(
                   context,
                 ).copyWith(dividerColor: Colors.transparent),
                 child: ExpansionTile(
                   leading: CircleAvatar(
-                    backgroundColor: category.color,
+                    backgroundColor: mainCategory.color,
                     radius: 18.r,
                     child: Icon(
                       type == TransactionType.income
@@ -214,7 +225,10 @@ class _CategoryTransactionList extends StatelessWidget {
                       size: 16.r,
                     ),
                   ),
-                  title: Text(category.name, style: AppTextStyles.style14W600),
+                  title: Text(
+                    mainCategory.name,
+                    style: AppTextStyles.style14W600,
+                  ),
                   trailing: Text(
                     '${categoryTotal.truncate()} ج.م',
                     style: AppTextStyles.style14W700.copyWith(
@@ -224,7 +238,10 @@ class _CategoryTransactionList extends StatelessWidget {
                     ),
                   ),
                   children: categoryTransactions.map((transaction) {
-                    return _TransactionListItem(transaction: transaction);
+                    return _TransactionListItem(
+                      transaction: transaction,
+                      allCategories: categories,
+                    );
                   }).toList(),
                 ),
               ),
@@ -239,9 +256,11 @@ class _CategoryTransactionList extends StatelessWidget {
 class _TransactionListItem extends StatelessWidget {
   const _TransactionListItem({
     required this.transaction,
+    required this.allCategories,
   });
 
   final Transaction transaction;
+  final List<TransactionCategory> allCategories;
 
   void _handleMenuSelection(BuildContext context, String value) {
     if (value == 'edit') {
@@ -259,8 +278,8 @@ class _TransactionListItem extends StatelessWidget {
         content: const Text('أنت كدا هتمسح العملية دي كلها'),
         actions: [
           TextButton(
-            child: const Text('إلغاء'),
             onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('إلغاء'),
           ),
           TextButton(
             child: Text(
@@ -286,55 +305,97 @@ class _TransactionListItem extends StatelessWidget {
     final isIncome = transaction.type == TransactionType.income;
     final color = isIncome ? Colors.green : Colors.red;
 
-    return ListTile(
-      title: Row(
-        children: [
-          Text(
-            '${transaction.amount.truncate()} ج.م',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: color,
-              fontSize: 16.sp,
-            ),
+    final specificCategory = allCategories.firstWhere(
+      (c) => c.id == transaction.categoryId,
+      orElse: () => TransactionCategory(
+        id: '',
+        name: 'غير معروف',
+        colorValue: Colors.grey.value,
+        type: transaction.type,
+      ),
+    );
+
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(
+            Icons.subdirectory_arrow_left,
+            size: 16.r,
+            color: color,
           ),
-          if (transaction.note != null && transaction.note!.isNotEmpty)
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.w),
-                child: Text(
-                  '(${transaction.note!})',
-                  style: AppTextStyles.style12W300,
-                  overflow: TextOverflow.ellipsis,
+          title: Row(
+            children: [
+              Text(
+                '${transaction.amount.truncate()} ج.م',
+                style: AppTextStyles.style16Bold.copyWith(
+                  color: color,
                 ),
               ),
-            ),
-        ],
-      ),
-      subtitle: Text(
-        DateFormat.yMMMd('ar').format(transaction.date),
-      ),
-      trailing: PopupMenuButton<String>(
-        onSelected: (value) => _handleMenuSelection(context, value),
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(
-            value: 'edit',
-            child: ListTile(
-              leading: Icon(Icons.edit_outlined, color: AppColors.orangeColor),
-              title: Text(
-                'عدّل',
-                style: TextStyle(color: AppColors.orangeColor),
+              8.horizontalSpace,
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      specificCategory.name,
+                      style: AppTextStyles.style12W300.copyWith(
+                        color: AppColors.primaryTextColor,
+                      ),
+                      // overflow: TextOverflow.ellipsis,
+                    ),
+                    6.horizontalSpace,
+                    Expanded(
+                      child: Text(
+                        transaction.note != null && transaction.note!.isNotEmpty
+                            ? '(${transaction.note})'
+                            : '',
+                        style: AppTextStyles.style12W300.copyWith(
+                          color: AppColors.forthColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-          const PopupMenuItem<String>(
-            value: 'delete',
-            child: ListTile(
-              leading: Icon(Icons.delete_outline, color: AppColors.errorColor),
-              title: Text('مسح', style: TextStyle(color: AppColors.errorColor)),
-            ),
+          subtitle: Text(DateFormat.yMMMd('ar').format(transaction.date)),
+          trailing: PopupMenuButton<String>(
+            onSelected: (value) => _handleMenuSelection(context, value),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'edit',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.orangeColor,
+                  ),
+                  title: Text(
+                    'عدّل',
+                    style: TextStyle(color: AppColors.orangeColor),
+                  ),
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.delete_outline,
+                    color: AppColors.errorColor,
+                  ),
+                  title: Text(
+                    'مسح',
+                    style: TextStyle(color: AppColors.errorColor),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        const Divider(
+          height: 0,
+        ),
+      ],
     );
   }
 }
@@ -700,16 +761,30 @@ class _PieChartCard extends StatelessWidget {
     required this.categories,
     required this.totalExpense,
   });
+
   final List<Transaction> transactions;
   final List<TransactionCategory> categories;
   final double totalExpense;
 
   @override
   Widget build(BuildContext context) {
-    final expenseByCategory = <String, double>{};
+    final expenseByMainCategory = <String, double>{};
+
     for (final t in transactions) {
-      expenseByCategory.update(
-        t.categoryId,
+      final category = categories.firstWhere(
+        (c) => c.id == t.categoryId,
+        orElse: () => TransactionCategory(
+          id: '',
+          name: 'في المجهول',
+          colorValue: Colors.grey.value,
+          type: TransactionType.expense,
+        ),
+      );
+
+      final mainCategoryId = category.parentId ?? category.id;
+
+      expenseByMainCategory.update(
+        mainCategoryId,
         (value) => value + t.amount,
         ifAbsent: () => t.amount,
       );
@@ -733,21 +808,23 @@ class _PieChartCard extends StatelessWidget {
                 PieChartData(
                   sectionsSpace: 2,
                   centerSpaceRadius: 40.r,
-                  sections: expenseByCategory.entries.map((entry) {
-                    final category = categories.firstWhere(
+                  sections: expenseByMainCategory.entries.map((entry) {
+                    final mainCategory = categories.firstWhere(
                       (c) => c.id == entry.key,
                       orElse: () => TransactionCategory(
                         id: '',
                         name: 'في المجهول',
-                        colorValue: 0,
+                        colorValue: Colors.grey.value,
                         type: TransactionType.expense,
                       ),
                     );
+
                     final percentage = totalExpense > 0
                         ? (entry.value / totalExpense) * 100
                         : 0;
+
                     return PieChartSectionData(
-                      color: category.color,
+                      color: mainCategory.color,
                       value: entry.value,
                       title: '${percentage.truncate()}%',
                       radius: 60.r,

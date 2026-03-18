@@ -210,27 +210,37 @@ class _SummarySection extends StatelessWidget {
 
     final actualSavings = actualTotalIncome - actualTotalExpense;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _SummaryItem(
-          title: 'الدخل الفعلي',
-          amount: actualTotalIncome,
-          color: AppColors.successColor.withAlpha(200),
-        ),
-        _SummaryItem(
-          title: 'المصروف الفعلي',
-          amount: actualTotalExpense,
-          color: AppColors.errorColor.withAlpha(200),
-        ),
-        _SummaryItem(
-          title: 'الباقي الفعلي',
-          amount: actualSavings,
-          color: actualSavings >= 0
-              ? AppColors.primaryColor.withAlpha(200)
-              : AppColors.orangeColor.withAlpha(200),
-        ),
-      ],
+    return Theme(
+      data: Theme.of(
+        context,
+      ).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        title: const Text('ملخص عملياتك الفعلية'),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _SummaryItem(
+                title: 'الدخل الفعلي',
+                amount: actualTotalIncome,
+                color: AppColors.successColor.withAlpha(200),
+              ),
+              _SummaryItem(
+                title: 'المصروف الفعلي',
+                amount: actualTotalExpense,
+                color: AppColors.errorColor.withAlpha(200),
+              ),
+              _SummaryItem(
+                title: 'الباقي الفعلي',
+                amount: actualSavings,
+                color: actualSavings >= 0
+                    ? AppColors.primaryColor.withAlpha(200)
+                    : AppColors.orangeColor.withAlpha(200),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

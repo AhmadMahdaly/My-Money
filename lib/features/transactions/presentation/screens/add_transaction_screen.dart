@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
@@ -299,6 +297,8 @@ class _TransactionFormState extends State<_TransactionForm> {
       if (finalCategoryId == null) {
         showCustomSnackBar(
           context,
+          msgColor: AppColors.scaffoldBackgroundLightColor,
+
           message: widget.type == TransactionType.expense
               ? 'متنساش تسجل صرفت على ايه'
               : 'متنساش تسجل الفلوس جاية منين',
@@ -311,6 +311,8 @@ class _TransactionFormState extends State<_TransactionForm> {
       if (walletState is! WalletLoaded || walletState.wallets.isEmpty) {
         showCustomSnackBar(
           context,
+          msgColor: AppColors.scaffoldBackgroundLightColor,
+
           message: 'لا توجد محافظ. الرجاء إضافة محفظة أولاً.',
         );
         return;
@@ -513,8 +515,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                         onCategorySelected: (id) =>
                             setState(() => _selectedSubCategoryId = id),
 
-                        onAddCategory: () =>
-                            _showAddCategoryDialog(context, widget.type),
+                        onAddCategory: _addNewSubCategoryForSelectedMain,
                       ),
                     ],
 
@@ -543,6 +544,43 @@ class _TransactionFormState extends State<_TransactionForm> {
         );
       },
     );
+  }
+
+  void _addNewSubCategoryForSelectedMain() {
+    if (_selectedMainCategoryId == null) return;
+
+    final allCategories = context.read<TransactionCubit>().state.allCategories;
+    final mainCategory = allCategories.firstWhere(
+      (c) => c.id == _selectedMainCategoryId,
+    );
+
+    final dummySubCategory = TransactionCategory(
+      id: '',
+      name: '',
+      colorValue: mainCategory.colorValue,
+      type: mainCategory.type,
+      parentId: mainCategory.id,
+    );
+
+    showModalBottomSheet<TransactionCategory>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      context: context,
+      builder: (_) => AddCategoryWidget(
+        type: mainCategory.type,
+        categoryToEdit: dummySubCategory,
+      ),
+    ).then((result) {
+      if (result != null) {
+        final newSubCategory = result.copyWith(id: const Uuid().v4());
+        context.read<TransactionCubit>().addCategory(newSubCategory);
+
+        setState(() {
+          _selectedSubCategoryId = newSubCategory.id;
+        });
+      }
+    });
   }
 
   void _showPendingDialog(
@@ -602,6 +640,8 @@ class _TransactionFormState extends State<_TransactionForm> {
                           Navigator.of(ctx).pop();
                           showCustomSnackBar(
                             context,
+                            msgColor: AppColors.scaffoldBackgroundLightColor,
+
                             message: 'تم تسجيل ${category.name} بنجاح',
                           );
                         },
@@ -625,7 +665,10 @@ class _TransactionFormState extends State<_TransactionForm> {
 }
 
 void _showAddCategoryDialog(BuildContext context, TransactionType type) {
-  showDialog<TransactionCategory>(
+  showModalBottomSheet<TransactionCategory>(
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
     context: context,
     builder: (_) => AddCategoryWidget(type: type),
   ).then((newCategory) {

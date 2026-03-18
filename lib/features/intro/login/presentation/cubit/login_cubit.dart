@@ -24,7 +24,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> login(String username) async {
     if (username.isEmpty) {
-      emit(const AuthFailure(message: 'Please enter your name.'));
+      emit(const AuthFailure(message: 'متنساش تسجل اسمك'));
       emit(Unauthenticated());
       return;
     }
@@ -34,7 +34,7 @@ class AuthCubit extends Cubit<AuthState> {
       await localDataSource.saveUsername(username);
       emit(Authenticated(username: username));
     } catch (e) {
-      emit(AuthFailure(message: 'An error occurred: $e'));
+      emit(AuthFailure(message: 'فيه غلطة: $e'));
     }
   }
 
@@ -44,7 +44,7 @@ class AuthCubit extends Cubit<AuthState> {
       await localDataSource.clearUsername();
       emit(Unauthenticated());
     } catch (e) {
-      emit(AuthFailure(message: 'An error occurred during logout: $e'));
+      emit(AuthFailure(message: 'فيه غلطة حصلت وأنت بتخرج: $e'));
     }
   }
 }
