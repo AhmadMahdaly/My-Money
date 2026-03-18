@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_positional_boolean_parameters
-
 import 'package:opration/features/wallets/domain/repositories/wallet_repository.dart';
 
 class SaveShowMainWalletPrefUseCase {

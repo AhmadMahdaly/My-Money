@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_positional_boolean_parameters
-
 import 'dart:convert';
 
 import 'package:opration/core/services/cache_helper/cache_values.dart';
@@ -72,7 +70,7 @@ class WalletLocalDataSourceImpl implements WalletLocalDataSource {
   @override
   Future<void> saveTransferRecord(TransferRecordModel record) async {
     final records = await getTransferHistory();
-    records.insert(0, record); // إضافة الأحدث في البداية
+    records.insert(0, record);
     final jsonList = records.map((r) => r.toJson()).toList();
     await sharedPreferences.setString(
       'transfer_history',

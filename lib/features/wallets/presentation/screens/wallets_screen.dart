@@ -303,7 +303,6 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
             mainAxisSize: MainAxisSize.min,
             spacing: 12.h,
             children: [
-              // اختيار المحفظة المصدر
               CustomDropdownButtonFormField<String>(
                 hintText: 'من محفظة',
                 items: wallets
@@ -321,7 +320,6 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                 validator: (v) => v == null ? 'حدد المحفظة' : null,
               ),
 
-              // اختيار المحفظة الهدف
               CustomDropdownButtonFormField<String>(
                 hintText: 'إلى محفظة',
                 items: wallets
@@ -333,7 +331,6 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                 validator: (v) => v == null ? 'حدد المحفظة' : null,
               ),
 
-              // إدخال المبلغ
               CustomPrimaryTextfield(
                 controller: amountController,
                 text: 'المبلغ المراد تحويله',
@@ -376,7 +373,6 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                   return;
                 }
 
-                // تنفيذ عملية التحويل عبر الكيوبت
                 context.read<WalletCubit>().transferBalance(
                   fromWalletId!,
                   toWalletId!,

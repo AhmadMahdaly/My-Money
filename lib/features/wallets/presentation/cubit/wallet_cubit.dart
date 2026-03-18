@@ -98,7 +98,6 @@ class WalletCubit extends Cubit<WalletState> {
     double amount,
   ) async {
     await _performOperation(() async {
-      // استدعاء الـ UseCase
       await transferBalanceUseCase(fromId, toId, amount);
     });
   }

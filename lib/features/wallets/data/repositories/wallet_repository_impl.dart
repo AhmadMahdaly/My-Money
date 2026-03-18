@@ -108,12 +108,10 @@ class WalletRepositoryImpl implements WalletRepository {
       final fromWallet = wallets[fromIndex];
       final toWallet = wallets[toIndex];
 
-      // 1. التشيك على الرصيد
       if (fromWallet.balance < amount) {
         throw Exception('الرصيد غير كافٍ في محفظة ${fromWallet.name}');
       }
 
-      // 2. تحديث القيم (استخدام fromEntity للتحويل من Wallet إلى WalletModel)
       wallets[fromIndex] = WalletModel.fromEntity(
         fromWallet.copyWith(balance: fromWallet.balance - amount),
       );
@@ -122,10 +120,8 @@ class WalletRepositoryImpl implements WalletRepository {
         toWallet.copyWith(balance: toWallet.balance + amount),
       );
 
-      // 3. حفظ القائمة كاملة
       await localDataSource.saveWallets(wallets);
 
-      // 4. تسجيل العملية في السجل (اختياري)
       await localDataSource.saveTransferRecord(
         TransferRecordModel(
           id: uuid.v4(),
