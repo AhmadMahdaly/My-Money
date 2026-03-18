@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_int_literals
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -484,7 +482,7 @@ class _FilterControlBar extends StatelessWidget {
               onChanged: transactionCubit.setWalletFilter,
               items: [
                 DropdownMenuItem<String>(
-                  value: null, // القيمة null تعني "كل المحافظ"
+                  value: null,
                   child: Text(
                     'كل المحافظ',
                     style: AppTextStyles.style14W600.copyWith(

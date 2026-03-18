@@ -8,6 +8,7 @@ import 'package:opration/features/transactions/domain/entities/transaction.dart'
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
+import 'package:uuid/uuid.dart';
 
 class ManageCategoriesDrawer extends StatelessWidget {
   const ManageCategoriesDrawer({super.key});
@@ -34,20 +35,6 @@ class ManageCategoriesDrawer extends StatelessWidget {
 
           return ListView(
             children: [
-              ListTile(
-                leading: Icon(
-                  Icons.add,
-                  color: AppColors.primaryColor,
-                  size: 22.r,
-                ),
-                title: Text(
-                  'ضيف فئة جديدة...',
-                  style: AppTextStyles.style14W300.copyWith(
-                    color: AppColors.primaryColor,
-                  ),
-                ),
-                onTap: () => _showAddTypeSelectionDialog(context),
-              ),
               const Divider(),
               _CategoryListSection(
                 title: 'فئات الدخل',
@@ -62,6 +49,17 @@ class ManageCategoriesDrawer extends StatelessWidget {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: () => _showAddTypeSelectionDialog(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(320.r),
+        ),
+        child: const Icon(
+          Icons.add,
+          color: AppColors.scaffoldBackgroundLightColor,
+        ),
+      ),
     );
   }
 
@@ -69,19 +67,35 @@ class ManageCategoriesDrawer extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('اختار نوع الفئة'),
+        titleTextStyle: AppTextStyles.style18W600,
+        title: const Text(
+          textAlign: TextAlign.center,
+          'اختار نوع الفئة',
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('دخل (Income)'),
+              leading: Icon(Icons.add, color: AppColors.successColor),
+              title: Text(
+                'دخل (Income)',
+                style: AppTextStyles.style14W500.copyWith(
+                  color: AppColors.successColor,
+                ),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _openCategoryDialog(context, TransactionType.income);
               },
             ),
             ListTile(
-              title: const Text('صرف (Expense)'),
+              leading: const Icon(Icons.minimize, color: AppColors.errorColor),
+              title: Text(
+                'صرف (Expense)',
+                style: AppTextStyles.style14W500.copyWith(
+                  color: AppColors.errorColor,
+                ),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 _openCategoryDialog(context, TransactionType.expense);
@@ -98,9 +112,12 @@ class ManageCategoriesDrawer extends StatelessWidget {
     TransactionType type, [
     TransactionCategory? category,
   ]) {
-    showDialog<TransactionCategory>(
+    showModalBottomSheet<TransactionCategory>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
       context: context,
-      builder: (_) => AddCategoryDialog(
+      builder: (_) => AddCategoryWidget(
         type: type,
         categoryToEdit: category,
       ),
@@ -123,7 +140,6 @@ class _CategoryListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // تصفية الفئات الرئيسية فقط
     final mainCategories = categories.where((c) => c.parentId == null).toList();
 
     return Column(
@@ -134,7 +150,6 @@ class _CategoryListSection extends StatelessWidget {
           child: Text(title, style: AppTextStyles.style16W600),
         ),
         ...mainCategories.map((mainCat) {
-          // جلب الفئات الفرعية التابعة لهذا الأب
           final subCategories = categories
               .where((c) => c.parentId == mainCat.id)
               .toList();
@@ -142,7 +157,6 @@ class _CategoryListSection extends StatelessWidget {
           return Theme(
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
-              // نفتحها تلقائياً إذا كان بداخلها فئات فرعية
               initiallyExpanded: subCategories.isNotEmpty,
               leading: CircleAvatar(
                 backgroundColor: mainCat.color,
@@ -162,59 +176,61 @@ class _CategoryListSection extends StatelessWidget {
                     icon: Icon(Icons.edit_outlined, size: 20.r),
                     onPressed: () => _editCategory(context, mainCat),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete_outline,
-                      size: 20.r,
-                      color: AppColors.errorColor,
-                    ),
-                    onPressed: () => _confirmDelete(context, mainCat),
-                  ),
                 ],
               ),
-              // عرض الفئات الفرعية كـ Children
-              children: subCategories
-                  .map(
-                    (subCat) => Padding(
-                      padding: EdgeInsets.only(
-                        right: 32.w,
-                      ), // إزاحة لليسار لتبدو كفرعية
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: subCat.color,
-                          radius: 8.r,
-                        ),
-                        title: Text(
-                          subCat.name, //      '↳ ${subCat.name}',
-                          style: AppTextStyles.style12W400,
-                        ),
-                        subtitle: subCat.isRecurring
-                            ? Text(
-                                'مكرر: ${subCat.fixedAmount?.truncate()} ج.م',
-                                style: AppTextStyles.style10W400,
-                              )
-                            : null,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit_outlined, size: 16.r),
-                              onPressed: () => _editCategory(context, subCat),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.delete_outline,
-                                size: 16.r,
-                                color: AppColors.errorColor,
-                              ),
-                              onPressed: () => _confirmDelete(context, subCat),
-                            ),
-                          ],
-                        ),
+
+              children: [
+                ...subCategories.map(
+                  (subCat) => Padding(
+                    padding: EdgeInsets.only(
+                      right: 32.w,
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: subCat.color,
+                        radius: 8.r,
+                      ),
+                      title: Text(
+                        subCat.name,
+                        style: AppTextStyles.style12W400,
+                      ),
+                      subtitle: subCat.isRecurring
+                          ? Text(
+                              'مكرر: ${subCat.fixedAmount?.truncate()} ج.م',
+                              style: AppTextStyles.style10W400,
+                            )
+                          : null,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit_outlined, size: 16.r),
+                            onPressed: () => _editCategory(context, subCat),
+                          ),
+                        ],
                       ),
                     ),
-                  )
-                  .toList(),
+                  ),
+                ),
+
+                Padding(
+                  padding: EdgeInsets.only(right: 32.w, bottom: 8.h),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.add_circle_outline,
+                      color: mainCat.color,
+                      size: 18.r,
+                    ),
+                    title: Text(
+                      'إضافة تفريعة لـ "${mainCat.name}"',
+                      style: AppTextStyles.style12W300.copyWith(
+                        color: mainCat.color,
+                      ),
+                    ),
+                    onTap: () => _showAddSubCategoryDialog(context, mainCat),
+                  ),
+                ),
+              ],
             ),
           );
         }),
@@ -222,10 +238,43 @@ class _CategoryListSection extends StatelessWidget {
     );
   }
 
-  void _editCategory(BuildContext context, TransactionCategory category) {
-    showDialog<TransactionCategory>(
+  void _showAddSubCategoryDialog(
+    BuildContext context,
+    TransactionCategory parentCategory,
+  ) {
+    final dummyCategoryForParent = TransactionCategory(
+      id: '',
+      name: '',
+      colorValue: parentCategory.colorValue,
+      type: parentCategory.type,
+      parentId: parentCategory.id,
+    );
+
+    showModalBottomSheet<TransactionCategory>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
       context: context,
-      builder: (_) => AddCategoryDialog(
+      builder: (_) => AddCategoryWidget(
+        type: parentCategory.type,
+
+        categoryToEdit: dummyCategoryForParent,
+      ),
+    ).then((result) {
+      if (result != null) {
+        final newSubCategory = result.copyWith(id: const Uuid().v4());
+        context.read<TransactionCubit>().addCategory(newSubCategory);
+      }
+    });
+  }
+
+  void _editCategory(BuildContext context, TransactionCategory category) {
+    showModalBottomSheet<TransactionCategory>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      context: context,
+      builder: (_) => AddCategoryWidget(
         type: category.type,
         categoryToEdit: category,
       ),
@@ -234,33 +283,5 @@ class _CategoryListSection extends StatelessWidget {
         context.read<TransactionCubit>().updateCategory(updated);
       }
     });
-  }
-
-  void _confirmDelete(BuildContext context, TransactionCategory category) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('حذف الفئة؟'),
-        content: Text(
-          'سيتم حذف "${category.name}" وجميع العمليات المرتبطة بها.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => context.pop(),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<TransactionCubit>().deleteCategory(category.id);
-              context.pop();
-            },
-            child: const Text(
-              'حذف',
-              style: TextStyle(color: AppColors.errorColor),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

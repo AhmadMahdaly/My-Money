@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_int_literals
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -80,28 +78,15 @@ class _MonthlyPlanView extends StatelessWidget {
                     child: ListView(
                       padding: EdgeInsets.all(8.r),
                       children: [
-                        // Column(
-                        //   children: [
-                        // 16.verticalSpace,
                         _PlannedSummarySection(plan: planState.plan!),
                         8.verticalSpace,
                         _SummarySection(plan: planState.plan!),
 
-                        // 16.verticalSpace,
-                        //   ],
-                        // ),
                         32.verticalSpace,
                         _PlannedIncomeSection(plan: planState.plan!),
                         16.verticalSpace,
                         _PlannedExpensesSection(plan: planState.plan!),
-                        // 20.verticalSpace,
-                        // CustomPrimaryButton(
-                        //   width: double.infinity,
-                        //   text: 'احفظ حسبة الشهر',
-                        //   onPressed: () => context
-                        //       .read<MonthlyPlanCubit>()
-                        //       .saveCurrentPlan(),
-                        // ),
+
                         60.verticalSpace,
                       ],
                     ),
@@ -127,9 +112,9 @@ class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top,
-        // right: 16.w,
-        // left: 16.w,
-        // bottom: 10.h,
+        right: 16.w,
+        left: 16.w,
+        bottom: 10.h,
       ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -138,53 +123,7 @@ class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
           colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
         ),
       ),
-      child:
-          //  Column(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   crossAxisAlignment: CrossAxisAlignment.start,
-          //   children: [
-          //     Column(
-          //       crossAxisAlignment: CrossAxisAlignment.stretch,
-          //       mainAxisSize: MainAxisSize.min,
-          //       children: [
-          const WelcomeUserWidget(isLeading: true, title: 'الخطة الشهرية'),
-
-      //   Row(
-      //     mainAxisAlignment: MainAxisAlignment.center,
-      //     children: [
-      //       SvgImage(
-      //         imagePath: 'assets/image/svg/quote-1.svg',
-      //         height: 14.h,
-      //       ),
-      //       4.horizontalSpace,
-      //       Text(
-      //         kAppQuote,
-      //         style: AppTextStyles.style14W400.copyWith(
-      //           color: AppColors.scaffoldBackgroundLightColor,
-      //         ),
-      //       ),
-      //       4.horizontalSpace,
-      //       SvgImage(
-      //         imagePath: 'assets/image/svg/quote-1.svg',
-      //         height: 14.h,
-      //       ),
-      //     ],
-      //   ),
-      //   8.verticalSpace,
-      //   FittedBox(
-      //     fit: BoxFit.scaleDown,
-      //     child: Text(
-      //       'احسب هنا بادجت الشهر بعد أي إلتزامات ثابتة',
-      //       textAlign: TextAlign.center,
-      //       style: AppTextStyles.style14Bold.copyWith(
-      //         color: AppColors.scaffoldBackgroundLightColor,
-      //       ),
-      //     ),
-      //   ),
-      // ],
-      //   ),
-      // ],
-      // ),
+      child: const WelcomeUserWidget(isLeading: true, title: 'الخطة الشهرية'),
     );
   }
 }
@@ -271,20 +210,7 @@ class _SummarySection extends StatelessWidget {
 
     final actualSavings = actualTotalIncome - actualTotalExpense;
 
-    return
-    //  Padding(
-    //   padding: EdgeInsets.symmetric(horizontal: 16.r),
-    //   child: Column(
-    //     crossAxisAlignment: CrossAxisAlignment.stretch,
-    //     children: [
-    // Text(
-    //   'ملخصك الفعلي',
-    //   style: AppTextStyles.style14W400.copyWith(
-    //     color: AppColors.primaryColor,
-    //   ),
-    // ),
-    // 8.verticalSpace,
-    Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _SummaryItem(
@@ -305,9 +231,6 @@ class _SummarySection extends StatelessWidget {
               : AppColors.orangeColor.withAlpha(200),
         ),
       ],
-      //     ),
-      //   ],
-      // ),
     );
   }
 }
@@ -322,21 +245,7 @@ class _PlannedSummarySection extends StatelessWidget {
     final plannedExpense = plan.totalBudgetedExpense;
     final expectedSavings = plan.projectedSavings;
 
-    return
-    // Padding(
-    //   padding: EdgeInsets.symmetric(horizontal: 16.r),
-    //   child:
-    //  Column(
-    //   crossAxisAlignment: CrossAxisAlignment.stretch,
-    //   children: [
-    // Text(
-    //   'المتوقع',
-    //   style: AppTextStyles.style14W400.copyWith(
-    //     color: AppColors.primaryColor,
-    //   ),
-    // ),
-    // 8.verticalSpace,
-    Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _SummaryItem(
@@ -357,9 +266,6 @@ class _PlannedSummarySection extends StatelessWidget {
               : AppColors.orangeColor.withAlpha(200),
         ),
       ],
-      // ),
-      //   ],
-      // ),
     );
   }
 }
@@ -465,7 +371,6 @@ class _PlannedIncomeSection extends StatelessWidget {
 
                 return Column(
                   children: [
-                    // تم إزالة الـ Expanded تماماً من هنا
                     Padding(
                       padding: EdgeInsets.only(bottom: 6.h),
                       child: _IncomeBudgetTile(
@@ -475,7 +380,6 @@ class _PlannedIncomeSection extends StatelessWidget {
                       ),
                     ),
                     if (subCategories.isNotEmpty)
-                      // وتم إزالة الـ Expanded تماماً من هنا أيضاً
                       Padding(
                         padding: EdgeInsets.only(right: 24.w),
                         child: Column(
@@ -616,14 +520,33 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
     final year = currentMonth.year;
     final month = currentMonth.month;
 
-    final budgetedAmount = widget.plan.incomes
+    final allCategories = transactionState.allCategories;
+    final subCategories = allCategories
+        .where(
+          (c) =>
+              c.parentId == widget.category.id &&
+              c.type == TransactionType.income,
+        )
+        .toList();
+    final hasSubCategories = subCategories.isNotEmpty;
+    final subCategoryIds = subCategories.map((c) => c.id).toList();
+    final subCategoryNames = subCategories.map((c) => c.name).toList();
+
+    var budgetedAmount = widget.plan.incomes
         .where((i) => i.name == widget.category.name)
         .fold(0.0, (sum, item) => sum + item.amount);
+
+    for (final subName in subCategoryNames) {
+      budgetedAmount += widget.plan.incomes
+          .where((i) => i.name == subName)
+          .fold(0.0, (sum, item) => sum + item.amount);
+    }
 
     final actualReceivedAmount = transactionState.allTransactions
         .where(
           (t) =>
-              t.categoryId == widget.category.id &&
+              (t.categoryId == widget.category.id ||
+                  subCategoryIds.contains(t.categoryId)) &&
               t.type == TransactionType.income &&
               t.date.year == year &&
               t.date.month == month,
@@ -636,7 +559,6 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
 
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 16.r),
-      // حذفنا الـ leading تماماً لنتجنب خطأ المساحة
       title: Row(
         children: [
           if (widget.isSubCategory) ...[
@@ -652,7 +574,6 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
             radius: widget.isSubCategory ? 12.r : 15.r,
           ),
           8.horizontalSpace,
-          // استخدام Expanded لحماية النص من الطفح (Overflow)
           Expanded(
             child: Text(
               widget.category.name,
@@ -690,74 +611,53 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
           ),
         ],
       ),
-      trailing: SizedBox(
-        width: 120.w,
-        child: CustomPrimaryTextfield(
-          controller: _controller,
-          text: 'المخطط',
-          textAlign: TextAlign.center,
-          keyboardType: TextInputType.number,
-          suffix: IconButton(
-            icon: Icon(
-              Icons.calculate_outlined,
-              size: 24.r,
-              color: AppColors.primaryColor,
-            ),
-            onPressed: () async {
-              final result = await showDialog<double>(
-                context: context,
-                builder: (_) => CalculatorDialog(
-                  initialValue: double.tryParse(_controller.text) ?? 0,
+      trailing: hasSubCategories
+          ? SizedBox(
+              width: 80.w,
+              child: Center(
+                child: Text(
+                  '${budgetedAmount.truncate()} ج.م',
+                  style: AppTextStyles.style14W700.copyWith(
+                    color: widget.category.color,
+                  ),
                 ),
-              );
-              if (result != null && mounted) {
-                _controller.text = result.truncate().toString();
-                _updateIncomeInCubit(result);
-              }
-            },
-          ),
-          onChanged: (value) {
-            final amount = double.tryParse(value) ?? 0.0;
-            _updateIncomeInCubit(amount);
-          },
-        ),
-      ),
+              ),
+            )
+          : SizedBox(
+              width: 120.w,
+              child: CustomPrimaryTextfield(
+                controller: _controller,
+                text: 'المخطط',
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                suffix: IconButton(
+                  icon: Icon(
+                    Icons.calculate_outlined,
+                    size: 24.r,
+                    color: AppColors.primaryColor,
+                  ),
+                  onPressed: () async {
+                    final result = await showDialog<double>(
+                      context: context,
+                      builder: (_) => CalculatorDialog(
+                        initialValue: double.tryParse(_controller.text) ?? 0,
+                      ),
+                    );
+                    if (result != null && mounted) {
+                      _controller.text = result.truncate().toString();
+                      _updateIncomeInCubit(result);
+                    }
+                  },
+                ),
+                onChanged: (value) {
+                  final amount = double.tryParse(value) ?? 0.0;
+                  _updateIncomeInCubit(amount);
+                },
+              ),
+            ),
     );
   }
 }
-
-// void _showAddIncomeCategoryDialog(BuildContext context) {
-//   final transactionCubit = context.read<TransactionCubit>();
-
-//   showDialog<TransactionCategory>(
-//     context: context,
-//     builder: (_) => BlocProvider.value(
-//       value: transactionCubit,
-//       child: const AddCategoryDialog(type: TransactionType.income),
-//     ),
-//   ).then((newCategory) {
-//     if (newCategory != null) {
-//       transactionCubit.addCategory(newCategory);
-//     }
-//   });
-// }
-
-// void _showAddExpenseCategoryDialog(BuildContext context) {
-//   final transactionCubit = context.read<TransactionCubit>();
-
-//   showDialog<TransactionCategory>(
-//     context: context,
-//     builder: (_) => BlocProvider.value(
-//       value: transactionCubit,
-
-//       child: const AddCategoryDialog(type: TransactionType.expense),
-//     ),
-//   ).then((newCategory) {
-//     if (newCategory != null) {
-//       transactionCubit.addCategory(newCategory);
-//     }
-//   });
-// }
 
 class _PlannedExpensesSection extends StatelessWidget {
   const _PlannedExpensesSection({required this.plan});
@@ -813,25 +713,30 @@ class _PlannedExpensesSection extends StatelessWidget {
 
               return Column(
                 children: [
-                  _ExpenseBudgetTile(
-                    category: mainCat,
-                    plan: plan,
-                    isSubCategory: false,
-                  ),
-
-                  if (subCategories.isNotEmpty)
+                  ...[
                     Padding(
-                      padding: EdgeInsets.only(right: 24.w),
-                      child: Column(
-                        children: subCategories.map((subCat) {
-                          return _ExpenseBudgetTile(
-                            category: subCat,
-                            plan: plan,
-                            isSubCategory: true,
-                          );
-                        }).toList(),
+                      padding: EdgeInsets.symmetric(vertical: 4.h),
+                      child: _ExpenseBudgetTile(
+                        category: mainCat,
+                        plan: plan,
+                        isSubCategory: false,
                       ),
                     ),
+
+                    if (subCategories.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.only(right: 24.w),
+                        child: Column(
+                          children: subCategories.map((subCat) {
+                            return _ExpenseBudgetTile(
+                              category: subCat,
+                              plan: plan,
+                              isSubCategory: true,
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                  ],
                 ],
               );
             }),
@@ -882,14 +787,13 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
   @override
   void didUpdateWidget(covariant _ExpenseBudgetTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // نتحقق من الخطة أو الفئة لضمان تحديث النص في الحقل
+
     if (widget.plan != oldWidget.plan ||
         widget.category.id != oldWidget.category.id) {
       _updateControllerText();
     }
   }
 
-  // هذه الدالة مسؤولة فقط عن تحديث "حقل إدخال الميزانية"
   void _updateControllerText() {
     final existingExpense = widget.plan.getExpenseForCategory(
       widget.category.id,
@@ -900,7 +804,6 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         ? amount.truncate().toString()
         : amount.toString();
 
-    // نتأكد أن النص مختلف قبل التحديث لتجنب مشاكل مع المؤشر
     if (_controller.text != textValue) {
       _controller.text = textValue;
     }
@@ -912,7 +815,6 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
     super.dispose();
   }
 
-  // هذه الدالة تحدث "الميزانية" نفسها عند التغيير في الحقل
   void _updateExpenseInCubit(double amount) {
     final newExpense = PlannedExpense(
       categoryId: widget.category.id,
@@ -922,7 +824,6 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         .where((e) => e.categoryId != widget.category.id)
         .toList();
 
-    // نضيف المصروف الجديد فقط إذا كانت قيمته أكبر من صفر
     final updatedExpenses = [...otherExpenses];
     if (amount > 0) {
       updatedExpenses.add(newExpense);
@@ -935,23 +836,37 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
 
   @override
   Widget build(BuildContext context) {
-    // --- الجزء الجديد: حساب المصروفات الفعلية ---
-
-    // 1. قراءة الـ state من الكيوبت الخاصة بالمعاملات والخطة
     final transactionState = context.watch<TransactionCubit>().state;
     final planState = context.watch<MonthlyPlanCubit>().state;
 
     final currentMonth = planState.currentMonth;
     final year = currentMonth.year;
     final month = currentMonth.month;
-    final existingExpense = widget.plan.getExpenseForCategory(
-      widget.category.id,
-    );
-    final budgetedAmount = existingExpense?.budgetedAmount ?? 0.0;
+
+    final allCategories = transactionState.allCategories;
+    final subCategories = allCategories
+        .where(
+          (c) =>
+              c.parentId == widget.category.id &&
+              c.type == TransactionType.expense,
+        )
+        .toList();
+    final hasSubCategories = subCategories.isNotEmpty;
+    final subCategoryIds = subCategories.map((c) => c.id).toList();
+
+    var budgetedAmount =
+        widget.plan.getExpenseForCategory(widget.category.id)?.budgetedAmount ??
+        0.0;
+    for (final subId in subCategoryIds) {
+      budgetedAmount +=
+          widget.plan.getExpenseForCategory(subId)?.budgetedAmount ?? 0.0;
+    }
+
     final actualSpentAmount = transactionState.allTransactions
         .where(
           (t) =>
-              t.categoryId == widget.category.id &&
+              (t.categoryId == widget.category.id ||
+                  subCategoryIds.contains(t.categoryId)) &&
               t.type == TransactionType.expense &&
               t.date.year == year &&
               t.date.month == month,
@@ -985,20 +900,13 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
           ],
           CircleAvatar(
             backgroundColor: widget.category.color,
-            radius: widget.isSubCategory ? 12.r : 15.r, // تصغير الحجم لو فرعية
+            radius: widget.isSubCategory ? 12.r : 15.r,
           ),
         ],
       ),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Row(
-          //   children: [
-          // CircleAvatar(
-          //   backgroundColor: widget.category.color,
-          //   radius: 10.r,
-          // ),
-          // 8.horizontalSpace,
           SizedBox(
             width: SizeConfig.screenWidth / 3 - 20.w,
             child: Text(
@@ -1010,12 +918,9 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
               ),
             ),
           ),
-          //   ],
-          // ),
-          // هذا هو الجزء المستبدل: كونتينر بدلاً من التيكست فيلد
-          GestureDetector(
-            onTap: () => _showEditBudgetSheet(context),
-            child: Container(
+
+          if (hasSubCategories)
+            Container(
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
               decoration: BoxDecoration(
                 color: widget.category.color.withAlpha(16),
@@ -1024,25 +929,46 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   color: widget.category.color.withAlpha(77),
                 ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _controller.text.isEmpty ? '0' : '${_controller.text}  ج.م',
-                    style: AppTextStyles.style14W500.copyWith(
+              child: Text(
+                '${budgetedAmount.truncate()} ج.م',
+                style: AppTextStyles.style14W500.copyWith(
+                  color: widget.category.color,
+                ),
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: () => _showEditBudgetSheet(context),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  color: widget.category.color.withAlpha(16),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: widget.category.color.withAlpha(77),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _controller.text.isEmpty
+                          ? '0'
+                          : '${_controller.text}  ج.م',
+                      style: AppTextStyles.style14W500.copyWith(
+                        color: widget.category.color,
+                      ),
+                    ),
+                    8.horizontalSpace,
+                    Icon(
+                      Icons.edit_note,
+                      size: 18.r,
                       color: widget.category.color,
                     ),
-                  ),
-                  8.horizontalSpace,
-                  Icon(
-                    Icons.edit_note,
-                    size: 18.r,
-                    color: widget.category.color,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
       subtitle: Column(
@@ -1081,7 +1007,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
   void _showEditBudgetSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      isScrollControlled: true, // للسماح للكيبورد بعدم تغطية الحقل
+      isScrollControlled: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
@@ -1090,7 +1016,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(
               context,
-            ).viewInsets.bottom, // التعامل مع الكيبورد
+            ).viewInsets.bottom,
             left: 20.w,
             right: 20.w,
             top: 20.h,
@@ -1111,12 +1037,10 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                       controller: _controller,
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
-                      // autofocus: true, // يفتح الكيبورد تلقائياً
                       text: 'المبلغ',
                     ),
                   ),
                   10.horizontalSpace,
-                  // أيقونة الحاسبة
                   IconButton(
                     onPressed: () async {
                       final result = await showDialog<double>(
@@ -1138,7 +1062,6 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                 ],
               ),
               20.verticalSpace,
-              // زر الحفظ
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -1151,10 +1074,10 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   onPressed: () {
                     final amount = double.tryParse(_controller.text) ?? 0.0;
                     _updateExpenseInCubit(amount);
-                    Navigator.pop(context); // إغلاق الشيت
+                    Navigator.pop(context);
                     setState(
                       () {},
-                    ); // تحديث الواجهة لعرض الرقم الجديد في الكونتينر
+                    );
                   },
                   child: const Text(
                     'حفظ',
