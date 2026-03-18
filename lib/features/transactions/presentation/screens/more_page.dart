@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/services/launch_url.dart';
+import 'package:opration/core/shared_widgets/app_version_widget.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
@@ -15,70 +17,7 @@ class MoreView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        toolbarHeight: 100.h,
-        // centerTitle: true,
-        // title: Text('إدارة فئاتك', style: AppTextStyles.style20Bold),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
-              child: BlocBuilder<AuthCubit, AuthState>(
-                builder: (context, state) {
-                  if (state is Authenticated) {
-                    return Text(
-                      'أهلاً ${state.username}!',
-                      style: AppTextStyles.style20W700.copyWith(
-                        color: AppColors.scaffoldBackgroundLightColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  }
-
-                  return Text(
-                    'أهلاً بك!',
-                    style: AppTextStyles.style20W700.copyWith(
-                      color: AppColors.scaffoldBackgroundLightColor,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  );
-                },
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgImage(
-                  imagePath: 'assets/image/svg/quote-1.svg',
-                  height: 14.h,
-                ),
-                4.horizontalSpace,
-                Text(
-                  'ما تفعله الآن هو ما تجني ثماره في الغد',
-                  style: AppTextStyles.style14W400.copyWith(
-                    color: AppColors.scaffoldBackgroundLightColor,
-                  ),
-                ),
-                4.horizontalSpace,
-                SvgImage(
-                  imagePath: 'assets/image/svg/quote-1.svg',
-                  height: 14.h,
-                ),
-              ],
-            ),
-          ],
-        ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.scaffoldBackgroundLightColor,
-          ),
-          onPressed: () => context.pop(),
-        ),
-      ),
+      appBar: const _PageHeader(),
       body: ListView(
         children: [
           12.verticalSpace,
@@ -105,19 +44,111 @@ class MoreView extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(bottom: 30.h),
-        child: CustomOutLineMorePageCard(
-          icon: Icon(
-            Icons.file_upload_outlined,
-            size: 18.r,
-            color: AppColors.primaryColor,
-          ),
-          text: 'تابع آخر التحسينات والتحديثات',
-          onTap: () => launchURL(
-            'https://play.google.com/store/apps/details?id=com.mahdaly.mymoney',
-          ),
+      bottomNavigationBar: SizedBox(
+        height: 130.h,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomOutLineMorePageCard(
+              icon: Icon(
+                Icons.file_upload_outlined,
+                size: 18.r,
+                color: AppColors.primaryColor,
+              ),
+              text: 'تابع آخر التحسينات والتحديثات',
+              onTap: () => launchURL(appGooglePlayUrl),
+            ),
+            10.verticalSpace,
+            const AppVersionWidget(),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
+  const _PageHeader();
+
+  @override
+  Size get preferredSize => Size.fromHeight(85.h);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top,
+        right: 16.w,
+        left: 16.w,
+        bottom: 10.h,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment(0.50, -0),
+          end: Alignment(0.50, 1),
+          colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconButton(
+            onPressed: () => context.pop(),
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              size: 20.r,
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
+            children: [
+              BlocBuilder<AuthCubit, AuthState>(
+                builder: (context, state) {
+                  if (state is Authenticated) {
+                    return Text(
+                      'مرحبــًا بك ${state.username}!',
+                      style: AppTextStyles.style20W700.copyWith(
+                        color: AppColors.scaffoldBackgroundLightColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  }
+
+                  return Text(
+                    'مرحبــًا بك!',
+                    style: AppTextStyles.style20W700.copyWith(
+                      color: AppColors.scaffoldBackgroundLightColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  );
+                },
+              ),
+              12.verticalSpace,
+              Row(
+                children: [
+                  SvgImage(
+                    imagePath: 'assets/image/svg/quote-1.svg',
+                    height: 14.h,
+                  ),
+                  4.horizontalSpace,
+                  Text(
+                    'ما تفعله الآن هو ما تجني ثماره في الغد',
+                    style: AppTextStyles.style14W400.copyWith(
+                      color: AppColors.scaffoldBackgroundLightColor,
+                    ),
+                  ),
+                  4.horizontalSpace,
+                  SvgImage(
+                    imagePath: 'assets/image/svg/quote-1.svg',
+                    height: 14.h,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
