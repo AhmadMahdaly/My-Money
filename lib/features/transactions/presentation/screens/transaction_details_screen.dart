@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:ui' as ui;
 
 import 'package:fl_chart/fl_chart.dart';
@@ -6,8 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/constants.dart';
+import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
@@ -17,6 +21,7 @@ import 'package:opration/features/transactions/domain/entities/transaction_categ
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
+import 'package:uuid/uuid.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
   const TransactionDetailsScreen({super.key});
@@ -424,7 +429,7 @@ class _CategoryTransactionList extends StatelessWidget {
 
 void _showChangeMainWalletDialog(
   BuildContext context,
-  List<Wallet> wallets,
+  List<Wallet> initialWallets, // تم تغيير الاسم لتجنب التعارض
   String currentMainWalletId,
 ) {
   showDialog<void>(
@@ -433,49 +438,184 @@ void _showChangeMainWalletDialog(
       String? selectedWalletId = currentMainWalletId;
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
-            title: const Text('تغيير المحفظة الرئيسية'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: wallets.length,
-                itemBuilder: (context, index) {
-                  final wallet = wallets[index];
-                  return RadioListTile<String>(
-                    title: Text(wallet.name),
-                    subtitle: Text('${wallet.balance.truncate()} ج.م'),
-                    value: wallet.id,
-                    groupValue: selectedWalletId,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedWalletId = value;
-                      });
+          // استخدمنا BlocBuilder هنا لكي تظهر المحفظة الجديدة فور إضافتها
+          return BlocBuilder<WalletCubit, WalletState>(
+            builder: (context, state) {
+              final wallets = (state is WalletLoaded)
+                  ? state.wallets
+                  : initialWallets;
+
+              return AlertDialog(
+                title: Text(
+                  'تغيير المحفظة الرئيسية',
+                  style: AppTextStyles.style16W600.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: wallets.length + 1, // +1 لزر الإضافة
+                    itemBuilder: (context, index) {
+                      // 1. عرض المحافظ الحالية
+                      if (index < wallets.length) {
+                        final wallet = wallets[index];
+                        return RadioListTile<String>(
+                          title: Text(wallet.name),
+                          subtitle: Text('${wallet.balance.truncate()} ج.م'),
+                          value: wallet.id,
+                          groupValue: selectedWalletId,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedWalletId = value;
+                            });
+                          },
+                        );
+                      }
+                      // 2. زر إضافة محفظة جديدة في النهاية
+                      else {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Divider(),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.add_circle_outline,
+                                color: AppColors.primaryColor,
+                              ),
+                              title: Text(
+                                'إضافة محفظة جديدة...',
+                                style: AppTextStyles.style14W600.copyWith(
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                              onTap: () {
+                                // الخيار الأول: إغلاق الديالوج والذهاب لشاشة المحافظ
+                                // Navigator.pop(ctx);
+                                // context.push(AppRoutes.walletsScreen);
+
+                                // الخيار الثاني: فتح ديالوج صغير لإضافة المحفظة مباشرة (وهو الأفضل)
+                                _showAddEditWalletDialog(context);
+                              },
+                            ),
+                          ],
+                        );
+                      }
                     },
-                  );
-                },
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('إلغاء'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (selectedWalletId != null &&
-                      selectedWalletId != currentMainWalletId) {
-                    context.read<WalletCubit>().setMainWallet(
-                      selectedWalletId!,
-                    );
-                  }
-                  Navigator.of(ctx).pop();
-                },
-                child: const Text('حفظ'),
-              ),
-            ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('إلغاء'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (selectedWalletId != null &&
+                          selectedWalletId != currentMainWalletId) {
+                        context.read<WalletCubit>().setMainWallet(
+                          selectedWalletId!,
+                        );
+                      }
+                      Navigator.of(ctx).pop();
+                    },
+                    child: const Text('حفظ'),
+                  ),
+                ],
+              );
+            },
           );
         },
+      );
+    },
+  );
+}
+
+void _showAddEditWalletDialog(BuildContext context, {Wallet? wallet}) {
+  final isEditing = wallet != null;
+  final formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController(text: wallet?.name);
+  final balanceController = TextEditingController(
+    text: isEditing ? wallet.balance.toString() : '',
+  );
+
+  showDialog<void>(
+    context: context,
+    builder: (ctx) {
+      return AlertDialog(
+        title: Text(
+          isEditing ? 'عدّل المحفظة' : 'ضيف محفظة جديدة',
+          style: AppTextStyles.style18W800.copyWith(
+            color: AppColors.primaryColor,
+          ),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            spacing: 8.h,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomPrimaryTextfield(
+                controller: nameController,
+                text: 'اسم المحفظة',
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'متنساش تسجل اسم المحفظة' : null,
+              ),
+              CustomPrimaryTextfield(
+                controller: balanceController,
+                text: 'رصيد المحفظة',
+
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                validator: (v) {
+                  if (!isEditing &&
+                      (v == null || v.isEmpty || double.tryParse(v) == null)) {
+                    return 'سجّل مبلغ صح';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'إلغاء',
+              style: AppTextStyles.style14W500,
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final newWallet = Wallet(
+                  id: wallet?.id ?? getIt<Uuid>().v4(),
+                  name: nameController.text,
+                  balance:
+                      double.tryParse(balanceController.text) ??
+                      wallet!.balance,
+                  isMain: wallet?.isMain ?? false,
+                );
+
+                if (isEditing) {
+                  context.read<WalletCubit>().updateWallet(newWallet);
+                } else {
+                  context.read<WalletCubit>().addWallet(newWallet);
+                }
+                Navigator.of(ctx).pop();
+              }
+            },
+            child: Text(
+              'حفظ',
+              style: AppTextStyles.style14W500.copyWith(
+                color: AppColors.scaffoldBackgroundLightColor,
+              ),
+            ),
+          ),
+        ],
       );
     },
   );

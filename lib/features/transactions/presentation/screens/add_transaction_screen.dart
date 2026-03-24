@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
@@ -17,9 +19,9 @@ import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
+import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/category_selector.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
@@ -213,7 +215,7 @@ class AddTransactionScreen extends StatelessWidget {
 
 void _showChangeMainWalletDialog(
   BuildContext context,
-  List<Wallet> wallets,
+  List<Wallet> initialWallets, // تم تغيير الاسم لتجنب التعارض
   String currentMainWalletId,
 ) {
   showDialog<void>(
@@ -222,49 +224,184 @@ void _showChangeMainWalletDialog(
       String? selectedWalletId = currentMainWalletId;
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
-            title: const Text('تغيير المحفظة الرئيسية'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: wallets.length,
-                itemBuilder: (context, index) {
-                  final wallet = wallets[index];
-                  return RadioListTile<String>(
-                    title: Text(wallet.name),
-                    subtitle: Text('${wallet.balance.truncate()} ج.م'),
-                    value: wallet.id,
-                    groupValue: selectedWalletId,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedWalletId = value;
-                      });
+          // استخدمنا BlocBuilder هنا لكي تظهر المحفظة الجديدة فور إضافتها
+          return BlocBuilder<WalletCubit, WalletState>(
+            builder: (context, state) {
+              final wallets = (state is WalletLoaded)
+                  ? state.wallets
+                  : initialWallets;
+
+              return AlertDialog(
+                title: Text(
+                  'تغيير المحفظة الرئيسية',
+                  style: AppTextStyles.style16W600.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: wallets.length + 1, // +1 لزر الإضافة
+                    itemBuilder: (context, index) {
+                      // 1. عرض المحافظ الحالية
+                      if (index < wallets.length) {
+                        final wallet = wallets[index];
+                        return RadioListTile<String>(
+                          title: Text(wallet.name),
+                          subtitle: Text('${wallet.balance.truncate()} ج.م'),
+                          value: wallet.id,
+                          groupValue: selectedWalletId,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedWalletId = value;
+                            });
+                          },
+                        );
+                      }
+                      // 2. زر إضافة محفظة جديدة في النهاية
+                      else {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Divider(),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.add_circle_outline,
+                                color: AppColors.primaryColor,
+                              ),
+                              title: Text(
+                                'إضافة محفظة جديدة...',
+                                style: AppTextStyles.style14W600.copyWith(
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                              onTap: () {
+                                // الخيار الأول: إغلاق الديالوج والذهاب لشاشة المحافظ
+                                // Navigator.pop(ctx);
+                                // context.push(AppRoutes.walletsScreen);
+
+                                // الخيار الثاني: فتح ديالوج صغير لإضافة المحفظة مباشرة (وهو الأفضل)
+                                _showAddEditWalletDialog(context);
+                              },
+                            ),
+                          ],
+                        );
+                      }
                     },
-                  );
-                },
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('إلغاء'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (selectedWalletId != null &&
-                      selectedWalletId != currentMainWalletId) {
-                    context.read<WalletCubit>().setMainWallet(
-                      selectedWalletId!,
-                    );
-                  }
-                  Navigator.of(ctx).pop();
-                },
-                child: const Text('حفظ'),
-              ),
-            ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('إلغاء'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (selectedWalletId != null &&
+                          selectedWalletId != currentMainWalletId) {
+                        context.read<WalletCubit>().setMainWallet(
+                          selectedWalletId!,
+                        );
+                      }
+                      Navigator.of(ctx).pop();
+                    },
+                    child: const Text('حفظ'),
+                  ),
+                ],
+              );
+            },
           );
         },
+      );
+    },
+  );
+}
+
+void _showAddEditWalletDialog(BuildContext context, {Wallet? wallet}) {
+  final isEditing = wallet != null;
+  final formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController(text: wallet?.name);
+  final balanceController = TextEditingController(
+    text: isEditing ? wallet.balance.toString() : '',
+  );
+
+  showDialog<void>(
+    context: context,
+    builder: (ctx) {
+      return AlertDialog(
+        title: Text(
+          isEditing ? 'عدّل المحفظة' : 'ضيف محفظة جديدة',
+          style: AppTextStyles.style18W800.copyWith(
+            color: AppColors.primaryColor,
+          ),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            spacing: 8.h,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomPrimaryTextfield(
+                controller: nameController,
+                text: 'اسم المحفظة',
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'متنساش تسجل اسم المحفظة' : null,
+              ),
+              CustomPrimaryTextfield(
+                controller: balanceController,
+                text: 'رصيد المحفظة',
+
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                validator: (v) {
+                  if (!isEditing &&
+                      (v == null || v.isEmpty || double.tryParse(v) == null)) {
+                    return 'سجّل مبلغ صح';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'إلغاء',
+              style: AppTextStyles.style14W500,
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final newWallet = Wallet(
+                  id: wallet?.id ?? getIt<Uuid>().v4(),
+                  name: nameController.text,
+                  balance:
+                      double.tryParse(balanceController.text) ??
+                      wallet!.balance,
+                  isMain: wallet?.isMain ?? false,
+                );
+
+                if (isEditing) {
+                  context.read<WalletCubit>().updateWallet(newWallet);
+                } else {
+                  context.read<WalletCubit>().addWallet(newWallet);
+                }
+                Navigator.of(ctx).pop();
+              }
+            },
+            child: Text(
+              'حفظ',
+              style: AppTextStyles.style14W500.copyWith(
+                color: AppColors.scaffoldBackgroundLightColor,
+              ),
+            ),
+          ),
+        ],
       );
     },
   );
@@ -415,32 +552,14 @@ class _TransactionFormState extends State<_TransactionForm> {
                   .where((c) => c.parentId == _selectedMainCategoryId)
                   .toList()
             : <TransactionCategory>[];
-        if (state.pendingTransactions.isNotEmpty) {
-          Container(
-            margin: EdgeInsets.all(8.r),
-            padding: EdgeInsets.all(12.r),
-            decoration: BoxDecoration(
-              color: AppColors.orangeColor.withAlpha(55),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, color: AppColors.orangeColor),
-                8.horizontalSpace,
-                const Expanded(
-                  child: Text('عندك مصاريف دورية النهاردة، سجلتها؟'),
-                ),
-                TextButton(
-                  onPressed: () => _showPendingDialog(
-                    context,
-                    state.pendingTransactions,
-                  ),
-                  child: const Text('مراجعة الآن'),
-                ),
-              ],
-            ),
-          );
-        }
+
+        final selectedMainCategory = mainCategories
+            .where((c) => c.id == _selectedMainCategoryId)
+            .firstOrNull;
+        final selectedSubCategory = subCategories
+            .where((c) => c.id == _selectedSubCategoryId)
+            .firstOrNull;
+
         return BlocBuilder<WalletCubit, WalletState>(
           builder: (context, walletState) {
             final wallets = (walletState is WalletLoaded)
@@ -454,6 +573,7 @@ class _TransactionFormState extends State<_TransactionForm> {
               );
               _selectedWalletId = mainWallet.id;
             }
+
             return Form(
               key: _formKey,
               child: SingleChildScrollView(
@@ -462,6 +582,36 @@ class _TransactionFormState extends State<_TransactionForm> {
                   spacing: 16.h,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (state.pendingTransactions.isNotEmpty)
+                      Container(
+                        padding: EdgeInsets.all(12.r),
+                        decoration: BoxDecoration(
+                          color: AppColors.orangeColor.withAlpha(55),
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: AppColors.orangeColor,
+                            ),
+                            8.horizontalSpace,
+                            const Expanded(
+                              child: Text(
+                                'عندك مصاريف دورية النهاردة، سجلتها؟',
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => _showPendingDialog(
+                                context,
+                                state.pendingTransactions,
+                              ),
+                              child: const Text('مراجعة الآن'),
+                            ),
+                          ],
+                        ),
+                      ),
+
                     Text(
                       widget.type == TransactionType.income
                           ? 'معاك كام (المبلغ)'
@@ -484,7 +634,6 @@ class _TransactionFormState extends State<_TransactionForm> {
                         decimal: true,
                       ),
                       text: 'المبلغ',
-
                       validator: (value) =>
                           value == null || value.isEmpty ? 'سجل المبلغ' : null,
                     ),
@@ -503,32 +652,32 @@ class _TransactionFormState extends State<_TransactionForm> {
                       ],
                     ),
 
-                    CategorySelector(
-                      categories: mainCategories,
-                      selectedCategoryId: _selectedMainCategoryId,
-                      onCategorySelected: (id) {
-                        setState(() {
-                          _selectedMainCategoryId = id;
-                          _selectedSubCategoryId = null;
-                        });
-                      },
-                      onAddCategory: () =>
-                          _showAddCategoryDialog(context, widget.type),
+                    _buildCategorySelectionField(
+                      hint: 'اختر الفئة الرئيسية',
+                      selectedCategory: selectedMainCategory,
+                      onTap: () => _showCategorySelectionSheet(
+                        context: context,
+                        categories: mainCategories,
+                        isMainCategory: true,
+                      ),
                     ),
 
-                    if (subCategories.isNotEmpty) ...[
-                      8.verticalSpace,
+                    if (_selectedMainCategoryId != null) ...[
+                      // 8.verticalSpace,
                       Text(
                         'اختر الفئة الفرعية (اختياري):',
                         style: AppTextStyles.style12W300,
                       ),
-                      CategorySelector(
-                        categories: subCategories,
-                        selectedCategoryId: _selectedSubCategoryId,
-                        onCategorySelected: (id) =>
-                            setState(() => _selectedSubCategoryId = id),
-
-                        onAddCategory: _addNewSubCategoryForSelectedMain,
+                      _buildCategorySelectionField(
+                        hint: subCategories.isEmpty
+                            ? 'لا توجد تفريعات، اضغط لإضافة واحدة'
+                            : 'اختر الفئة الفرعية',
+                        selectedCategory: selectedSubCategory,
+                        onTap: () => _showCategorySelectionSheet(
+                          context: context,
+                          categories: subCategories,
+                          isMainCategory: false,
+                        ),
                       ),
                     ],
 
@@ -552,6 +701,254 @@ class _TransactionFormState extends State<_TransactionForm> {
                   ],
                 ),
               ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCategorySelectionField({
+    required String hint,
+    required TransactionCategory? selectedCategory,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.primaryColor.withAlpha(100)),
+          borderRadius: BorderRadius.circular(10.r),
+          color: selectedCategory?.color.withAlpha(15) ?? Colors.transparent,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                if (selectedCategory != null) ...[
+                  CircleAvatar(
+                    backgroundColor: selectedCategory.color,
+                    radius: 12.r,
+                  ),
+                  12.horizontalSpace,
+                ],
+                Text(
+                  selectedCategory?.name ?? hint,
+                  style: selectedCategory != null
+                      ? AppTextStyles.style14W600.copyWith(
+                          color: selectedCategory.color,
+                        )
+                      : AppTextStyles.style14W400.copyWith(color: Colors.grey),
+                ),
+              ],
+            ),
+            const Icon(Icons.arrow_drop_down, color: AppColors.primaryColor),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCategorySelectionSheet({
+    required BuildContext context,
+    required List<TransactionCategory> categories,
+    required bool isMainCategory,
+  }) {
+    final transactionCubit = context.read<TransactionCubit>();
+    final planCubit = context.read<MonthlyPlanCubit>();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (sheetContext) {
+        return DraggableScrollableSheet(
+          expand: false,
+          maxChildSize: 0.9,
+          initialChildSize: 0.6,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(16.r),
+                  child: Text(
+                    isMainCategory
+                        ? 'اختر الفئة الرئيسية'
+                        : 'اختر الفئة الفرعية',
+                    style: AppTextStyles.style18W600,
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: categories.isEmpty
+                      ? Center(
+                          child: Text(
+                            'مفيش فئات مسجلة هنا',
+                            style: AppTextStyles.style14W400.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          controller: scrollController,
+                          padding: EdgeInsets.all(16.r),
+                          itemCount: categories.length,
+                          separatorBuilder: (_, _) => 8.verticalSpace,
+                          itemBuilder: (ctx, index) {
+                            final category = categories[index];
+
+                            final plan = planCubit.state.plan;
+                            final allTxs =
+                                transactionCubit.state.allTransactions;
+                            final allCategories =
+                                transactionCubit.state.allCategories;
+                            final now = DateTime.now();
+
+                            var budgeted = 0.0;
+                            var spent = 0.0;
+
+                            final subCategories = allCategories
+                                .where((c) => c.parentId == category.id)
+                                .toList();
+
+                            final relevantIds = [
+                              category.id,
+                              ...subCategories.map((c) => c.id),
+                            ];
+
+                            final relevantNames = [
+                              category.name,
+                              ...subCategories.map((c) => c.name),
+                            ];
+
+                            if (widget.type == TransactionType.expense) {
+                              for (final id in relevantIds) {
+                                budgeted +=
+                                    plan
+                                        ?.getExpenseForCategory(id)
+                                        ?.budgetedAmount ??
+                                    0.0;
+                              }
+
+                              spent = allTxs
+                                  .where(
+                                    (t) =>
+                                        relevantIds.contains(t.categoryId) &&
+                                        t.type == TransactionType.expense &&
+                                        t.date.month == now.month,
+                                  )
+                                  .fold(0.0, (s, t) => s + t.amount);
+                            } else {
+                              for (final name in relevantNames) {
+                                budgeted +=
+                                    plan?.incomes
+                                        .where((i) => i.name == name)
+                                        .fold(0.0, (s, i) => s! + (i.amount)) ??
+                                    0.0;
+                              }
+                              spent = allTxs
+                                  .where(
+                                    (t) =>
+                                        relevantIds.contains(t.categoryId) &&
+                                        t.type == TransactionType.income &&
+                                        t.date.month == now.month,
+                                  )
+                                  .fold(0.0, (s, t) => s + t.amount);
+                            }
+
+                            final remaining = budgeted - spent;
+
+                            return ListTile(
+                              tileColor: category.color.withAlpha(10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.r),
+                                side: BorderSide(
+                                  color: category.color.withAlpha(50),
+                                ),
+                              ),
+                              leading: CircleAvatar(
+                                backgroundColor: category.color,
+                                child: Icon(
+                                  widget.type == TransactionType.income
+                                      ? Icons.arrow_upward
+                                      : Icons.arrow_downward,
+                                  color: Colors.white,
+                                  size: 16.r,
+                                ),
+                              ),
+                              title: Text(
+                                category.name,
+                                style: AppTextStyles.style14W600,
+                              ),
+                              trailing: budgeted > 0
+                                  ? Text(
+                                      widget.type == TransactionType.expense
+                                          ? 'صرفت: ${spent.truncate()} ج.م | باقي: ${remaining.truncate()} ج.م'
+                                          : 'مخطط: ${budgeted.truncate()} ج.م | فعلي: ${spent.truncate()} ج.م',
+                                      style: AppTextStyles.style12W400.copyWith(
+                                        color: category.color,
+                                      ),
+                                    )
+                                  : Text(
+                                      spent > 0
+                                          ? 'صرفت: ${spent.truncate()} ج.م (بدون ميزانية)'
+                                          : 'بدون ميزانية محددة',
+                                      style: AppTextStyles.style12W300.copyWith(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                              onTap: () {
+                                Navigator.pop(sheetContext);
+
+                                setState(() {
+                                  if (isMainCategory) {
+                                    _selectedMainCategoryId = category.id;
+                                    _selectedSubCategoryId = null;
+                                  } else {
+                                    _selectedSubCategoryId = category.id;
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        ),
+                ),
+                const Divider(),
+                ColoredBox(
+                  color: AppColors.primaryColor,
+                  child: Padding(
+                    padding: EdgeInsets.all(16.r),
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.add_circle_outline,
+                        color: AppColors.scaffoldBackgroundLightColor,
+                      ),
+                      title: Text(
+                        isMainCategory
+                            ? 'إضافة فئة رئيسية جديدة'
+                            : 'إضافة فئة فرعية جديدة',
+                        style: AppTextStyles.style14W600.copyWith(
+                          color: AppColors.scaffoldBackgroundLightColor,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        if (isMainCategory) {
+                          _showAddCategoryDialog(context, widget.type);
+                        } else {
+                          _addNewSubCategoryForSelectedMain();
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         );
