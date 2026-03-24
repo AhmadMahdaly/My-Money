@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
@@ -93,9 +95,65 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  WelcomeUserWidget(
-                    isLeading: isLeading,
-                    title: 'مصاريفك وفلوسك',
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: WelcomeUserWidget(
+                          isLeading: isLeading,
+                          title: 'مصاريفك وفلوسك',
+                        ),
+                      ),
+
+                      BlocBuilder<TransactionCubit, TransactionState>(
+                        builder: (context, state) {
+                          final pendingCount = state.pendingTransactions.length;
+
+                          return SizedBox(
+                            width: 45.w,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.notifications_outlined,
+                                    color:
+                                        AppColors.scaffoldBackgroundLightColor,
+                                    size: 24.r,
+                                  ),
+                                  onPressed: () {
+                                    context.pushNamed(
+                                      AppRoutes.notificationsScreen,
+                                    );
+                                  },
+                                ),
+
+                                if (pendingCount > 0)
+                                  Positioned(
+                                    top: 8.h,
+                                    right: 8.w,
+                                    child: Container(
+                                      padding: EdgeInsets.all(4.r),
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.errorColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Text(
+                                        '$pendingCount',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10.sp,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

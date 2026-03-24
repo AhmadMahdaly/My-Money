@@ -3,11 +3,12 @@ import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/features/financial_goals/presentation/screens/financial_goals_screen.dart';
 import 'package:opration/features/intro/login/presentation/views/login_view.dart';
 import 'package:opration/features/intro/splash/views/splash_view.dart';
-import 'package:opration/features/transactions/presentation/screens/more_page.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/edit_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/monthly_plan_screen.dart';
+import 'package:opration/features/transactions/presentation/screens/more_page.dart';
+import 'package:opration/features/transactions/presentation/screens/notifications_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/transaction_details_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/manage_categories_drawer.dart';
 import 'package:opration/features/wallets/presentation/screens/transfer_history_screen.dart';
@@ -27,11 +28,11 @@ class RouterGenerationConfig {
         name: AppRoutes.loginScreen,
         builder: (context, state) => const LoginScreen(),
       ),
-      // GoRoute(
-      //   path: AppRoutes.mainLayout,
-      //   name: AppRoutes.mainLayout,
-      //   builder: (context, state) => const MainLayout(),
-      // ),
+      GoRoute(
+        path: AppRoutes.notificationsScreen,
+        name: AppRoutes.notificationsScreen,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
       GoRoute(
         path: AppRoutes.addTransactionScreen,
         name: AppRoutes.addTransactionScreen,

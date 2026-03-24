@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/shared_widgets/custom_floating_action_buttom.dart';
@@ -8,7 +9,9 @@ import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/financial_goals/domain/entities/financial_goal.dart';
-import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit.dart';
+import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit/financial_goal_cubit.dart';
+import 'package:opration/features/financial_goals/presentation/cubit/shopping_cubit/shopping_cubit.dart';
+import 'package:opration/features/financial_goals/presentation/screens/shopping_list_view.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:uuid/uuid.dart';
 
@@ -17,8 +20,31 @@ class FinancialGoalsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: getIt<ShoppingCubit>(),
+
+      child: const DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: PageHeader(),
+          body: TabBarView(
+            children: [
+              _GoalsView(),
+              ShoppingListView(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GoalsView extends StatelessWidget {
+  const _GoalsView();
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const PageHeader(),
       body: BlocBuilder<FinancialGoalCubit, FinancialGoalState>(
         builder: (context, state) {
           if (state is FinancialGoalLoading) {
@@ -323,7 +349,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   const PageHeader({super.key});
 
   @override
-  Size get preferredSize => Size.fromHeight(90.h);
+  Size get preferredSize => Size.fromHeight(140.h);
 
   @override
   Widget build(BuildContext context) {
@@ -351,7 +377,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
             children: [
               const WelcomeUserWidget(
                 isLeading: true,
-                title: 'الأهداف المالية',
+                title: 'الأهداف المالية والمشتريات',
               ),
 
               Row(
@@ -376,6 +402,38 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
             ],
+          ),
+          const Spacer(),
+          Container(
+            height: 50.h,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: AppColors.scaffoldBackgroundLightColor,
+                width: 0.5.w,
+              ),
+              borderRadius: BorderRadius.circular(kRadius),
+            ),
+            child: TabBar(
+              indicatorPadding: EdgeInsets.all(3.r),
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(kRadius),
+                color: AppColors.scaffoldBackgroundLightColor,
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerHeight: 0,
+              labelColor: AppColors.primaryColor,
+              unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
+              labelStyle: AppTextStyles.style14W600.copyWith(
+                fontFamily: kPrimaryFont,
+              ),
+              unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
+                fontFamily: kPrimaryFont,
+              ),
+              tabs: const [
+                Tab(text: 'الأهداف'),
+                Tab(text: 'المشتريات'),
+              ],
+            ),
           ),
         ],
       ),

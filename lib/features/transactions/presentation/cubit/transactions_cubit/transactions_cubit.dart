@@ -85,6 +85,22 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
+  String _getPeriodKey(TransactionCategory category, DateTime date) {
+    if (category.recurrenceType == RecurrenceType.monthly) {
+      return 'executed_${category.id}_${date.year}_${date.month}';
+    } else {
+      return 'executed_${category.id}_${date.year}_${date.month}_${date.day}';
+    }
+  }
+
+  Future<void> _markAsExecuted(
+    TransactionCategory category,
+    DateTime now,
+  ) async {
+    final periodKey = _getPeriodKey(category, now);
+    await sharedPreferences.setBool(periodKey, true);
+  }
+
   Future<void> checkScheduledTransactions() async {
     final now = DateTime.now();
     final pending = <TransactionCategory>[];
@@ -123,29 +139,8 @@ class TransactionCubit extends Cubit<TransactionState> {
   }
 
   bool _checkIfAlreadyExecuted(TransactionCategory category, DateTime now) {
-    final categoryTransactions = state.allTransactions.where(
-      (t) => t.categoryId == category.id,
-    );
-
-    if (category.recurrenceType == RecurrenceType.monthly) {
-      return categoryTransactions.any(
-        (t) =>
-            t.date.year == now.year &&
-            t.date.month == now.month &&
-            t.note != null &&
-            t.note!.contains('تلقائي'),
-      );
-    } else if (category.recurrenceType == RecurrenceType.weekly) {
-      return categoryTransactions.any(
-        (t) =>
-            t.date.year == now.year &&
-            t.date.month == now.month &&
-            t.date.day == now.day &&
-            t.note != null &&
-            t.note!.contains('تلقائي'),
-      );
-    }
-    return false;
+    final periodKey = _getPeriodKey(category, now);
+    return sharedPreferences.getBool(periodKey) ?? false;
   }
 
   Future<void> executeRecurringTransaction(TransactionCategory category) async {
@@ -183,6 +178,8 @@ class TransactionCubit extends Cubit<TransactionState> {
         ? amount
         : -amount;
     await walletCubit.updateWalletBalance(finalWalletId, amountWithSign);
+
+    await _markAsExecuted(category, DateTime.now());
 
     final transactions = await getTransactionsUseCase();
     emit(state.copyWith(allTransactions: transactions));
@@ -496,5 +493,23 @@ class TransactionCubit extends Cubit<TransactionState> {
     } else {
       emit(state.copyWith(selectedWalletId: walletId));
     }
+  }
+
+  Future<void> approvePendingTransaction(TransactionCategory category) async {
+    await executeRecurringTransaction(category);
+
+    final updatedPending = state.pendingTransactions
+        .where((c) => c.id != category.id)
+        .toList();
+    emit(state.copyWith(pendingTransactions: updatedPending));
+  }
+
+  Future<void> dismissPendingTransaction(TransactionCategory category) async {
+    await _markAsExecuted(category, DateTime.now());
+
+    final updatedPending = state.pendingTransactions
+        .where((c) => c.id != category.id)
+        .toList();
+    emit(state.copyWith(pendingTransactions: updatedPending));
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
@@ -28,7 +29,7 @@ class MoreView extends StatelessWidget {
 
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'أهدافك المالية',
+            text: 'أهدافك المالية ومشترياتك المؤجلة',
             onTap: () => context.pushNamed(AppRoutes.financialGoalsScreen),
           ),
           4.verticalSpace,
@@ -41,6 +42,20 @@ class MoreView extends StatelessWidget {
             ),
             text: 'إدارة فئات الدخل والمصاريف',
             onTap: () => context.pushNamed(AppRoutes.manageCategoriesScreen),
+          ),
+          4.verticalSpace,
+          CustomMorePageCard(
+            icon: SvgPicture.asset(
+              'assets/image/svg/big-data-analytics 1.svg',
+              height: 24.r,
+
+              colorFilter: const ColorFilter.mode(
+                AppColors.scaffoldBackgroundLightColor,
+                BlendMode.srcIn,
+              ),
+            ),
+            text: 'الميزانية الشهرية',
+            onTap: () => context.pushNamed(AppRoutes.monthlyPlanScreen),
           ),
         ],
       ),

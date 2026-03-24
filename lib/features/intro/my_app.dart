@@ -6,7 +6,7 @@ import 'package:opration/core/localization/s.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/router_generation_config.dart';
 import 'package:opration/core/theme/themes.dart';
-import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit.dart';
+import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit/financial_goal_cubit.dart';
 import 'package:opration/features/intro/login/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
