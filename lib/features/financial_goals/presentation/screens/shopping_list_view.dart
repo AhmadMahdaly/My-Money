@@ -41,15 +41,38 @@ class ShoppingListView extends StatelessWidget {
               children: [
                 Text('حاجات ناوي تشتريها:', style: AppTextStyles.style16W600),
                 8.verticalSpace,
-                if (activeItems.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'مفيش حاجات مسجلها حالياً.',
-                      textAlign: TextAlign.center,
-                    ),
-                  )
-                else
+                if (activeItems.isEmpty) ...[
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(16.r),
+                        child: SizedBox(
+                          height: SizeConfig.screenHeight / 1.7,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.wysiwyg_rounded,
+                                size: 36.r,
+                                color: AppColors.textGreyColor,
+                              ),
+                              12.verticalSpace,
+                              Center(
+                                child: Text(
+                                  'مفيش حاجات مسجلها حالياً.',
+                                  style: AppTextStyles.style14W500.copyWith(
+                                    color: AppColors.textGreyColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else
                   ...activeItems.map((item) => _buildItemTile(context, item)),
 
                 if (boughtItems.isNotEmpty) ...[

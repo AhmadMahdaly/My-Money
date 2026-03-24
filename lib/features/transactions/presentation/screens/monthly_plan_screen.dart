@@ -6,6 +6,7 @@ import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
+import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/monthly_plan.dart';
@@ -14,7 +15,6 @@ import 'package:opration/features/transactions/domain/entities/transaction_categ
 import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/calculator_dialog.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class MonthlyPlanScreen extends StatelessWidget {
@@ -41,7 +41,10 @@ class _MonthlyPlanView extends StatelessWidget {
       });
     }
     return Scaffold(
-      appBar: const _PageHeader(),
+      appBar: const PageHeader(
+        isLeading: false,
+        title: 'الخطة الشهرية',
+      ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, transactionState) {
           if (transactionState.isLoading &&
@@ -97,33 +100,6 @@ class _MonthlyPlanView extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-class _PageHeader extends StatelessWidget implements PreferredSizeWidget {
-  const _PageHeader();
-
-  @override
-  Size get preferredSize => Size.fromHeight(120.h);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top,
-        right: 16.w,
-        left: 16.w,
-        bottom: 10.h,
-      ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(0.50, -0),
-          end: Alignment(0.50, 1),
-          colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
-        ),
-      ),
-      child: const WelcomeUserWidget(isLeading: true, title: 'الخطة الشهرية'),
     );
   }
 }

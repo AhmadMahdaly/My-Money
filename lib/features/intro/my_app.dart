@@ -8,6 +8,7 @@ import 'package:opration/core/router/router_generation_config.dart';
 import 'package:opration/core/theme/themes.dart';
 import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit/financial_goal_cubit.dart';
 import 'package:opration/features/intro/login/presentation/cubit/login_cubit.dart';
+import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
 import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
@@ -36,9 +37,9 @@ class MyApp extends StatelessWidget {
             create: (_) => getIt<AuthCubit>(),
           ),
 
-          // BlocProvider<MainLayoutCubit>(
-          //   create: (context) => MainLayoutCubit(),
-          // ),
+          BlocProvider<MainLayoutCubit>(
+            create: (context) => MainLayoutCubit(),
+          ),
           BlocProvider<TransactionCubit>(
             create: (_) => TransactionCubit(
               uuid: getIt(),

@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -300,7 +298,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                           ),
                           subtitle: Text(
                             'تخصم/تضاف تلقائياً في موعدها',
-                            style: AppTextStyles.style10W400,
+                            style: AppTextStyles.style9W400,
                           ),
                           value: _isRecurring,
                           onChanged: (v) => setState(() {
@@ -344,8 +342,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                           ),
                           12.verticalSpace,
                           DropdownButtonFormField<String>(
-                            // تحديد النوع Wallet w يحل المشكلة تماماً
-                            value:
+                            initialValue:
                                 wallets.any(
                                   (Wallet w) => w.id == _targetWalletId,
                                 )
@@ -357,8 +354,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             items: wallets
                                 .map(
                                   (Wallet w) => DropdownMenuItem<String>(
-                                    value: w
-                                        .id, // لا داعي لـ toString() إذا كان الـ id أصلاً String
+                                    value: w.id,
                                     child: Text(w.name),
                                   ),
                                 )
@@ -431,7 +427,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             ),
                             subtitle: Text(
                               'إذا لم تفعل، سيسألك التطبيق قبل الخصم',
-                              style: AppTextStyles.style10W400,
+                              style: AppTextStyles.style9W400,
                             ),
                             value: _autoDeduct,
                             onChanged: (v) => setState(() => _autoDeduct = v),

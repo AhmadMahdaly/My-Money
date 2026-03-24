@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
@@ -13,13 +13,9 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('الإشعارات', style: AppTextStyles.style20Bold),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
-        ),
+      appBar: const PageHeader(
+        isLeading: true,
+        title: 'الإشعارات',
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {

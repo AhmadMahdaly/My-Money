@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
+import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
+import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
@@ -104,11 +107,16 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('عدّل'),
+      appBar: PageHeader(
+        isLeading: true,
+
+        title: 'عدّل',
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline),
+            icon: Icon(
+              Icons.delete,
+              color: AppColors.errorColor.withAlpha(200),
+            ),
             onPressed: _deleteTransaction,
             tooltip: 'تعديل',
           ),
@@ -124,18 +132,18 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
             child: ListView(
               padding: EdgeInsets.all(16.r),
               children: [
-                TextFormField(
+                CustomPrimaryTextfield(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(labelText: 'المبلغ'),
+                  text: 'المبلغ',
                   validator: (v) =>
                       v == null || v.isEmpty ? 'سجل المبلغ' : null,
                 ),
                 16.verticalSpace,
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedCategoryId,
+                CustomDropdownButtonFormField<String>(
+                  value: _selectedCategoryId,
                   items: categories
                       .map(
                         (cat) => DropdownMenuItem(
@@ -149,14 +157,13 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                       setState(() => _selectedCategoryId = value);
                     }
                   },
-                  decoration: const InputDecoration(labelText: 'الفئة'),
+                  hintText: 'الفئة',
                 ),
+
                 16.verticalSpace,
-                TextFormField(
+                CustomPrimaryTextfield(
                   controller: _noteController,
-                  decoration: const InputDecoration(
-                    labelText: 'لو عندك ملاحظة',
-                  ),
+                  text: 'لو عندك ملاحظة',
                 ),
                 16.verticalSpace,
                 ListTile(

@@ -3,6 +3,7 @@ import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/features/financial_goals/presentation/screens/financial_goals_screen.dart';
 import 'package:opration/features/intro/login/presentation/views/login_view.dart';
 import 'package:opration/features/intro/splash/views/splash_view.dart';
+import 'package:opration/features/main_layout/views/main_layout.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/edit_transaction_screen.dart';
@@ -27,6 +28,11 @@ class RouterGenerationConfig {
         path: AppRoutes.loginScreen,
         name: AppRoutes.loginScreen,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.mainLayoutScreen,
+        name: AppRoutes.mainLayoutScreen,
+        builder: (context, state) => const MainLayout(),
       ),
       GoRoute(
         path: AppRoutes.notificationsScreen,

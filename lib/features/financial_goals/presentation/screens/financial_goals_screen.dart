@@ -5,14 +5,14 @@ import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/shared_widgets/custom_floating_action_buttom.dart';
-import 'package:opration/core/shared_widgets/svg_image_widget.dart';
+import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
+import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/financial_goals/domain/entities/financial_goal.dart';
 import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit/financial_goal_cubit.dart';
 import 'package:opration/features/financial_goals/presentation/cubit/shopping_cubit/shopping_cubit.dart';
 import 'package:opration/features/financial_goals/presentation/screens/shopping_list_view.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class FinancialGoalsScreen extends StatelessWidget {
@@ -23,11 +23,47 @@ class FinancialGoalsScreen extends StatelessWidget {
     return BlocProvider.value(
       value: getIt<ShoppingCubit>(),
 
-      child: const DefaultTabController(
+      child: DefaultTabController(
         length: 2,
         child: Scaffold(
-          appBar: PageHeader(),
-          body: TabBarView(
+          appBar: PageHeader(
+            isLeading: true,
+            subTitle: const SubTitle(),
+            title: 'الأهداف المالية وقائمة المشتريات',
+            bottom: Container(
+              height: 50.h,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppColors.scaffoldBackgroundLightColor,
+                  width: 0.5.w,
+                ),
+                borderRadius: BorderRadius.circular(kRadius),
+              ),
+              child: TabBar(
+                indicatorPadding: EdgeInsets.all(3.r),
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(kRadius),
+                  color: AppColors.scaffoldBackgroundLightColor,
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerHeight: 0,
+                labelColor: AppColors.primaryColor,
+                unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
+                labelStyle: AppTextStyles.style14W600.copyWith(
+                  fontFamily: kPrimaryFont,
+                ),
+                unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
+                  fontFamily: kPrimaryFont,
+                ),
+                tabs: const [
+                  Tab(text: 'الأهداف'),
+                  Tab(text: 'المشتريات'),
+                ],
+              ),
+            ),
+            height: 170.h,
+          ),
+          body: const TabBarView(
             children: [
               _GoalsView(),
               ShoppingListView(),
@@ -55,8 +91,26 @@ class _GoalsView extends StatelessWidget {
           }
           if (state is FinancialGoalLoaded) {
             if (state.goals.isEmpty) {
-              return const Center(
-                child: Text('مفيش أهداف لسا، ضيف هدف جديد!'),
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.wb_incandescent_outlined,
+                      size: 36.r,
+                      color: AppColors.textGreyColor,
+                    ),
+                    12.verticalSpace,
+
+                    Text(
+                      'مفيش أهداف لسا، ضيف هدف جديد!',
+                      style: AppTextStyles.style14W500.copyWith(
+                        color: AppColors.textGreyColor,
+                      ),
+                    ),
+                    12.verticalSpace,
+                  ],
+                ),
               );
             }
             return Padding(
@@ -210,87 +264,112 @@ void _showAddEditGoalDialog(BuildContext context, {FinancialGoal? goal}) {
   var targetDate =
       goal?.targetDate ?? DateTime.now().add(const Duration(days: 365));
 
-  showDialog<void>(
+  showModalBottomSheet<void>(
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
     context: context,
     builder: (ctx) {
-      return AlertDialog(
-        title: Text(
-          isEditing ? 'عدّل الهدف' : 'ضيف هدف جديد',
-          style: AppTextStyles.style16Bold,
-        ),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return Form(
-              key: formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  spacing: 12.h,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(labelText: 'اسم الهدف'),
-                    ),
-                    TextFormField(
-                      controller: targetAmountController,
-                      decoration: const InputDecoration(
-                        labelText: 'المبلغ المستهدف',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    if (isEditing)
-                      TextFormField(
-                        controller: savedAmountController,
-                        decoration: const InputDecoration(
-                          labelText: 'المبلغ المدخر حالياً',
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-
-                    ListTile(
-                      title: const Text('تاريخ الهدف'),
-                      subtitle: Text(DateFormat.yMMMd('ar').format(targetDate)),
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: targetDate,
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime(2100),
-                        );
-                        if (picked != null) setState(() => targetDate = picked);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('إلغاء'),
+      return Column(
+        children: [
+          Text(
+            isEditing ? 'عدّل الهدف' : 'ضيف هدف جديد',
+            style: AppTextStyles.style16Bold.copyWith(
+              color: AppColors.primaryColor,
+            ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                final newGoal = FinancialGoal(
-                  id: goal?.id ?? getIt<Uuid>().v4(),
-                  name: nameController.text,
-                  targetAmount: double.parse(targetAmountController.text),
-                  savedAmount: double.parse(savedAmountController.text),
-                  targetDate: targetDate,
-                );
+          20.verticalSpace,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Form(
+                  key: formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      spacing: 12.h,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomPrimaryTextfield(
+                          controller: nameController,
+                          text: 'اسم الهدف',
+                        ),
+                        CustomPrimaryTextfield(
+                          controller: targetAmountController,
+                          text: 'المبلغ المستهدف',
 
-                if (isEditing) {
-                  context.read<FinancialGoalCubit>().updateGoal(newGoal);
-                } else {
-                  context.read<FinancialGoalCubit>().addGoal(newGoal);
-                }
-                Navigator.of(ctx).pop();
-              }
-            },
-            child: const Text('حفظ'),
+                          keyboardType: TextInputType.number,
+                        ),
+                        if (isEditing)
+                          CustomPrimaryTextfield(
+                            controller: savedAmountController,
+                            text: 'المبلغ المدخر حالياً',
+
+                            keyboardType: TextInputType.number,
+                          ),
+
+                        ListTile(
+                          title: const Text('تاريخ الهدف'),
+                          subtitle: Text(
+                            DateFormat.yMMMd('ar').format(targetDate),
+                          ),
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: targetDate,
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) {
+                              setState(() => targetDate = picked);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          30.verticalSpace,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Row(
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('إلغاء'),
+                ),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        final newGoal = FinancialGoal(
+                          id: goal?.id ?? getIt<Uuid>().v4(),
+                          name: nameController.text,
+                          targetAmount: double.parse(
+                            targetAmountController.text,
+                          ),
+                          savedAmount: double.parse(savedAmountController.text),
+                          targetDate: targetDate,
+                        );
+
+                        if (isEditing) {
+                          context.read<FinancialGoalCubit>().updateGoal(
+                            newGoal,
+                          );
+                        } else {
+                          context.read<FinancialGoalCubit>().addGoal(newGoal);
+                        }
+                        Navigator.of(ctx).pop();
+                      }
+                    },
+                    child: const Text('حفظ'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       );
@@ -343,100 +422,4 @@ void _showAddFundsDialog(BuildContext context, FinancialGoal goal) {
       );
     },
   );
-}
-
-class PageHeader extends StatelessWidget implements PreferredSizeWidget {
-  const PageHeader({super.key});
-
-  @override
-  Size get preferredSize => Size.fromHeight(140.h);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top,
-        right: 16.w,
-        left: 16.w,
-        bottom: 10.h,
-      ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(0.50, -0),
-          end: Alignment(0.50, 1),
-          colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const WelcomeUserWidget(
-                isLeading: true,
-                title: 'الأهداف المالية والمشتريات',
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgImage(
-                    imagePath: 'assets/image/svg/quote-1.svg',
-                    height: 14.h,
-                  ),
-                  4.horizontalSpace,
-                  Text(
-                    'ما تفعله الآن هو ما تجني ثماره في الغد',
-                    style: AppTextStyles.style14W400.copyWith(
-                      color: AppColors.scaffoldBackgroundLightColor,
-                    ),
-                  ),
-                  4.horizontalSpace,
-                  SvgImage(
-                    imagePath: 'assets/image/svg/quote-1.svg',
-                    height: 14.h,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Spacer(),
-          Container(
-            height: 50.h,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: AppColors.scaffoldBackgroundLightColor,
-                width: 0.5.w,
-              ),
-              borderRadius: BorderRadius.circular(kRadius),
-            ),
-            child: TabBar(
-              indicatorPadding: EdgeInsets.all(3.r),
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(kRadius),
-                color: AppColors.scaffoldBackgroundLightColor,
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerHeight: 0,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
-              labelStyle: AppTextStyles.style14W600.copyWith(
-                fontFamily: kPrimaryFont,
-              ),
-              unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
-                fontFamily: kPrimaryFont,
-              ),
-              tabs: const [
-                Tab(text: 'الأهداف'),
-                Tab(text: 'المشتريات'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

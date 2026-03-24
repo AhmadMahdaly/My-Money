@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
@@ -16,13 +16,9 @@ class ManageCategoriesDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text('إدارة فئاتك', style: AppTextStyles.style20Bold),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
-        ),
+      appBar: const PageHeader(
+        isLeading: true,
+        title: 'إدارة فئاتك',
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {
@@ -35,7 +31,6 @@ class ManageCategoriesDrawer extends StatelessWidget {
 
           return ListView(
             children: [
-              const Divider(),
               _CategoryListSection(
                 title: 'فئات الدخل',
                 categories: incomeCategories,
@@ -68,9 +63,12 @@ class ManageCategoriesDrawer extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         titleTextStyle: AppTextStyles.style18W600,
-        title: const Text(
+        title: Text(
           textAlign: TextAlign.center,
           'اختار نوع الفئة',
+          style: AppTextStyles.style14W500.copyWith(
+            color: AppColors.primaryColor,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -147,7 +145,7 @@ class _CategoryListSection extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.all(16.r),
-          child: Text(title, style: AppTextStyles.style16W600),
+          child: Text(title, style: AppTextStyles.style16Bold),
         ),
         ...mainCategories.map((mainCat) {
           final subCategories = categories
@@ -167,7 +165,7 @@ class _CategoryListSection extends StatelessWidget {
               ),
               title: Text(
                 mainCat.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: AppTextStyles.style14W500,
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -197,7 +195,7 @@ class _CategoryListSection extends StatelessWidget {
                       subtitle: subCat.isRecurring
                           ? Text(
                               'مكرر: ${subCat.fixedAmount?.truncate()} ج.م',
-                              style: AppTextStyles.style10W400,
+                              style: AppTextStyles.style9W400,
                             )
                           : null,
                       trailing: Row(

@@ -1,8 +1,8 @@
-// part of 'main_layout_cubit.dart';
+part of 'main_layout_cubit.dart';
 
-// @immutable
-// sealed class MainLayoutState {}
+@immutable
+sealed class MainLayoutState {}
 
-// final class MainLayoutInitial extends MainLayoutState {}
+final class MainLayoutInitial extends MainLayoutState {}
 
-// class ChangeNavBarState extends MainLayoutState {}
+class ChangeNavBarState extends MainLayoutState {}

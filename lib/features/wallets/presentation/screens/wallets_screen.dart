@@ -7,9 +7,9 @@ import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_floating_action_buttom.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
+import 'package:opration/core/shared_widgets/page_header.dart' show PageHeader;
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/welcome_user_widget.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
@@ -20,7 +20,34 @@ class WalletsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const PageHeader(),
+      appBar: PageHeader(
+        isLeading: false,
+        height: 80.h,
+        title: 'المحافظ',
+        actions: [
+          IconButton(
+            onPressed: () {
+              context.pushNamed(AppRoutes.transferHistoryScreen);
+            },
+            icon: const Icon(Icons.history, color: Colors.white),
+            tooltip: 'سجل التحويلات',
+          ),
+          IconButton(
+            onPressed: () {
+              final state = context.read<WalletCubit>().state;
+              if (state is WalletLoaded) {
+                _showTransferDialog(context, state.wallets);
+              }
+            },
+            icon: const Icon(
+              Icons.swap_horiz_outlined,
+              color: Colors.white,
+              size: 30,
+            ),
+            tooltip: 'تحويل مبالغ',
+          ),
+        ],
+      ),
       body: BlocBuilder<WalletCubit, WalletState>(
         builder: (context, state) {
           if (state is WalletLoading) {
@@ -146,7 +173,9 @@ class WalletsScreen extends StatelessWidget {
         return AlertDialog(
           title: Text(
             isEditing ? 'عدّل المحفظة' : 'ضيف محفظة جديدة',
-            style: AppTextStyles.style18W800,
+            style: AppTextStyles.style18W800.copyWith(
+              color: AppColors.primaryColor,
+            ),
           ),
           content: Form(
             key: formKey,
@@ -155,14 +184,12 @@ class WalletsScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 CustomPrimaryTextfield(
-                  style: AppTextStyles.style12W500,
                   controller: nameController,
                   text: 'اسم المحفظة',
                   validator: (v) =>
                       v == null || v.isEmpty ? 'متنساش تسجل اسم المحفظة' : null,
                 ),
                 CustomPrimaryTextfield(
-                  style: AppTextStyles.style12W500,
                   controller: balanceController,
                   text: 'رصيد المحفظة',
 
@@ -224,168 +251,134 @@ class WalletsScreen extends StatelessWidget {
   }
 }
 
-class PageHeader extends StatelessWidget implements PreferredSizeWidget {
-  const PageHeader({super.key});
-
-  @override
-  Size get preferredSize => Size.fromHeight(90.h);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top,
-        right: 16.w,
-        left: 16.w,
-        bottom: 10.h,
-      ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(0.50, -0),
-          end: Alignment(0.50, 1),
-          colors: [AppColors.primaryColor, AppColors.secondaryTextColor],
-        ),
-      ),
-      child: Row(
-        children: [
-          const Expanded(
-            child: WelcomeUserWidget(
-              isLeading: true,
-              title: 'المحافظ',
-            ),
-          ),
-
-          IconButton(
-            onPressed: () {
-              context.pushNamed(AppRoutes.transferHistoryScreen);
-            },
-            icon: const Icon(Icons.history, color: Colors.white),
-            tooltip: 'سجل التحويلات',
-          ),
-          IconButton(
-            onPressed: () {
-              final state = context.read<WalletCubit>().state;
-              if (state is WalletLoaded) {
-                _showTransferDialog(context, state.wallets);
-              }
-            },
-            icon: const Icon(
-              Icons.swap_horiz_outlined,
-              color: Colors.white,
-              size: 30,
-            ),
-            tooltip: 'تحويل مبالغ',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
   String? fromWalletId;
   String? toWalletId;
   final amountController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
-  showDialog<void>(
+  showModalBottomSheet<void>(
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
     context: context,
     builder: (ctx) {
-      return AlertDialog(
-        title: Text(
-          'نقل مبلغ بين المحافظ',
-          style: AppTextStyles.style20W700,
-          textAlign: TextAlign.center,
-        ),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 12.h,
-            children: [
-              CustomDropdownButtonFormField<String>(
-                hintText: 'من محفظة',
-                items: wallets
-                    .map(
-                      (w) => DropdownMenuItem(
-                        value: w.id,
-                        child: Text(
-                          '${w.name} (${w.balance.truncate()} ج.م)',
-                          style: AppTextStyles.style12W500,
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (v) => fromWalletId = v,
-                validator: (v) => v == null ? 'حدد المحفظة' : null,
-              ),
-
-              CustomDropdownButtonFormField<String>(
-                hintText: 'إلى محفظة',
-                items: wallets
-                    .map(
-                      (w) => DropdownMenuItem(value: w.id, child: Text(w.name)),
-                    )
-                    .toList(),
-                onChanged: (v) => toWalletId = v,
-                validator: (v) => v == null ? 'حدد المحفظة' : null,
-              ),
-
-              CustomPrimaryTextfield(
-                controller: amountController,
-                text: 'المبلغ المراد تحويله',
-                style: AppTextStyles.style12W500,
-                textInputAction: TextInputAction.done,
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || double.tryParse(v) == null) {
-                    return 'أدخل رقم صحيح';
-                  }
-                  if (double.parse(v) <= 0) {
-                    return 'المبلغ يجب أن يكون أكبر من صفر';
-                  }
-                  return null;
-                },
-              ),
-            ],
+      return Column(
+        children: [
+          Text(
+            'نقل مبلغ بين المحافظ',
+            style: AppTextStyles.style18W700.copyWith(
+              color: AppColors.primaryTextColor,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'إلغاء',
-              style: AppTextStyles.style14W500,
+          20.verticalSpace,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 12.h,
+                children: [
+                  CustomDropdownButtonFormField<String>(
+                    hintText: 'من محفظة',
+                    items: wallets
+                        .map(
+                          (w) => DropdownMenuItem(
+                            value: w.id,
+                            child: Text(
+                              '${w.name} (${w.balance.truncate()} ج.م)',
+                              style: AppTextStyles.style12W500,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => fromWalletId = v,
+                    validator: (v) => v == null ? 'حدد المحفظة' : null,
+                  ),
+
+                  CustomDropdownButtonFormField<String>(
+                    hintText: 'إلى محفظة',
+                    items: wallets
+                        .map(
+                          (w) => DropdownMenuItem(
+                            value: w.id,
+                            child: Text(w.name),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => toWalletId = v,
+                    validator: (v) => v == null ? 'حدد المحفظة' : null,
+                  ),
+
+                  CustomPrimaryTextfield(
+                    controller: amountController,
+                    text: 'المبلغ المراد تحويله',
+                    style: AppTextStyles.style12W500.copyWith(
+                      color: AppColors.textGreyColor,
+                    ),
+                    textInputAction: TextInputAction.done,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || double.tryParse(v) == null) {
+                        return 'أدخل رقم صحيح';
+                      }
+                      if (double.parse(v) <= 0) {
+                        return 'المبلغ يجب أن يكون أكبر من صفر';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                if (fromWalletId == toWalletId) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'لا يمكن التحويل لنفس المحفظة!',
-                        style: AppTextStyles.style14W500,
+          30.verticalSpace,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Row(
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'إلغاء',
+                    style: AppTextStyles.style14W500,
+                  ),
+                ),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        if (fromWalletId == toWalletId) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'لا يمكن التحويل لنفس المحفظة!',
+                                style: AppTextStyles.style14W500,
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        context.read<WalletCubit>().transferBalance(
+                          fromWalletId!,
+                          toWalletId!,
+                          double.parse(amountController.text),
+                        );
+                        Navigator.pop(ctx);
+                      }
+                    },
+                    child: Text(
+                      'تأكيد التحويل',
+                      style: AppTextStyles.style14W500.copyWith(
+                        color: AppColors.scaffoldBackgroundLightColor,
                       ),
                     ),
-                  );
-                  return;
-                }
-
-                context.read<WalletCubit>().transferBalance(
-                  fromWalletId!,
-                  toWalletId!,
-                  double.parse(amountController.text),
-                );
-                Navigator.pop(ctx);
-              }
-            },
-            child: Text(
-              'تأكيد التحويل',
-              style: AppTextStyles.style14W500.copyWith(
-                color: AppColors.scaffoldBackgroundLightColor,
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

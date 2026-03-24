@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+import 'dart:ui' as ui;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -8,12 +8,13 @@ import 'package:intl/intl.dart';
 import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/shared_widgets/page_header.dart';
+import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
-import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 
@@ -25,8 +26,174 @@ class TransactionDetailsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: const PageHeader(
-          isLeading: true,
+        appBar: PageHeader(
+          isLeading: false,
+          height: 170.h,
+          title: 'مصاريفك وفلوسك',
+
+          subTitle: BlocBuilder<WalletCubit, WalletState>(
+            builder: (context, walletState) {
+              var showMainWallet = true;
+              Wallet? mainWallet;
+
+              if (walletState is WalletLoaded) {
+                showMainWallet = walletState.showMainWallet;
+                if (walletState.wallets.isNotEmpty) {
+                  mainWallet = walletState.wallets.firstWhere(
+                    (w) => w.isMain,
+                    orElse: () => walletState.wallets.first,
+                  );
+                }
+              }
+
+              if (walletState is WalletLoaded && mainWallet != null) {
+                return Container(
+                  alignment: Alignment.center,
+                  color: Colors.white.withAlpha(0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: SvgImage(
+                          imagePath: 'assets/image/svg/change_wallet.svg',
+                          height: 18.r,
+                          color: AppColors.cardColor,
+                        ),
+
+                        onPressed: () {
+                          _showChangeMainWalletDialog(
+                            context,
+                            walletState.wallets,
+                            mainWallet!.id,
+                          );
+                        },
+                        tooltip: 'تغيير المحفظة الرئيسية',
+                      ),
+
+                      ImageFiltered(
+                        imageFilter: ui.ImageFilter.blur(
+                          sigmaX: showMainWallet ? 0 : 4.0,
+                          sigmaY: showMainWallet ? 0 : 4.0,
+                        ),
+                        child: Text(
+                          showMainWallet
+                              ? 'محفظتك: ${mainWallet.name} (${mainWallet.balance.truncate()} ج.م)'
+                              : 'محفظتك: ${mainWallet.name} (****** ج.م)',
+                          style: AppTextStyles.style14W500.copyWith(
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: Icon(
+                          showMainWallet
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+
+                          color: AppColors.cardColor,
+                          size: 20.r,
+                        ),
+                        onPressed: () {
+                          context
+                              .read<WalletCubit>()
+                              .toggleShowMainWalletPref();
+                        },
+                        tooltip: 'إخفاء المحفظة',
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
+          bottom: Container(
+            height: 50.h,
+
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: AppColors.scaffoldBackgroundLightColor,
+                width: 0.5.w,
+              ),
+              borderRadius: BorderRadius.circular(kRadius),
+            ),
+            child: TabBar(
+              indicatorPadding: EdgeInsets.all(3.r),
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(kRadius),
+                color: AppColors.scaffoldBackgroundLightColor,
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerHeight: 0,
+              labelColor: AppColors.primaryColor,
+              unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
+              labelStyle: AppTextStyles.style14W600.copyWith(
+                fontFamily: kPrimaryFont,
+              ),
+              unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
+                fontFamily: kPrimaryFont,
+              ),
+              tabs: const [
+                Tab(text: 'مصاريف'),
+                Tab(text: 'فلوس داخلة'),
+              ],
+            ),
+          ),
+          actions: [
+            BlocBuilder<TransactionCubit, TransactionState>(
+              builder: (context, state) {
+                final pendingCount = state.pendingTransactions.length;
+
+                return SizedBox(
+                  width: 45.w,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.notifications_outlined,
+                          color: AppColors.scaffoldBackgroundLightColor,
+                          size: 24.r,
+                        ),
+                        onPressed: () {
+                          context.pushNamed(
+                            AppRoutes.notificationsScreen,
+                          );
+                        },
+                      ),
+
+                      if (pendingCount > 0)
+                        Positioned(
+                          top: 8.h,
+                          right: 8.w,
+                          child: IgnorePointer(
+                            child: Container(
+                              padding: EdgeInsets.all(4.r),
+                              decoration: const BoxDecoration(
+                                color: AppColors.errorColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '$pendingCount',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         body: BlocBuilder<TransactionCubit, TransactionState>(
           builder: (context, state) {
@@ -255,6 +422,65 @@ class _CategoryTransactionList extends StatelessWidget {
   }
 }
 
+void _showChangeMainWalletDialog(
+  BuildContext context,
+  List<Wallet> wallets,
+  String currentMainWalletId,
+) {
+  showDialog<void>(
+    context: context,
+    builder: (ctx) {
+      String? selectedWalletId = currentMainWalletId;
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('تغيير المحفظة الرئيسية'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: wallets.length,
+                itemBuilder: (context, index) {
+                  final wallet = wallets[index];
+                  return RadioListTile<String>(
+                    title: Text(wallet.name),
+                    subtitle: Text('${wallet.balance.truncate()} ج.م'),
+                    value: wallet.id,
+                    groupValue: selectedWalletId,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedWalletId = value;
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('إلغاء'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (selectedWalletId != null &&
+                      selectedWalletId != currentMainWalletId) {
+                    context.read<WalletCubit>().setMainWallet(
+                      selectedWalletId!,
+                    );
+                  }
+                  Navigator.of(ctx).pop();
+                },
+                child: const Text('حفظ'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 class _TransactionListItem extends StatelessWidget {
   const _TransactionListItem({
     required this.transaction,
@@ -342,7 +568,6 @@ class _TransactionListItem extends StatelessWidget {
                       style: AppTextStyles.style12W300.copyWith(
                         color: AppColors.primaryTextColor,
                       ),
-                      // overflow: TextOverflow.ellipsis,
                     ),
                     6.horizontalSpace,
                     Expanded(

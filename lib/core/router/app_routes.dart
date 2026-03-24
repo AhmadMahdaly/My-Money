@@ -1,6 +1,7 @@
 class AppRoutes {
   static const String splashScreen = '/splashScreen';
   static const String loginScreen = '/loginScreen';
+  static const String mainLayoutScreen = '/mainLayoutScreen';
   static const String notificationsScreen = '/notificationsScreen';
   static const String addTransactionScreen = '/trackMoney';
   static const String manageCategoriesScreen = '/manageCategoriesScreen';

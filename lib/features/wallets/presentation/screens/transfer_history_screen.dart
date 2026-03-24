@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/shared_widgets/page_header.dart' show PageHeader;
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/wallets/data/datasources/wallet_local_data_source.dart';
@@ -13,22 +13,10 @@ class TransferHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'سجل التحويلات',
-          style: AppTextStyles.style20W700.copyWith(
-            color: AppColors.primaryColor,
-          ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: Icon(
-            size: 18.r,
-            Icons.arrow_back_ios_rounded,
-            color: AppColors.primaryColor,
-          ),
-        ),
+      appBar: PageHeader(
+        isLeading: true,
+        height: 80.h,
+        title: 'سجل التحويلات',
       ),
       body: FutureBuilder<List<TransferRecordModel>>(
         future: getIt<WalletLocalDataSource>().getTransferHistory(),
@@ -39,9 +27,22 @@ class TransferHistoryScreen extends StatelessWidget {
           final history = snapshot.data!;
           if (history.isEmpty) {
             return Center(
-              child: Text(
-                'لا توجد تحويلات سابقة',
-                style: AppTextStyles.style14W500,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.history,
+                    size: 36.r,
+                    color: AppColors.textGreyColor,
+                  ),
+                  16.verticalSpace,
+                  Text(
+                    'لا توجد تحويلات سابقة',
+                    style: AppTextStyles.style14W500.copyWith(
+                      color: AppColors.textGreyColor,
+                    ),
+                  ),
+                ],
               ),
             );
           }

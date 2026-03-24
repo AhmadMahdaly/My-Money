@@ -12,7 +12,7 @@ class AppVersionWidget extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
-        padding: EdgeInsets.only(bottom: 30.h),
+        padding: EdgeInsets.only(bottom: 10.h),
         child: FutureBuilder<String>(
           future: getAppVersion(),
           builder: (context, snapshot) {
@@ -23,7 +23,7 @@ class AppVersionWidget extends StatelessWidget {
             } else {
               return Text(
                 'رقم الإصدار: ${snapshot.data}',
-                style: AppTextStyles.style10W600.copyWith(
+                style: AppTextStyles.style9W600.copyWith(
                   fontSize: 9.sp,
                   color: AppColors.forthColor.withAlpha(150),
                 ),
@@ -34,12 +34,6 @@ class AppVersionWidget extends StatelessWidget {
       ),
     );
   }
-
-  // Future<String> getBuildNumber() async {
-  //   final info = await PackageInfo.fromPlatform();
-  //   print(info.buildNumber);
-  //   return info.buildNumber;
-  // }
 
   Future<String> getAppVersion() async {
     final info = await PackageInfo.fromPlatform();

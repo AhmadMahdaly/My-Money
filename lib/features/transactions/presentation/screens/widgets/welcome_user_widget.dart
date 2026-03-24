@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/intro/login/presentation/cubit/login_cubit.dart';
@@ -22,7 +21,7 @@ class WelcomeUserWidget extends StatelessWidget {
               color: AppColors.scaffoldBackgroundLightColor,
             ),
           ),
-        if (isLeading && title != null) ...[
+        if (title != null && title!.isNotEmpty) ...[
           const Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -37,32 +36,29 @@ class WelcomeUserWidget extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          45.horizontalSpace,
         ],
-        if (!isLeading || title == null)
-          Padding(
-            padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
-            child: BlocBuilder<AuthCubit, AuthState>(
-              builder: (context, state) {
-                if (state is Authenticated) {
-                  return Text(
-                    'أهلاً ${state.username}!',
-                    style: AppTextStyles.style20W700.copyWith(
-                      color: AppColors.scaffoldBackgroundLightColor,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  );
-                }
-
+        if (title != null && title!.isEmpty) const SizedBox.shrink(),
+        if (title == null)
+          BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, state) {
+              if (state is Authenticated) {
                 return Text(
-                  'أهلاً بك!',
-                  style: AppTextStyles.style20W700.copyWith(
+                  'مرحبـــــًا بك ${state.username}',
+                  style: AppTextStyles.style18W700.copyWith(
                     color: AppColors.scaffoldBackgroundLightColor,
                   ),
                   overflow: TextOverflow.ellipsis,
                 );
-              },
-            ),
+              }
+
+              return Text(
+                'مرحبـــــًا بك',
+                style: AppTextStyles.style18W700.copyWith(
+                  color: AppColors.scaffoldBackgroundLightColor,
+                ),
+                overflow: TextOverflow.ellipsis,
+              );
+            },
           ),
       ],
     );
