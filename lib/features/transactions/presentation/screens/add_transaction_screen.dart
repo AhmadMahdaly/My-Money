@@ -215,7 +215,7 @@ class AddTransactionScreen extends StatelessWidget {
 
 void _showChangeMainWalletDialog(
   BuildContext context,
-  List<Wallet> initialWallets, // تم تغيير الاسم لتجنب التعارض
+  List<Wallet> initialWallets,
   String currentMainWalletId,
 ) {
   showDialog<void>(
@@ -224,7 +224,6 @@ void _showChangeMainWalletDialog(
       String? selectedWalletId = currentMainWalletId;
       return StatefulBuilder(
         builder: (context, setState) {
-          // استخدمنا BlocBuilder هنا لكي تظهر المحفظة الجديدة فور إضافتها
           return BlocBuilder<WalletCubit, WalletState>(
             builder: (context, state) {
               final wallets = (state is WalletLoaded)
@@ -242,9 +241,8 @@ void _showChangeMainWalletDialog(
                   width: double.maxFinite,
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: wallets.length + 1, // +1 لزر الإضافة
+                    itemCount: wallets.length + 1,
                     itemBuilder: (context, index) {
-                      // 1. عرض المحافظ الحالية
                       if (index < wallets.length) {
                         final wallet = wallets[index];
                         return RadioListTile<String>(
@@ -258,9 +256,7 @@ void _showChangeMainWalletDialog(
                             });
                           },
                         );
-                      }
-                      // 2. زر إضافة محفظة جديدة في النهاية
-                      else {
+                      } else {
                         return Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -277,11 +273,6 @@ void _showChangeMainWalletDialog(
                                 ),
                               ),
                               onTap: () {
-                                // الخيار الأول: إغلاق الديالوج والذهاب لشاشة المحافظ
-                                // Navigator.pop(ctx);
-                                // context.push(AppRoutes.walletsScreen);
-
-                                // الخيار الثاني: فتح ديالوج صغير لإضافة المحفظة مباشرة (وهو الأفضل)
                                 _showAddEditWalletDialog(context);
                               },
                             ),
@@ -663,7 +654,6 @@ class _TransactionFormState extends State<_TransactionForm> {
                     ),
 
                     if (_selectedMainCategoryId != null) ...[
-                      // 8.verticalSpace,
                       Text(
                         'اختر الفئة الفرعية (اختياري):',
                         style: AppTextStyles.style12W300,

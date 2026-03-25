@@ -1,6 +1,3 @@
-// =========================================================================
-// 3. التبويب الثالث: إدارة الديون والأقساط
-// =========================================================================
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +23,7 @@ class DebtsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<DebtCubit, DebtState>(
       builder: (context, state) {
-        final debts = state.items; // جلب الديون من الـ State
+        final debts = state.items;
 
         return Scaffold(
           floatingActionButton: CustomFloatingActionButton(
@@ -39,12 +36,36 @@ class DebtsView extends StatelessWidget {
               Text('ديون وأقساط نشطة:', style: AppTextStyles.style16W600),
               8.verticalSpace,
               if (debts.isEmpty)
-                Padding(
-                  padding: EdgeInsets.all(24.r),
-                  child: const Text(
-                    'الحمد لله، مفيش ديون أو أقساط متسجلة!',
-                    textAlign: TextAlign.center,
-                  ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(16.r),
+                      child: SizedBox(
+                        height: SizeConfig.screenHeight / 1.7,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.receipt_long_outlined,
+                              size: 36.r,
+                              color: AppColors.textGreyColor,
+                            ),
+                            12.verticalSpace,
+                            Center(
+                              child: Text(
+                                'الحمد لله، مفيش ديون أو أقساط متسجلة!',
+
+                                style: AppTextStyles.style14W500.copyWith(
+                                  color: AppColors.textGreyColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 )
               else
                 ...debts.map((debt) => _buildDebtCard(context, debt)),
@@ -67,13 +88,37 @@ class DebtsView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(debt.name, style: AppTextStyles.style16W600),
-                if (debt.autoDeduct)
-                  Icon(
-                    Icons.autorenew,
-                    color: AppColors.primaryColor,
-                    size: 18.r,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text(debt.name, style: AppTextStyles.style16W600),
+                      8.horizontalSpace,
+                      if (debt.autoDeduct)
+                        Icon(
+                          Icons.autorenew,
+                          color: AppColors.primaryColor,
+                          size: 18.r,
+                        ),
+                    ],
                   ),
+                ),
+
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _showDeleteDebtConfirmation(context, debt);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text(
+                        'مسح الدين',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
             8.verticalSpace,
@@ -121,10 +166,40 @@ class DebtsView extends StatelessWidget {
     );
   }
 
+  void _showDeleteDebtConfirmation(BuildContext context, Debt debt) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('متأكد؟'),
+        content: Text(
+          'هل تريد فعلاً مسح "${debt.name}"؟\n\n'
+          'ملاحظة: مسح الدين من هنا لن يمسح المدفوعات التي سجلتها مسبقاً في سجل المعاملات.',
+          style: AppTextStyles.style14W400,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.errorColor,
+            ),
+            onPressed: () {
+              context.read<DebtCubit>().deleteDebt(debt.id);
+              Navigator.pop(ctx);
+              showCustomSnackBar(context, message: 'تم مسح الدين بنجاح');
+            },
+            child: const Text('مسح', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showManualPaymentDialog(BuildContext context, Debt debt) {
     final formKey = GlobalKey<FormState>();
 
-    // اقتراح قيمة الدفعة: إذا كان القسط أكبر من 0 وأصغر من المتبقي، نقترحه. وإلا نقترح كل المتبقي.
     final defaultAmount =
         (debt.installmentAmount > 0 &&
             debt.installmentAmount <= debt.remainingAmount)
@@ -204,14 +279,11 @@ class DebtsView extends StatelessWidget {
                   if (formKey.currentState!.validate()) {
                     final amountToPay = double.parse(amountController.text);
 
-                    // استدعاء دالة الدفع اليدوي من الـ Cubit
                     context.read<DebtCubit>().recordManualPayment(
                       debt: debt,
                       amount: amountToPay,
                       walletId: selectedWalletId!,
-                      categoryId:
-                          debt.categoryId ??
-                          '', // الفئة التي تم حفظها عند إنشاء الدين
+                      categoryId: debt.categoryId ?? '',
                       transactionCubit: context.read<TransactionCubit>(),
                       walletCubit: context.read<WalletCubit>(),
                     );
@@ -247,20 +319,18 @@ class DebtsView extends StatelessWidget {
     var autoDeduct = false;
     String? selectedWalletId;
 
-    // --- متغيرات الفئات ---
     String? selectedMainCategoryId;
     String? selectedSubCategoryId;
 
     final wallets = (context.read<WalletCubit>().state as WalletLoaded).wallets;
 
-    // جلب جميع فئات المصاريف
     final allExpenseCategories = context
         .read<TransactionCubit>()
         .state
         .allCategories
         .where((c) => c.type == TransactionType.expense)
         .toList();
-    // الفئات الرئيسية فقط للدروب داون الأول
+
     final mainCategories = allExpenseCategories
         .where((c) => c.parentId == null)
         .toList();
@@ -301,7 +371,6 @@ class DebtsView extends StatelessWidget {
                         ),
                         16.verticalSpace,
 
-                        // --- نوع الدفع ---
                         CustomDropdownButtonFormField<DebtRecurrence>(
                           hintText: 'نظام الدفع',
                           value: selectedRecurrence,
@@ -328,7 +397,6 @@ class DebtsView extends StatelessWidget {
                         ),
                         12.verticalSpace,
 
-                        // --- إذا كان قسطاً (أسبوعي أو شهري)، نظهر حقل قيمة القسط ---
                         if (selectedRecurrence != DebtRecurrence.once) ...[
                           CustomPrimaryTextfield(
                             controller: installmentController,
@@ -340,7 +408,6 @@ class DebtsView extends StatelessWidget {
                           12.verticalSpace,
                         ],
 
-                        // --- الحقول المتغيرة بناءً على موعد الاستحقاق ---
                         if (selectedRecurrence == DebtRecurrence.once)
                           ListTile(
                             contentPadding: EdgeInsets.zero,
@@ -405,7 +472,6 @@ class DebtsView extends StatelessWidget {
 
                         const Divider(),
 
-                        // --- تصنيف الدين (CategoryId) ---
                         CustomDropdownButtonFormField<String>(
                           hintText: 'صنف هذا الدين تحت فئة:',
 
@@ -421,8 +487,7 @@ class DebtsView extends StatelessWidget {
                           onChanged: (v) {
                             setState(() {
                               selectedMainCategoryId = v;
-                              selectedSubCategoryId =
-                                  null; // تصفير الفئة الفرعية عند التغيير
+                              selectedSubCategoryId = null;
                             });
                           },
                           validator: (v) => v == null ? 'اختر الفئة' : null,
@@ -461,7 +526,6 @@ class DebtsView extends StatelessWidget {
                         }()),
                         12.verticalSpace,
 
-                        // --- الخصم التلقائي والمحفظة ---
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
@@ -522,7 +586,6 @@ class DebtsView extends StatelessWidget {
                                       ) ??
                                       0.0);
 
-                            // استخراج الـ ID النهائي (لو اختار فرعية ناخذها، وإلا ناخذ الرئيسية)
                             final finalCategoryId =
                                 selectedSubCategoryId ?? selectedMainCategoryId;
 
@@ -538,8 +601,7 @@ class DebtsView extends StatelessWidget {
                               recurrenceValue: recurrenceValue,
                               autoDeduct: autoDeduct,
                               targetWalletId: selectedWalletId,
-                              categoryId:
-                                  finalCategoryId, // <-- الفئة النهائية الدقيقة
+                              categoryId: finalCategoryId,
                             );
 
                             context.read<DebtCubit>().addDebt(newDebt);

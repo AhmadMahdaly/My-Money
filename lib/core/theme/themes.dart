@@ -52,8 +52,9 @@ class Appthemes {
           borderRadius: BorderRadius.circular(20.r),
         ),
         elevation: 5,
-        titleTextStyle: AppTextStyles.style20Bold.copyWith(
+        titleTextStyle: AppTextStyles.style18Bold.copyWith(
           fontFamily: kPrimaryFont,
+          color: AppColors.primaryColor,
         ),
       ),
 
