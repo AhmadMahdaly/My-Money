@@ -6,6 +6,7 @@ import 'package:opration/features/financial_goals/domain/usecases/add_financial_
 import 'package:opration/features/financial_goals/domain/usecases/delete_financial_goal.dart';
 import 'package:opration/features/financial_goals/domain/usecases/get_financial_goals.dart';
 import 'package:opration/features/financial_goals/domain/usecases/update_financial_goal.dart';
+import 'package:opration/features/financial_goals/presentation/cubit/debt_cubit/debt_cubit.dart';
 import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit/financial_goal_cubit.dart';
 import 'package:opration/features/financial_goals/presentation/cubit/shopping_cubit/shopping_cubit.dart';
 import 'package:opration/features/intro/login/data/datasources/login_local_data_source.dart';
@@ -74,6 +75,7 @@ Future<void> setupGetIt() async {
     ..registerFactory<TransactionRepository>(
       () => TransactionRepositoryImpl(localDataSource: getIt()),
     )
+    ..registerFactory(() => DebtCubit(sharedPreferences: getIt()))
     ..registerFactory(() => ShoppingCubit(sharedPreferences: getIt()))
     ..registerFactory(() => GetTransactionsUseCase(repository: getIt()))
     ..registerFactory(() => AddTransactionUseCase(repository: getIt()))

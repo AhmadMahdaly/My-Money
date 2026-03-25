@@ -6,6 +6,7 @@ import 'package:opration/core/localization/s.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/router_generation_config.dart';
 import 'package:opration/core/theme/themes.dart';
+import 'package:opration/features/financial_goals/presentation/cubit/debt_cubit/debt_cubit.dart';
 import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit/financial_goal_cubit.dart';
 import 'package:opration/features/intro/login/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
               deleteFinancialGoalUseCase: getIt(),
             )..loadGoals(),
           ),
+          BlocProvider(create: (_) => getIt<DebtCubit>()),
         ],
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,

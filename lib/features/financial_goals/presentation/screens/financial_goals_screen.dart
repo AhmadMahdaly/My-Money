@@ -12,6 +12,7 @@ import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/financial_goals/domain/entities/financial_goal.dart';
 import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit/financial_goal_cubit.dart';
 import 'package:opration/features/financial_goals/presentation/cubit/shopping_cubit/shopping_cubit.dart';
+import 'package:opration/features/financial_goals/presentation/screens/debts_view.dart';
 import 'package:opration/features/financial_goals/presentation/screens/shopping_list_view.dart';
 import 'package:uuid/uuid.dart';
 
@@ -24,7 +25,7 @@ class FinancialGoalsScreen extends StatelessWidget {
       value: getIt<ShoppingCubit>(),
 
       child: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           appBar: PageHeader(
             isLeading: true,
@@ -58,6 +59,7 @@ class FinancialGoalsScreen extends StatelessWidget {
                 tabs: const [
                   Tab(text: 'الأهداف'),
                   Tab(text: 'المشتريات'),
+                  Tab(text: 'الديون'),
                 ],
               ),
             ),
@@ -67,6 +69,7 @@ class FinancialGoalsScreen extends StatelessWidget {
             children: [
               _GoalsView(),
               ShoppingListView(),
+              DebtsView(),
             ],
           ),
         ),

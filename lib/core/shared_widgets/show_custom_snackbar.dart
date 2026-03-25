@@ -13,10 +13,10 @@ void showCustomSnackBar(
       content: Text(
         message ?? '',
         style: AppTextStyles.style16W600.copyWith(
-          color: msgColor ?? AppColors.primaryTextColor,
+          color: msgColor ?? AppColors.scaffoldBackgroundLightColor,
         ),
       ),
-      backgroundColor: backgroundColor,
+      backgroundColor: backgroundColor ?? AppColors.primaryTextColor,
     ),
   );
 }
