@@ -225,7 +225,7 @@ class _CategoryListSection extends StatelessWidget {
                         color: mainCat.color,
                       ),
                     ),
-                    onTap: () => _showAddSubCategoryDialog(context, mainCat),
+                    onTap: () => showAddSubCategoryDialog(context, mainCat),
                   ),
                 ),
               ],
@@ -236,7 +236,7 @@ class _CategoryListSection extends StatelessWidget {
     );
   }
 
-  void _showAddSubCategoryDialog(
+  void showAddSubCategoryDialog(
     BuildContext context,
     TransactionCategory parentCategory,
   ) {

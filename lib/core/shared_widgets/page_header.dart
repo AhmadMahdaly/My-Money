@@ -10,11 +10,13 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
     required this.isLeading,
     this.title,
     this.height,
+    this.heightBar,
     this.actions,
     this.bottom,
     this.subTitle,
     super.key,
   });
+  final double? heightBar;
   final double? height;
   final String? title;
   final List<Widget>? actions;
@@ -22,13 +24,13 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   final Widget? bottom;
   final Widget? subTitle;
   @override
-  Size get preferredSize => Size.fromHeight(height ?? 130.h);
+  Size get preferredSize => Size.fromHeight(heightBar ?? 130.h);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 8.h,
+        top: MediaQuery.of(context).padding.top + (height ?? 8.h),
         right: 16.w,
         left: 16.w,
         bottom: 12.h,

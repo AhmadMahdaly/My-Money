@@ -11,26 +11,23 @@ class AppVersionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: EdgeInsets.only(bottom: 10.h),
-        child: FutureBuilder<String>(
-          future: getAppVersion(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox.shrink();
-            } else if (snapshot.hasError) {
-              return const Text('');
-            } else {
-              return Text(
-                'رقم الإصدار: ${snapshot.data}',
-                style: AppTextStyles.style9W600.copyWith(
-                  fontSize: 9.sp,
-                  color: AppColors.forthColor.withAlpha(150),
-                ),
-              );
-            }
-          },
-        ),
+      child: FutureBuilder<String>(
+        future: getAppVersion(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SizedBox.shrink();
+          } else if (snapshot.hasError) {
+            return const Text('');
+          } else {
+            return Text(
+              'رقم الإصدار: ${snapshot.data}',
+              style: AppTextStyles.style9W600.copyWith(
+                fontSize: 9.sp,
+                color: AppColors.forthColor.withAlpha(150),
+              ),
+            );
+          }
+        },
       ),
     );
   }

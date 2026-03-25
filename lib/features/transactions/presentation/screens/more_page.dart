@@ -15,10 +15,11 @@ class MoreView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const PageHeader(
+      appBar: PageHeader(
+        height: 16.h,
         title: '',
         isLeading: false,
-        subTitle: SubTitle(),
+        subTitle: const SubTitle(),
       ),
       body: ListView(
         children: [

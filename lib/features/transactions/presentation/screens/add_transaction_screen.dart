@@ -36,7 +36,7 @@ class AddTransactionScreen extends StatelessWidget {
       child: Scaffold(
         appBar: PageHeader(
           isLeading: false,
-          height: 170.h,
+          heightBar: 170.h,
 
           subTitle: BlocBuilder<WalletCubit, WalletState>(
             builder: (context, walletState) {
@@ -875,13 +875,14 @@ class _TransactionFormState extends State<_TransactionForm> {
                               title: Text(
                                 category.name,
                                 style: AppTextStyles.style14W600,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               trailing: budgeted > 0
                                   ? Text(
                                       widget.type == TransactionType.expense
                                           ? 'صرفت: ${spent.truncate()} ج.م | باقي: ${remaining.truncate()} ج.م'
                                           : 'مخطط: ${budgeted.truncate()} ج.م | فعلي: ${spent.truncate()} ج.م',
-                                      style: AppTextStyles.style12W400.copyWith(
+                                      style: AppTextStyles.style9W400.copyWith(
                                         color: category.color,
                                       ),
                                     )
@@ -889,7 +890,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                       spent > 0
                                           ? 'صرفت: ${spent.truncate()} ج.م (بدون ميزانية)'
                                           : 'بدون ميزانية محددة',
-                                      style: AppTextStyles.style12W300.copyWith(
+                                      style: AppTextStyles.style9W400.copyWith(
                                         color: Colors.grey,
                                       ),
                                     ),

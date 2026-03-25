@@ -33,7 +33,7 @@ class TransactionDetailsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: PageHeader(
           isLeading: false,
-          height: 170.h,
+          heightBar: 170.h,
           title: 'مصاريفك وفلوسك',
 
           subTitle: BlocBuilder<WalletCubit, WalletState>(
@@ -210,7 +210,7 @@ class TransactionDetailsScreen extends StatelessWidget {
               children: [
                 4.verticalSpace,
                 _FilterControlBar(),
-                4.verticalSpace,
+                // 4.verticalSpace,
                 if (state.isLoading)
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 8.r),
@@ -271,14 +271,14 @@ class _TransactionDetailsPage extends StatelessWidget {
     }
 
     return ListView(
-      padding: EdgeInsets.all(8.r),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       children: [
         _SingleSummaryCard(
           title: type == TransactionType.income ? 'فلوسك' : 'مصاريفك',
           totalAmount: totalAmount,
           type: type,
         ),
-        8.verticalSpace,
+        4.verticalSpace,
 
         _CategoryTransactionList(
           transactions: transactionsForType,
@@ -344,7 +344,7 @@ class _CategoryTransactionList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.all(16.r),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           child: Text(
             type == TransactionType.income
                 ? 'فلوسك جت منين؟'
@@ -790,7 +790,7 @@ class _SingleSummaryCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          16.verticalSpace,
+          8.verticalSpace,
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: 16.w,
@@ -855,7 +855,7 @@ class _SingleSummaryCard extends StatelessWidget {
                     type == TransactionType.expense
                         ? 'إضافة مصاريف جديدة'
                         : 'إضافة دخل جديد',
-                    style: AppTextStyles.style14W500.copyWith(
+                    style: AppTextStyles.style12W500.copyWith(
                       color: AppColors.primaryColor,
                     ),
                   ),
@@ -902,7 +902,7 @@ class _FilterControlBar extends StatelessWidget {
               value: transactionState.selectedWalletId,
               hint: Text(
                 'كل المحافظ',
-                style: AppTextStyles.style14W600.copyWith(
+                style: AppTextStyles.style12W600.copyWith(
                   color: AppColors.greenLightColor,
                 ),
               ),
@@ -913,7 +913,7 @@ class _FilterControlBar extends StatelessWidget {
                   value: null,
                   child: Text(
                     'كل المحافظ',
-                    style: AppTextStyles.style14W600.copyWith(
+                    style: AppTextStyles.style12W600.copyWith(
                       color: AppColors.greenLightColor,
                     ),
                   ),
@@ -923,7 +923,7 @@ class _FilterControlBar extends StatelessWidget {
                     value: wallet.id,
                     child: Text(
                       wallet.name,
-                      style: AppTextStyles.style14W600.copyWith(
+                      style: AppTextStyles.style12W600.copyWith(
                         color: AppColors.greenLightColor,
                       ),
                     ),
@@ -938,7 +938,7 @@ class _FilterControlBar extends StatelessWidget {
               children: [
                 Text(
                   filterText,
-                  style: AppTextStyles.style14W600.copyWith(
+                  style: AppTextStyles.style12W600.copyWith(
                     color: AppColors.greenLightColor,
                   ),
                 ),

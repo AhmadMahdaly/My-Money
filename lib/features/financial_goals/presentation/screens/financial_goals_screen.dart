@@ -63,7 +63,7 @@ class FinancialGoalsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            height: 170.h,
+            heightBar: 170.h,
           ),
           body: const TabBarView(
             children: [

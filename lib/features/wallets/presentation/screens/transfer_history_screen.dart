@@ -15,7 +15,7 @@ class TransferHistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: PageHeader(
         isLeading: true,
-        height: 80.h,
+        heightBar: 80.h,
         title: 'سجل التحويلات',
       ),
       body: FutureBuilder<List<TransferRecordModel>>(

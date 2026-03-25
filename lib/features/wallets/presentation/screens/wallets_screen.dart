@@ -22,7 +22,7 @@ class WalletsScreen extends StatelessWidget {
     return Scaffold(
       appBar: PageHeader(
         isLeading: false,
-        height: 80.h,
+        heightBar: 80.h,
         title: 'المحافظ',
         actions: [
           IconButton(
