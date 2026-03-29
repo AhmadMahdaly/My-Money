@@ -686,14 +686,14 @@ class _TransactionFormState extends State<_TransactionForm> {
                     ],
 
                     Text(
-                      'ملاحظات',
+                      'ملاحظات (اختياري)',
                       style: AppTextStyles.style14W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
                     ),
                     CustomPrimaryTextfield(
                       controller: _noteController,
-                      text: 'ملاحظات (اختياري)',
+                      text: 'ملاحظات',
                     ),
 
                     10.verticalSpace,
