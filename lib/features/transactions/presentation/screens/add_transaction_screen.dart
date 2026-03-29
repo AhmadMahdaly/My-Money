@@ -17,9 +17,9 @@ import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
+import 'package:opration/features/monthly_plan/presentation/controllers/monthly_plan_cubit/monthly_plan_cubit.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
-import 'package:opration/features/monthly_plan/presentation/controllers/monthly_plan_cubit/monthly_plan_cubit.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
@@ -36,88 +36,9 @@ class AddTransactionScreen extends StatelessWidget {
       child: Scaffold(
         appBar: PageHeader(
           isLeading: false,
-          heightBar: 180.h,
+          heightBar: 145.h,
 
-          subTitle: BlocBuilder<WalletCubit, WalletState>(
-            builder: (context, walletState) {
-              var showMainWallet = true;
-              Wallet? mainWallet;
-
-              if (walletState is WalletLoaded) {
-                showMainWallet = walletState.showMainWallet;
-                if (walletState.wallets.isNotEmpty) {
-                  mainWallet = walletState.wallets.firstWhere(
-                    (w) => w.isMain,
-                    orElse: () => walletState.wallets.first,
-                  );
-                }
-              }
-
-              if (walletState is WalletLoaded && mainWallet != null) {
-                return Container(
-                  alignment: Alignment.center,
-                  color: Colors.white.withAlpha(0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: SvgImage(
-                          imagePath: 'assets/image/svg/change_wallet.svg',
-                          height: 18.r,
-                          color: AppColors.cardColor,
-                        ),
-
-                        onPressed: () {
-                          _showChangeMainWalletDialog(
-                            context,
-                            walletState.wallets,
-                            mainWallet!.id,
-                          );
-                        },
-                        tooltip: 'تغيير المحفظة الرئيسية',
-                      ),
-
-                      ImageFiltered(
-                        imageFilter: ui.ImageFilter.blur(
-                          sigmaX: showMainWallet ? 0 : 4.0,
-                          sigmaY: showMainWallet ? 0 : 4.0,
-                        ),
-                        child: Text(
-                          showMainWallet
-                              ? 'محفظتك: ${mainWallet.name} (${mainWallet.balance.truncate()} ج.م)'
-                              : 'محفظتك: ${mainWallet.name} (****** ج.م)',
-                          style: AppTextStyles.style14W500.copyWith(
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: Icon(
-                          showMainWallet
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-
-                          color: AppColors.cardColor,
-                          size: 20.r,
-                        ),
-                        onPressed: () {
-                          context
-                              .read<WalletCubit>()
-                              .toggleShowMainWalletPref();
-                        },
-                        tooltip: 'إخفاء المحفظة',
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                return const SizedBox.shrink();
-              }
-            },
-          ),
+          // subTitle:
           bottom: Container(
             height: 50.h,
 
@@ -628,7 +549,100 @@ class _TransactionFormState extends State<_TransactionForm> {
                       validator: (value) =>
                           value == null || value.isEmpty ? 'سجل المبلغ' : null,
                     ),
+                    Text(
+                      'لو عايز تغير المحفظة',
+                      style: AppTextStyles.style14W400.copyWith(
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                    BlocBuilder<WalletCubit, WalletState>(
+                      builder: (context, walletState) {
+                        var showMainWallet = true;
+                        Wallet? mainWallet;
 
+                        if (walletState is WalletLoaded) {
+                          showMainWallet = walletState.showMainWallet;
+                          if (walletState.wallets.isNotEmpty) {
+                            mainWallet = walletState.wallets.firstWhere(
+                              (w) => w.isMain,
+                              orElse: () => walletState.wallets.first,
+                            );
+                          }
+                        }
+
+                        if (walletState is WalletLoaded && mainWallet != null) {
+                          return InkWell(
+                            onTap: () {
+                              _showChangeMainWalletDialog(
+                                context,
+                                walletState.wallets,
+                                mainWallet!.id,
+                              );
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppColors.primaryColor.withAlpha(100),
+                                ),
+                                borderRadius: BorderRadius.circular(10.r),
+                                // color: selectedCategory?.color.withAlpha(15) ?? Colors.transparent,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  16.horizontalSpace,
+
+                                  SvgImage(
+                                    imagePath:
+                                        'assets/image/svg/change_wallet.svg',
+                                    height: 18.r,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  12.horizontalSpace,
+
+                                  ImageFiltered(
+                                    imageFilter: ui.ImageFilter.blur(
+                                      sigmaX: showMainWallet ? 0 : 4.0,
+                                      sigmaY: showMainWallet ? 0 : 4.0,
+                                    ),
+                                    child: Text(
+                                      showMainWallet
+                                          ? '${mainWallet.name} (${mainWallet.balance.truncate()} ج.م)'
+                                          : '${mainWallet.name} (****** ج.م)',
+                                      style: AppTextStyles.style14W500.copyWith(
+                                        color: AppColors.primaryColor,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: Icon(
+                                      showMainWallet
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+
+                                      color: AppColors.primaryColor,
+                                      size: 20.r,
+                                    ),
+                                    onPressed: () {
+                                      context
+                                          .read<WalletCubit>()
+                                          .toggleShowMainWalletPref();
+                                    },
+                                    tooltip: 'إخفاء المحفظة',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -931,7 +945,10 @@ class _TransactionFormState extends State<_TransactionForm> {
                       onTap: () {
                         Navigator.pop(sheetContext);
                         if (isMainCategory) {
-                          _showAddCategoryDialog(context, widget.type);
+                          _showAddCategoryModalBottomSheet(
+                            context,
+                            widget.type,
+                          );
                         } else {
                           _addNewSubCategoryForSelectedMain();
                         }
@@ -1085,7 +1102,10 @@ class _TransactionFormState extends State<_TransactionForm> {
   }
 }
 
-void _showAddCategoryDialog(BuildContext context, TransactionType type) {
+void _showAddCategoryModalBottomSheet(
+  BuildContext context,
+  TransactionType type,
+) {
   showModalBottomSheet<TransactionCategory>(
     isScrollControlled: true,
     useSafeArea: true,
