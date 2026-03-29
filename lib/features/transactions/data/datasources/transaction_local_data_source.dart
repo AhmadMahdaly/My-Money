@@ -4,10 +4,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:opration/core/services/cache_helper/cache_values.dart';
-import 'package:opration/features/transactions/domain/entities/monthly_plan.dart';
+import 'package:opration/features/monthly_plan/domain/entities/monthly_plan.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 

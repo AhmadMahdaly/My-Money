@@ -6,7 +6,7 @@ import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:uuid/uuid.dart';
 

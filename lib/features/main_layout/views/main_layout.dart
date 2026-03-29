@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
-import 'package:opration/features/financial_goals/presentation/cubit/debt_cubit/debt_cubit.dart';
+import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_cubit.dart';
 import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 
 class MainLayout extends StatefulWidget {

@@ -1,14 +1,16 @@
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/router/app_routes.dart';
-import 'package:opration/features/financial_goals/presentation/screens/financial_goals_screen.dart';
-import 'package:opration/features/intro/login/presentation/views/login_view.dart';
+import 'package:opration/features/Settings/more_page.dart';
+import 'package:opration/features/auth/presentation/views/login_view.dart';
+import 'package:opration/features/debt/presentation/screens/debts_view.dart';
+import 'package:opration/features/goals/presentation/screens/financial_goals_screen.dart';
 import 'package:opration/features/intro/splash/views/splash_view.dart';
 import 'package:opration/features/main_layout/views/main_layout.dart';
+import 'package:opration/features/shopping/presentation/screens/shopping_list_view.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/edit_transaction_screen.dart';
-import 'package:opration/features/transactions/presentation/screens/monthly_plan_screen.dart';
-import 'package:opration/features/transactions/presentation/screens/more_page.dart';
+import 'package:opration/features/monthly_plan/presentation/screens/monthly_plan_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/notifications_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/transaction_details_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/manage_categories_drawer.dart';
@@ -78,6 +80,16 @@ class RouterGenerationConfig {
         path: AppRoutes.financialGoalsScreen,
         name: AppRoutes.financialGoalsScreen,
         builder: (context, state) => const FinancialGoalsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.debtsView,
+        name: AppRoutes.debtsView,
+        builder: (context, state) => const DebtsView(),
+      ),
+      GoRoute(
+        path: AppRoutes.shoppingListView,
+        name: AppRoutes.shoppingListView,
+        builder: (context, state) => const ShoppingListView(),
       ),
       GoRoute(
         path: AppRoutes.walletsScreen,

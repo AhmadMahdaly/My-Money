@@ -6,12 +6,13 @@ import 'package:opration/core/localization/s.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/router_generation_config.dart';
 import 'package:opration/core/theme/themes.dart';
-import 'package:opration/features/financial_goals/presentation/cubit/debt_cubit/debt_cubit.dart';
-import 'package:opration/features/financial_goals/presentation/cubit/financial_goal_cubit/financial_goal_cubit.dart';
-import 'package:opration/features/intro/login/presentation/cubit/login_cubit.dart';
+import 'package:opration/features/auth/presentation/cubit/login_cubit.dart';
+import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_cubit.dart';
+import 'package:opration/features/goals/presentation/controllers/financial_goal_cubit/financial_goal_cubit.dart';
 import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
-import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/shopping/presentation/controllers/shopping_cubit/shopping_cubit.dart';
+import 'package:opration/features/monthly_plan/presentation/controllers/monthly_plan_cubit/monthly_plan_cubit.dart';
+import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 
 class MyApp extends StatelessWidget {
@@ -74,6 +75,9 @@ class MyApp extends StatelessWidget {
               updateFinancialGoalUseCase: getIt(),
               deleteFinancialGoalUseCase: getIt(),
             )..loadGoals(),
+          ),
+          BlocProvider(
+            create: (_) => getIt<ShoppingCubit>(),
           ),
           BlocProvider(create: (_) => getIt<DebtCubit>()),
         ],

@@ -19,8 +19,8 @@ import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
-import 'package:opration/features/transactions/presentation/cubit/monthly_plan_cubit/monthly_plan_cubit.dart';
-import 'package:opration/features/transactions/presentation/cubit/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/monthly_plan/presentation/controllers/monthly_plan_cubit/monthly_plan_cubit.dart';
+import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
@@ -36,7 +36,7 @@ class AddTransactionScreen extends StatelessWidget {
       child: Scaffold(
         appBar: PageHeader(
           isLeading: false,
-          heightBar: 170.h,
+          heightBar: 180.h,
 
           subTitle: BlocBuilder<WalletCubit, WalletState>(
             builder: (context, walletState) {
@@ -595,7 +595,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                             TextButton(
                               onPressed: () => _showPendingDialog(
                                 context,
-                                state.pendingTransactions,
+                                // state.pendingTransactions,
                               ),
                               child: const Text('مراجعة الآن'),
                             ),
@@ -984,81 +984,101 @@ class _TransactionFormState extends State<_TransactionForm> {
     });
   }
 
-  void _showPendingDialog(
-    BuildContext context,
-    List<TransactionCategory> pendingCategories,
-  ) {
+  void _showPendingDialog(BuildContext context) {
     showDialog<void>(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              const Icon(Icons.pending_actions, color: AppColors.orangeColor),
-              8.horizontalSpace,
-              const Text('عمليات بانتظار تأكيدك'),
-            ],
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: pendingCategories.length,
-              separatorBuilder: (context, index) => const Divider(),
-              itemBuilder: (context, index) {
-                final category = pendingCategories[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: category.color,
-                    radius: 15.r,
-                  ),
-                  title: Text(category.name),
-                  subtitle: Text(
-                    'المبلغ المتوقع: ${category.fixedAmount?.truncate()} ج.م',
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          color: AppColors.errorColor,
-                        ),
-                        onPressed: () {
-                          Navigator.of(ctx).pop();
-                        },
-                      ),
+        // استخدمنا BlocBuilder هنا عشان الديالوج يتحدث تلقائياً لما تعتمد معاملة
+        return BlocBuilder<TransactionCubit, TransactionState>(
+          builder: (context, state) {
+            final pendingCategories = state.pendingTransactions;
 
-                      IconButton(
-                        icon: Icon(
-                          Icons.check_circle,
-                          color: AppColors.successColor,
-                        ),
-                        onPressed: () {
-                          context.read<TransactionCubit>().executeRecurring(
-                            category,
-                          );
-                          Navigator.of(ctx).pop();
-                          showCustomSnackBar(
-                            context,
-                            msgColor: AppColors.scaffoldBackgroundLightColor,
+            // لو كل المعاملات المعلقة خلصت، نقفل الديالوج تلقائياً
+            if (pendingCategories.isEmpty) {
+              Future.microtask(() => Navigator.of(ctx).pop());
+              return const SizedBox.shrink();
+            }
 
-                            message: 'تم تسجيل ${category.name} بنجاح',
-                          );
-                        },
-                      ),
-                    ],
+            return AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(
+                    Icons.pending_actions,
+                    color: AppColors.orangeColor,
                   ),
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('راجع لاحقاً'),
-            ),
-          ],
+                  8.horizontalSpace,
+                  const Text('عمليات بانتظار تأكيدك'),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: pendingCategories.length,
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final category = pendingCategories[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: category.color,
+                        radius: 15.r,
+                      ),
+                      title: Text(category.name),
+                      subtitle: Text(
+                        'المبلغ المتوقع: ${category.fixedAmount?.truncate()} ج.م',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: AppColors.errorColor,
+                            ),
+                            onPressed: () {
+                              // استخدام dismissPendingTransaction بدل ما نقفل الديالوج بس
+                              // عشان يحذفها من المعاملات المعلقة لليوم ده
+                              context
+                                  .read<TransactionCubit>()
+                                  .dismissPendingTransaction(category);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.check_circle,
+                              color: AppColors.successColor,
+                            ),
+                            onPressed: () {
+                              // التعديل الأساسي: استخدام approvePendingTransaction
+                              context
+                                  .read<TransactionCubit>()
+                                  .approvePendingTransaction(category);
+
+                              showCustomSnackBar(
+                                context,
+                                msgColor:
+                                    AppColors.scaffoldBackgroundLightColor,
+                                message: 'تم تسجيل ${category.name} بنجاح',
+                              );
+
+                              // شيلنا Navigator.pop() من هنا عشان الديالوج يفضل مفتوح
+                              // لو فيه أكتر من معاملة معلقة، والمعاملة دي بس اللي هتختفي
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('راجع لاحقاً'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
