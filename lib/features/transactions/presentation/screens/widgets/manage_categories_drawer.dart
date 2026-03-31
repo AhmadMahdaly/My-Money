@@ -40,10 +40,13 @@ class ManageCategoriesDrawer extends StatelessWidget {
                 title: 'فئات الصرف',
                 categories: expenseCategories,
               ),
+              60.verticalSpace,
             ],
           );
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primaryColor,
         onPressed: () => _showAddTypeSelectionDialog(context),
@@ -62,11 +65,11 @@ class ManageCategoriesDrawer extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        titleTextStyle: AppTextStyles.style18W600,
+        titleTextStyle: AppTextStyle.style18W600,
         title: Text(
           textAlign: TextAlign.center,
           'اختار نوع الفئة',
-          style: AppTextStyles.style14W500.copyWith(
+          style: AppTextStyle.style14W500.copyWith(
             color: AppColors.primaryColor,
           ),
         ),
@@ -77,7 +80,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
               leading: Icon(Icons.add, color: AppColors.successColor),
               title: Text(
                 'دخل (Income)',
-                style: AppTextStyles.style14W500.copyWith(
+                style: AppTextStyle.style14W500.copyWith(
                   color: AppColors.successColor,
                 ),
               ),
@@ -90,7 +93,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
               leading: const Icon(Icons.minimize, color: AppColors.errorColor),
               title: Text(
                 'صرف (Expense)',
-                style: AppTextStyles.style14W500.copyWith(
+                style: AppTextStyle.style14W500.copyWith(
                   color: AppColors.errorColor,
                 ),
               ),
@@ -145,7 +148,7 @@ class _CategoryListSection extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.all(16.r),
-          child: Text(title, style: AppTextStyles.style16Bold),
+          child: Text(title, style: AppTextStyle.style16Bold),
         ),
         ...mainCategories.map((mainCat) {
           final subCategories = categories
@@ -165,7 +168,7 @@ class _CategoryListSection extends StatelessWidget {
               ),
               title: Text(
                 mainCat.name,
-                style: AppTextStyles.style14W500,
+                style: AppTextStyle.style14W500,
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -190,12 +193,12 @@ class _CategoryListSection extends StatelessWidget {
                       ),
                       title: Text(
                         subCat.name,
-                        style: AppTextStyles.style12W400,
+                        style: AppTextStyle.style12W400,
                       ),
                       subtitle: subCat.isRecurring
                           ? Text(
                               'مكرر: ${subCat.fixedAmount?.truncate()} ج.م',
-                              style: AppTextStyles.style9W400,
+                              style: AppTextStyle.style9W400,
                             )
                           : null,
                       trailing: Row(
@@ -221,7 +224,7 @@ class _CategoryListSection extends StatelessWidget {
                     ),
                     title: Text(
                       'إضافة تفريعة لـ "${mainCat.name}"',
-                      style: AppTextStyles.style12W300.copyWith(
+                      style: AppTextStyle.style12W300.copyWith(
                         color: mainCat.color,
                       ),
                     ),

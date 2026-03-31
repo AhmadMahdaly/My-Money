@@ -34,7 +34,7 @@ class NotificationsScreen extends StatelessWidget {
                   16.verticalSpace,
                   Text(
                     'مفيش أي إشعارات أو عمليات معلقة',
-                    style: AppTextStyles.style16W500.copyWith(
+                    style: AppTextStyle.style16W500.copyWith(
                       color: AppColors.textGreyColor,
                     ),
                   ),
@@ -81,12 +81,12 @@ class NotificationsScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   'تأكيد تسجيل "${category.name}"',
-                                  style: AppTextStyles.style14W600,
+                                  style: AppTextStyle.style14W600,
                                 ),
                                 4.verticalSpace,
                                 Text(
                                   'المبلغ المتوقع: ${category.fixedAmount?.truncate() ?? 0} ج.م',
-                                  style: AppTextStyles.style12W400.copyWith(
+                                  style: AppTextStyle.style12W400.copyWith(
                                     color: AppColors.primaryTextColor,
                                   ),
                                 ),

@@ -156,7 +156,9 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
         backgroundColor: AppColors.scaffoldBackgroundLightColor,
         title: Text(
           widget.categoryToEdit != null ? 'تعديل الفئة' : 'إضافة فئة ذكية',
-          style: AppTextStyles.style14W300,
+          style: AppTextStyle.style16W600.copyWith(
+            color: AppColors.primaryColor,
+          ),
         ),
         actions: [
           IconButton(
@@ -220,7 +222,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                               padding: EdgeInsets.only(bottom: 16.h),
                               child: Text(
                                 '⚠️ لا يمكن تحويل هذه الفئة إلى فرعية لأن بداخلها فئات فرعية بالفعل.',
-                                style: AppTextStyles.style12W400.copyWith(
+                                style: AppTextStyle.style12W400.copyWith(
                                   color: AppColors.orangeColor,
                                 ),
                               ),
@@ -230,7 +232,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                               contentPadding: EdgeInsets.zero,
                               title: Text(
                                 'هل هذه فئة فرعية؟',
-                                style: AppTextStyles.style14W600,
+                                style: AppTextStyle.style14W600,
                               ),
                               value: _isSubCategory,
                               onChanged: (v) =>
@@ -265,7 +267,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                           const Divider(),
                         ],
 
-                        Text('اختر اللون:', style: AppTextStyles.style12W300),
+                        Text('اختر اللون:', style: AppTextStyle.style12W300),
                         8.verticalSpace,
                         Wrap(
                           spacing: 8,
@@ -296,11 +298,11 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             'فئة مكررة (التزامات ثابتة)',
-                            style: AppTextStyles.style14W600,
+                            style: AppTextStyle.style14W600,
                           ),
                           subtitle: Text(
                             'تخصم/تضاف تلقائياً في موعدها',
-                            style: AppTextStyles.style9W400,
+                            style: AppTextStyle.style9W400,
                           ),
                           value: _isRecurring,
                           onChanged: (v) => setState(() {
@@ -373,7 +375,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             16.verticalSpace,
                             Text(
                               'اختر أيام الأسبوع:',
-                              style: AppTextStyles.style12W300,
+                              style: AppTextStyle.style12W300,
                             ),
                             Wrap(
                               spacing: 4,
@@ -425,11 +427,11 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             contentPadding: EdgeInsets.zero,
                             title: Text(
                               'تفعيل الخصم التلقائي',
-                              style: AppTextStyles.style12W700,
+                              style: AppTextStyle.style12W700,
                             ),
                             subtitle: Text(
                               'إذا لم تفعل، سيسألك التطبيق قبل الخصم',
-                              style: AppTextStyles.style9W400,
+                              style: AppTextStyle.style9W400,
                             ),
                             value: _autoDeduct,
                             onChanged: (v) => setState(() => _autoDeduct = v),

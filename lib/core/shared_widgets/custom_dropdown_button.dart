@@ -35,14 +35,14 @@ class CustomDropdownButtonFormField<T> extends StatelessWidget {
         Icons.keyboard_arrow_down,
         color: AppColors.secondaryColor,
       ),
-      style: AppTextStyles.style14W500.copyWith(
+      style: AppTextStyle.style14W500.copyWith(
         color: AppColors.thirdColor,
       ),
       dropdownColor: AppColors.scaffoldBackgroundLightColor,
 
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: AppTextStyles.style14W500.copyWith(
+        hintStyle: AppTextStyle.style14W500.copyWith(
           color: AppColors.secondaryColor,
         ),
 

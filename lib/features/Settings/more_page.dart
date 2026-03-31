@@ -26,6 +26,28 @@ class MoreView extends StatelessWidget {
           12.verticalSpace,
           CustomMorePageCard(
             icon: Image.asset(
+              'assets/image/png/categories.png',
+              height: 24.r,
+
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+            text: 'إدارة فئات الدخل والمصاريف',
+            onTap: () => context.pushNamed(AppRoutes.manageCategoriesScreen),
+          ),
+          4.verticalSpace,
+          CustomMorePageCard(
+            icon: Image.asset(
+              'assets/image/png/shopping-cart.png',
+              height: 24.r,
+
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+            text: 'قائمة المشتريات',
+            onTap: () => context.pushNamed(AppRoutes.shoppingListView),
+          ),
+          4.verticalSpace,
+          CustomMorePageCard(
+            icon: Image.asset(
               'assets/image/png/target.png',
               height: 24.r,
 
@@ -44,28 +66,6 @@ class MoreView extends StatelessWidget {
             ),
             text: 'الديون والإلتزامات',
             onTap: () => context.pushNamed(AppRoutes.debtsView),
-          ),
-          4.verticalSpace,
-          CustomMorePageCard(
-            icon: Image.asset(
-              'assets/image/png/shopping-cart.png',
-              height: 24.r,
-
-              color: AppColors.scaffoldBackgroundLightColor,
-            ),
-            text: 'قائمة المشتريات',
-            onTap: () => context.pushNamed(AppRoutes.shoppingListView),
-          ),
-          4.verticalSpace,
-          CustomMorePageCard(
-            icon: Image.asset(
-              'assets/image/png/categories.png',
-              height: 24.r,
-
-              color: AppColors.scaffoldBackgroundLightColor,
-            ),
-            text: 'إدارة فئات الدخل والمصاريف',
-            onTap: () => context.pushNamed(AppRoutes.manageCategoriesScreen),
           ),
           4.verticalSpace,
         ],
@@ -108,18 +108,20 @@ class CustomMorePageCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        padding: EdgeInsets.symmetric(
+          horizontal: 8.w,
+        ),
         child: Card(
           color: AppColors.primaryColor,
           child: Padding(
-            padding: EdgeInsets.all(12.r),
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
             child: Row(
               children: [
                 icon,
                 12.horizontalSpace,
                 Text(
                   text,
-                  style: AppTextStyles.style14W400.copyWith(
+                  style: AppTextStyle.style14W400.copyWith(
                     color: AppColors.scaffoldBackgroundLightColor,
                   ),
                 ),
@@ -165,7 +167,7 @@ class CustomOutLineMorePageCard extends StatelessWidget {
                 12.horizontalSpace,
                 Text(
                   text,
-                  style: AppTextStyles.style14W400.copyWith(
+                  style: AppTextStyle.style14W400.copyWith(
                     color: AppColors.primaryColor,
                   ),
                 ),

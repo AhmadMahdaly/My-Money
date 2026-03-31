@@ -16,14 +16,14 @@ class LoginWelcomeUserWidget extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             'دلوقتي تقدر تعرف فلوسك رايحة فين 💸',
-            style: AppTextStyles.style18W700.copyWith(
+            style: AppTextStyle.style18W700.copyWith(
               color: AppColors.primaryColor,
             ),
           ),
         ),
         Text(
           'خطط شهريتك، احسب صافي دخلك، وشوف مصاريفك كلها في مكان واحد.',
-          style: AppTextStyles.style16W400.copyWith(
+          style: AppTextStyle.style16W400.copyWith(
             color: AppColors.secondaryTextColor,
           ),
         ),
@@ -75,7 +75,7 @@ class LoginWelcomeUserWidget extends StatelessWidget {
         8.verticalSpace,
         Text(
           '✨ يلا نبدأ… اكتب اسمك وخلينا ننطلق!',
-          style: AppTextStyles.style16W400.copyWith(
+          style: AppTextStyle.style16W400.copyWith(
             color: AppColors.primaryColor,
           ),
         ),

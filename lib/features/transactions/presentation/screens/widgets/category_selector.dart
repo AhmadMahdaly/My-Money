@@ -41,7 +41,7 @@ class CategorySelector extends StatelessWidget {
           avatar: const Icon(Icons.add, color: AppColors.primaryColor),
           label: Text(
             'ضيف فئة جديدة',
-            style: AppTextStyles.style12W300.copyWith(
+            style: AppTextStyle.style12W300.copyWith(
               color: AppColors.primaryColor,
             ),
           ),

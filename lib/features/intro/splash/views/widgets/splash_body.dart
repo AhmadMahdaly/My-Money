@@ -58,7 +58,7 @@ class _SplashBodyState extends State<SplashBody> {
           Text(
             'فلوسي',
             textAlign: TextAlign.center,
-            style: AppTextStyles.style20W700.copyWith(
+            style: AppTextStyle.style20W700.copyWith(
               color: AppColors.primaryColor,
               fontSize: 40.sp,
             ),
@@ -67,7 +67,7 @@ class _SplashBodyState extends State<SplashBody> {
           Text(
             kAppQuote,
             textAlign: TextAlign.center,
-            style: AppTextStyles.style20W400.copyWith(
+            style: AppTextStyle.style20W400.copyWith(
               color: AppColors.primaryTextColor,
             ),
           ),

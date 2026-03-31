@@ -228,7 +228,7 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
     return AlertDialog(
       title: Text(
         'اعمل حسبتك',
-        style: AppTextStyles.style18Bold.copyWith(fontFamily: kPrimaryFont),
+        style: AppTextStyle.style18Bold.copyWith(fontFamily: kPrimaryFont),
       ),
       content: SizedBox(
         width: 300.w,

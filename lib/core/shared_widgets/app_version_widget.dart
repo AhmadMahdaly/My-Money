@@ -21,7 +21,7 @@ class AppVersionWidget extends StatelessWidget {
           } else {
             return Text(
               'رقم الإصدار: ${snapshot.data}',
-              style: AppTextStyles.style9W600.copyWith(
+              style: AppTextStyle.style9W600.copyWith(
                 fontSize: 9.sp,
                 color: AppColors.forthColor.withAlpha(150),
               ),

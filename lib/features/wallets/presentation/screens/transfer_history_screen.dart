@@ -38,7 +38,7 @@ class TransferHistoryScreen extends StatelessWidget {
                   16.verticalSpace,
                   Text(
                     'لا توجد تحويلات سابقة',
-                    style: AppTextStyles.style14W500.copyWith(
+                    style: AppTextStyle.style14W500.copyWith(
                       color: AppColors.textGreyColor,
                     ),
                   ),
@@ -57,15 +57,15 @@ class TransferHistoryScreen extends StatelessWidget {
                   leading: const Icon(Icons.swap_horiz, color: Colors.blue),
                   title: Text(
                     'من ${item.fromWalletName} إلى ${item.toWalletName}',
-                    style: AppTextStyles.style14W500,
+                    style: AppTextStyle.style14W500,
                   ),
                   subtitle: Text(
                     '${item.date.day}/${item.date.month}/${item.date.year}',
-                    style: AppTextStyles.style14W500,
+                    style: AppTextStyle.style14W500,
                   ),
                   trailing: Text(
                     '${item.amount.truncate()} ج.م',
-                    style: AppTextStyles.style14Bold.copyWith(
+                    style: AppTextStyle.style14Bold.copyWith(
                       color: Colors.green,
                     ),
                   ),

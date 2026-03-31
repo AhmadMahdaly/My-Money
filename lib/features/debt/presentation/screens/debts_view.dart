@@ -65,6 +65,8 @@ class DebtsView extends StatelessWidget {
             // ),
             // // heightBar: 170.h,
           ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+
           floatingActionButton: CustomFloatingActionButton(
             onPressed: () => _showAddDebtDialog(context),
             tooltip: 'إضافة دين أو قسط',
@@ -72,7 +74,7 @@ class DebtsView extends StatelessWidget {
           body: ListView(
             padding: EdgeInsets.all(16.r),
             children: [
-              Text('ديون وأقساط نشطة:', style: AppTextStyles.style16W600),
+              Text('ديون وأقساط نشطة:', style: AppTextStyle.style16W600),
               8.verticalSpace,
               if (debts.isEmpty)
                 Column(
@@ -95,7 +97,7 @@ class DebtsView extends StatelessWidget {
                               child: Text(
                                 'الحمد لله، مفيش ديون أو أقساط متسجلة!',
 
-                                style: AppTextStyles.style14W500.copyWith(
+                                style: AppTextStyle.style14W500.copyWith(
                                   color: AppColors.textGreyColor,
                                 ),
                               ),
@@ -106,8 +108,10 @@ class DebtsView extends StatelessWidget {
                     ),
                   ],
                 )
-              else
+              else ...[
                 ...debts.map((debt) => _buildDebtCard(context, debt)),
+                60.verticalSpace,
+              ],
             ],
           ),
         );
@@ -130,7 +134,7 @@ class DebtsView extends StatelessWidget {
                 Expanded(
                   child: Row(
                     children: [
-                      Text(debt.name, style: AppTextStyles.style16W600),
+                      Text(debt.name, style: AppTextStyle.style16W600),
                       8.horizontalSpace,
                       if (debt.autoDeduct)
                         Icon(
@@ -163,7 +167,7 @@ class DebtsView extends StatelessWidget {
             8.verticalSpace,
             Text(
               'المتبقي: ${debt.remainingAmount.truncate()} ج.م',
-              style: AppTextStyles.style14W700.copyWith(
+              style: AppTextStyle.style14W700.copyWith(
                 color: AppColors.errorColor,
               ),
             ),
@@ -182,7 +186,7 @@ class DebtsView extends StatelessWidget {
               children: [
                 Text(
                   'المدفوع: ${debt.paidAmount.truncate()} ج.م',
-                  style: AppTextStyles.style12W400,
+                  style: AppTextStyle.style12W400,
                 ),
                 TextButton(
                   onPressed: debt.isFullyPaid
@@ -213,7 +217,7 @@ class DebtsView extends StatelessWidget {
         content: Text(
           'هل تريد فعلاً مسح "${debt.name}"؟\n\n'
           'ملاحظة: مسح الدين من هنا لن يمسح المدفوعات التي سجلتها مسبقاً في سجل المعاملات.',
-          style: AppTextStyles.style14W400,
+          style: AppTextStyle.style14W400,
         ),
         actions: [
           TextButton(
@@ -266,7 +270,7 @@ class DebtsView extends StatelessWidget {
                 children: [
                   Text(
                     'المتبقي من الدين: ${debt.remainingAmount.truncate()} ج.م',
-                    style: AppTextStyles.style14W600.copyWith(
+                    style: AppTextStyle.style14W600.copyWith(
                       color: AppColors.errorColor,
                     ),
                   ),
@@ -385,7 +389,7 @@ class DebtsView extends StatelessWidget {
             children: [
               Text(
                 'إضافة دين أو قسط',
-                style: AppTextStyles.style14W600,
+                style: AppTextStyle.style14W600,
               ),
               20.verticalSpace,
               Padding(
@@ -569,7 +573,7 @@ class DebtsView extends StatelessWidget {
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             'خصم تلقائي في موعد الاستحقاق',
-                            style: AppTextStyles.style12W600,
+                            style: AppTextStyle.style12W600,
                           ),
                           value: autoDeduct,
                           activeThumbColor: AppColors.primaryColor,

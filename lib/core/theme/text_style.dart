@@ -22,7 +22,7 @@ class FontScaleConfig {
 /// ===============================
 /// App Text Styles
 /// ===============================
-abstract class AppTextStyles {
+abstract class AppTextStyle {
   static String get _fontFamily => kPrimaryFont;
 
   // ================= size 9 =================

@@ -90,7 +90,7 @@ class _GoalsView extends StatelessWidget {
 
                     Text(
                       'مفيش أهداف لسا، ضيف هدف جديد!',
-                      style: AppTextStyles.style14W500.copyWith(
+                      style: AppTextStyle.style14W500.copyWith(
                         color: AppColors.textGreyColor,
                       ),
                     ),
@@ -114,6 +114,8 @@ class _GoalsView extends StatelessWidget {
           return const Center(child: Text('شاشة الأهداف المالية'));
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+
       floatingActionButton: CustomFloatingActionButton(
         onPressed: () => _showAddEditGoalDialog(context),
         tooltip: 'ضيف هدف جديد',
@@ -260,7 +262,7 @@ void _showAddEditGoalDialog(BuildContext context, {FinancialGoal? goal}) {
         children: [
           Text(
             isEditing ? 'عدّل الهدف' : 'ضيف هدف جديد',
-            style: AppTextStyles.style16Bold.copyWith(
+            style: AppTextStyle.style16Bold.copyWith(
               color: AppColors.primaryColor,
             ),
           ),

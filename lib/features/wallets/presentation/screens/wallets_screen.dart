@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
-import 'package:opration/core/shared_widgets/custom_floating_action_buttom.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart' show PageHeader;
 import 'package:opration/core/theme/colors.dart';
@@ -24,29 +24,6 @@ class WalletsScreen extends StatelessWidget {
         isLeading: false,
         heightBar: 80.h,
         title: 'المحافظ',
-        actions: [
-          IconButton(
-            onPressed: () {
-              context.pushNamed(AppRoutes.transferHistoryScreen);
-            },
-            icon: const Icon(Icons.history, color: Colors.white),
-            tooltip: 'سجل التحويلات',
-          ),
-          IconButton(
-            onPressed: () {
-              final state = context.read<WalletCubit>().state;
-              if (state is WalletLoaded) {
-                _showTransferDialog(context, state.wallets);
-              }
-            },
-            icon: const Icon(
-              Icons.swap_horiz_outlined,
-              color: Colors.white,
-              size: 30,
-            ),
-            tooltip: 'تحويل مبالغ',
-          ),
-        ],
       ),
       body: BlocBuilder<WalletCubit, WalletState>(
         builder: (context, state) {
@@ -57,7 +34,7 @@ class WalletsScreen extends StatelessWidget {
             return Center(
               child: Text(
                 'فيه غلطة: ${state.message}',
-                style: AppTextStyles.style14W500,
+                style: AppTextStyle.style14W500,
               ),
             );
           }
@@ -66,23 +43,42 @@ class WalletsScreen extends StatelessWidget {
               return Center(
                 child: Text(
                   'لسا مفيش محافظ، ضيف محفظة الأول!',
-                  style: AppTextStyles.style14W500,
+                  style: AppTextStyle.style14W500,
                 ),
               );
             }
             return ListView.builder(
-              padding: EdgeInsets.all(8.r),
+              padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
               itemCount: state.wallets.length,
               itemBuilder: (context, index) {
-                final wallet = state.wallets[index];
+                final wallets = [...state.wallets]
+                  ..sort((a, b) {
+                    if (a.isMain && !b.isMain) return -1;
+                    if (!a.isMain && b.isMain) return 1;
+                    return 0;
+                  });
+                final wallet = wallets[index];
                 return Card(
-                  elevation: 2,
+                  elevation: wallet.isMain ? 6 : 2,
+                  color: wallet.isMain
+                      ? Theme.of(context).primaryColor.withAlpha(10)
+                      : Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    side: wallet.isMain
+                        ? BorderSide(
+                            color: Theme.of(context).primaryColor,
+                            width: 1.5,
+                          )
+                        : BorderSide.none,
+                  ),
                   margin: EdgeInsets.symmetric(vertical: 6.h),
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: wallet.isMain
                           ? Theme.of(context).primaryColor
                           : Colors.grey.shade300,
+                      radius: wallet.isMain ? 26 : 22,
                       child: Icon(
                         Icons.account_balance_wallet_outlined,
                         color: wallet.isMain
@@ -90,14 +86,38 @@ class WalletsScreen extends StatelessWidget {
                             : Colors.grey.shade800,
                       ),
                     ),
-                    title: Text(
-                      wallet.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    title: Row(
+                      children: [
+                        Text(
+                          wallet.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        if (wallet.isMain) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'رئيسية',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     subtitle: Text(
                       'الرصيد: ${wallet.balance.truncate()} ج.م',
 
-                      style: AppTextStyles.style14W500.copyWith(
+                      style: AppTextStyle.style14W500.copyWith(
                         color: Colors.grey.shade600,
                       ),
                     ),
@@ -117,14 +137,14 @@ class WalletsScreen extends StatelessWidget {
                             value: 'set_main',
                             child: Text(
                               'خليها كـ محفظة رئيسية',
-                              style: AppTextStyles.style14W500,
+                              style: AppTextStyle.style14W500,
                             ),
                           ),
                         PopupMenuItem(
                           value: 'edit',
                           child: Text(
                             'عدّل',
-                            style: AppTextStyles.style14W500,
+                            style: AppTextStyle.style14W500,
                           ),
                         ),
                         PopupMenuItem(
@@ -132,7 +152,7 @@ class WalletsScreen extends StatelessWidget {
                           child: Text(
                             'مسح',
 
-                            style: AppTextStyles.style14W500.copyWith(
+                            style: AppTextStyle.style14W500.copyWith(
                               color: Colors.red,
                             ),
                           ),
@@ -147,14 +167,47 @@ class WalletsScreen extends StatelessWidget {
           return Center(
             child: Text(
               'شاشة المحافظ',
-              style: AppTextStyles.style14W500,
+              style: AppTextStyle.style14W500,
             ),
           );
         },
       ),
-      floatingActionButton: CustomFloatingActionButton(
-        onPressed: () => _showAddEditWalletDialog(context),
-        tooltip: 'ضيف محفظة جديدة',
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: SpeedDial(
+        backgroundColor: AppColors.primaryColor,
+        iconTheme: const IconThemeData(
+          color: AppColors.scaffoldBackgroundLightColor,
+        ),
+        icon: Icons.add,
+        activeIcon: Icons.close,
+        spacing: 4.h,
+        spaceBetweenChildren: 4.h,
+        overlayOpacity: 0.4,
+        children: [
+          SpeedDialChild(
+            child: const Icon(Icons.history),
+            label: 'سجل التحويلات',
+            onTap: () {
+              context.pushNamed(AppRoutes.transferHistoryScreen);
+            },
+          ),
+          SpeedDialChild(
+            child: const Icon(Icons.swap_horiz),
+            label: 'تحويل مبلغ',
+            onTap: () {
+              final state = context.read<WalletCubit>().state;
+              if (state is WalletLoaded) {
+                _showTransferDialog(context, state.wallets);
+              }
+            },
+          ),
+
+          SpeedDialChild(
+            child: const Icon(Icons.account_balance_wallet_outlined),
+            label: 'إضافة محفظة',
+            onTap: () => _showAddEditWalletDialog(context),
+          ),
+        ],
       ),
     );
   }
@@ -173,7 +226,7 @@ class WalletsScreen extends StatelessWidget {
         return AlertDialog(
           title: Text(
             isEditing ? 'عدّل المحفظة' : 'ضيف محفظة جديدة',
-            style: AppTextStyles.style18W800.copyWith(
+            style: AppTextStyle.style18W800.copyWith(
               color: AppColors.primaryColor,
             ),
           ),
@@ -214,7 +267,7 @@ class WalletsScreen extends StatelessWidget {
               onPressed: () => Navigator.of(ctx).pop(),
               child: Text(
                 'إلغاء',
-                style: AppTextStyles.style14W500,
+                style: AppTextStyle.style14W500,
               ),
             ),
             ElevatedButton(
@@ -239,7 +292,7 @@ class WalletsScreen extends StatelessWidget {
               },
               child: Text(
                 'حفظ',
-                style: AppTextStyles.style14W500.copyWith(
+                style: AppTextStyle.style14W500.copyWith(
                   color: AppColors.scaffoldBackgroundLightColor,
                 ),
               ),
@@ -267,7 +320,7 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
         children: [
           Text(
             'نقل مبلغ بين المحافظ',
-            style: AppTextStyles.style18W700.copyWith(
+            style: AppTextStyle.style18W700.copyWith(
               color: AppColors.primaryTextColor,
             ),
             textAlign: TextAlign.center,
@@ -289,7 +342,7 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                             value: w.id,
                             child: Text(
                               '${w.name} (${w.balance.truncate()} ج.م)',
-                              style: AppTextStyles.style12W500,
+                              style: AppTextStyle.style12W500,
                             ),
                           ),
                         )
@@ -315,7 +368,7 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                   CustomPrimaryTextfield(
                     controller: amountController,
                     text: 'المبلغ المراد تحويله',
-                    style: AppTextStyles.style12W500.copyWith(
+                    style: AppTextStyle.style12W500.copyWith(
                       color: AppColors.textGreyColor,
                     ),
                     textInputAction: TextInputAction.done,
@@ -343,7 +396,7 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                   onPressed: () => Navigator.pop(ctx),
                   child: Text(
                     'إلغاء',
-                    style: AppTextStyles.style14W500,
+                    style: AppTextStyle.style14W500,
                   ),
                 ),
                 Expanded(
@@ -355,7 +408,7 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                             SnackBar(
                               content: Text(
                                 'لا يمكن التحويل لنفس المحفظة!',
-                                style: AppTextStyles.style14W500,
+                                style: AppTextStyle.style14W500,
                               ),
                             ),
                           );
@@ -372,7 +425,7 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                     },
                     child: Text(
                       'تأكيد التحويل',
-                      style: AppTextStyles.style14W500.copyWith(
+                      style: AppTextStyle.style14W500.copyWith(
                         color: AppColors.scaffoldBackgroundLightColor,
                       ),
                     ),

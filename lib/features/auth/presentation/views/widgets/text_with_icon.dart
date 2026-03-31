@@ -15,7 +15,7 @@ class TextWithIcon extends StatelessWidget {
         Icon(icon, size: 20.r, color: AppColors.primaryColor),
         Text(
           text,
-          style: AppTextStyles.style14W500.copyWith(
+          style: AppTextStyle.style14W500.copyWith(
             color: AppColors.primaryColor,
           ),
         ),

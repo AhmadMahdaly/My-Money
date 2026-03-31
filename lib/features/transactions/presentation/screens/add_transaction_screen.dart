@@ -36,7 +36,7 @@ class AddTransactionScreen extends StatelessWidget {
       child: Scaffold(
         appBar: PageHeader(
           isLeading: false,
-          heightBar: 145.h,
+          heightBar: 130.h,
 
           // subTitle:
           bottom: Container(
@@ -59,10 +59,10 @@ class AddTransactionScreen extends StatelessWidget {
               dividerHeight: 0,
               labelColor: AppColors.primaryColor,
               unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
-              labelStyle: AppTextStyles.style14W600.copyWith(
+              labelStyle: AppTextStyle.style14W600.copyWith(
                 fontFamily: kPrimaryFont,
               ),
-              unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
+              unselectedLabelStyle: AppTextStyle.style14W600.copyWith(
                 fontFamily: kPrimaryFont,
               ),
               tabs: const [
@@ -154,7 +154,7 @@ void _showChangeMainWalletDialog(
               return AlertDialog(
                 title: Text(
                   'تغيير المحفظة الرئيسية',
-                  style: AppTextStyles.style16W600.copyWith(
+                  style: AppTextStyle.style16W600.copyWith(
                     color: AppColors.primaryColor,
                   ),
                 ),
@@ -189,7 +189,7 @@ void _showChangeMainWalletDialog(
                               ),
                               title: Text(
                                 'إضافة محفظة جديدة...',
-                                style: AppTextStyles.style14W600.copyWith(
+                                style: AppTextStyle.style14W600.copyWith(
                                   color: AppColors.primaryColor,
                                 ),
                               ),
@@ -244,7 +244,7 @@ void _showAddEditWalletDialog(BuildContext context, {Wallet? wallet}) {
       return AlertDialog(
         title: Text(
           isEditing ? 'عدّل المحفظة' : 'ضيف محفظة جديدة',
-          style: AppTextStyles.style18W800.copyWith(
+          style: AppTextStyle.style18W800.copyWith(
             color: AppColors.primaryColor,
           ),
         ),
@@ -283,7 +283,7 @@ void _showAddEditWalletDialog(BuildContext context, {Wallet? wallet}) {
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
               'إلغاء',
-              style: AppTextStyles.style14W500,
+              style: AppTextStyle.style14W500,
             ),
           ),
           ElevatedButton(
@@ -308,7 +308,7 @@ void _showAddEditWalletDialog(BuildContext context, {Wallet? wallet}) {
             },
             child: Text(
               'حفظ',
-              style: AppTextStyles.style14W500.copyWith(
+              style: AppTextStyle.style14W500.copyWith(
                 color: AppColors.scaffoldBackgroundLightColor,
               ),
             ),
@@ -528,7 +528,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                       widget.type == TransactionType.income
                           ? 'معاك كام (المبلغ)'
                           : 'صرفت كام (المبلغ)',
-                      style: AppTextStyles.style14W400.copyWith(
+                      style: AppTextStyle.style14W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
                     ),
@@ -551,7 +551,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                     ),
                     Text(
                       'لو عايز تغير المحفظة',
-                      style: AppTextStyles.style14W400.copyWith(
+                      style: AppTextStyle.style14W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
                     ),
@@ -610,7 +610,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                       showMainWallet
                                           ? '${mainWallet.name} (${mainWallet.balance.truncate()} ج.م)'
                                           : '${mainWallet.name} (****** ج.م)',
-                                      style: AppTextStyles.style14W500.copyWith(
+                                      style: AppTextStyle.style14W500.copyWith(
                                         color: AppColors.primaryColor,
                                       ),
                                       textAlign: TextAlign.center,
@@ -650,7 +650,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                           widget.type == TransactionType.income
                               ? 'الفلوس دي جاية منين (الرئيسية)'
                               : 'صرفت على ايه (الرئيسية)',
-                          style: AppTextStyles.style14W400.copyWith(
+                          style: AppTextStyle.style14W400.copyWith(
                             color: AppColors.primaryColor,
                           ),
                         ),
@@ -670,7 +670,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                     if (_selectedMainCategoryId != null) ...[
                       Text(
                         'اختر الفئة الفرعية (اختياري):',
-                        style: AppTextStyles.style12W300,
+                        style: AppTextStyle.style12W300,
                       ),
                       _buildCategorySelectionField(
                         hint: subCategories.isEmpty
@@ -687,7 +687,7 @@ class _TransactionFormState extends State<_TransactionForm> {
 
                     Text(
                       'ملاحظات (اختياري)',
-                      style: AppTextStyles.style14W400.copyWith(
+                      style: AppTextStyle.style14W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
                     ),
@@ -742,10 +742,10 @@ class _TransactionFormState extends State<_TransactionForm> {
                 Text(
                   selectedCategory?.name ?? hint,
                   style: selectedCategory != null
-                      ? AppTextStyles.style14W600.copyWith(
+                      ? AppTextStyle.style14W600.copyWith(
                           color: selectedCategory.color,
                         )
-                      : AppTextStyles.style14W400.copyWith(color: Colors.grey),
+                      : AppTextStyle.style14W400.copyWith(color: Colors.grey),
                 ),
               ],
             ),
@@ -785,7 +785,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                     isMainCategory
                         ? 'اختر الفئة الرئيسية'
                         : 'اختر الفئة الفرعية',
-                    style: AppTextStyles.style18W600,
+                    style: AppTextStyle.style18W600,
                   ),
                 ),
                 const Divider(),
@@ -794,7 +794,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                       ? Center(
                           child: Text(
                             'مفيش فئات مسجلة هنا',
-                            style: AppTextStyles.style14W400.copyWith(
+                            style: AppTextStyle.style14W400.copyWith(
                               color: Colors.grey,
                             ),
                           ),
@@ -888,7 +888,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                               ),
                               title: Text(
                                 category.name,
-                                style: AppTextStyles.style14W600,
+                                style: AppTextStyle.style14W600,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               trailing: budgeted > 0
@@ -896,7 +896,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                       widget.type == TransactionType.expense
                                           ? 'صرفت: ${spent.truncate()} ج.م | باقي: ${remaining.truncate()} ج.م'
                                           : 'مخطط: ${budgeted.truncate()} ج.م | فعلي: ${spent.truncate()} ج.م',
-                                      style: AppTextStyles.style9W400.copyWith(
+                                      style: AppTextStyle.style9W400.copyWith(
                                         color: category.color,
                                       ),
                                     )
@@ -904,7 +904,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                       spent > 0
                                           ? 'صرفت: ${spent.truncate()} ج.م (بدون ميزانية)'
                                           : 'بدون ميزانية محددة',
-                                      style: AppTextStyles.style9W400.copyWith(
+                                      style: AppTextStyle.style9W400.copyWith(
                                         color: Colors.grey,
                                       ),
                                     ),
@@ -938,7 +938,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                         isMainCategory
                             ? 'إضافة فئة رئيسية جديدة'
                             : 'إضافة فئة فرعية جديدة',
-                        style: AppTextStyles.style14W600.copyWith(
+                        style: AppTextStyle.style14W600.copyWith(
                           color: AppColors.scaffoldBackgroundLightColor,
                         ),
                       ),

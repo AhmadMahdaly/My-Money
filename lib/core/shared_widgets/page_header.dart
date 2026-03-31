@@ -83,7 +83,7 @@ class SubTitle extends StatelessWidget {
         4.horizontalSpace,
         Text(
           'ما تفعله الآن هو ما تجني ثماره في الغد',
-          style: AppTextStyles.style14W400.copyWith(
+          style: AppTextStyle.style14W400.copyWith(
             color: AppColors.scaffoldBackgroundLightColor,
           ),
         ),

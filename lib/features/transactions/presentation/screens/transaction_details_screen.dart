@@ -1,27 +1,22 @@
 // ignore_for_file: deprecated_member_use
 
-import 'dart:ui' as ui;
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/constants.dart';
-import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
-import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
-import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
+import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
-import 'package:uuid/uuid.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
   const TransactionDetailsScreen({super.key});
@@ -33,89 +28,9 @@ class TransactionDetailsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: PageHeader(
           isLeading: false,
-          heightBar: 180.h,
+          heightBar: 130.h,
           title: 'مصاريفك وفلوسك',
 
-          subTitle: BlocBuilder<WalletCubit, WalletState>(
-            builder: (context, walletState) {
-              var showMainWallet = true;
-              Wallet? mainWallet;
-
-              if (walletState is WalletLoaded) {
-                showMainWallet = walletState.showMainWallet;
-                if (walletState.wallets.isNotEmpty) {
-                  mainWallet = walletState.wallets.firstWhere(
-                    (w) => w.isMain,
-                    orElse: () => walletState.wallets.first,
-                  );
-                }
-              }
-
-              if (walletState is WalletLoaded && mainWallet != null) {
-                return Container(
-                  alignment: Alignment.center,
-                  color: Colors.white.withAlpha(0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: SvgImage(
-                          imagePath: 'assets/image/svg/change_wallet.svg',
-                          height: 18.r,
-                          color: AppColors.cardColor,
-                        ),
-
-                        onPressed: () {
-                          _showChangeMainWalletDialog(
-                            context,
-                            walletState.wallets,
-                            mainWallet!.id,
-                          );
-                        },
-                        tooltip: 'تغيير المحفظة الرئيسية',
-                      ),
-
-                      ImageFiltered(
-                        imageFilter: ui.ImageFilter.blur(
-                          sigmaX: showMainWallet ? 0 : 4.0,
-                          sigmaY: showMainWallet ? 0 : 4.0,
-                        ),
-                        child: Text(
-                          showMainWallet
-                              ? 'محفظتك: ${mainWallet.name} (${mainWallet.balance.truncate()} ج.م)'
-                              : 'محفظتك: ${mainWallet.name} (****** ج.م)',
-                          style: AppTextStyles.style14W500.copyWith(
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: Icon(
-                          showMainWallet
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-
-                          color: AppColors.cardColor,
-                          size: 20.r,
-                        ),
-                        onPressed: () {
-                          context
-                              .read<WalletCubit>()
-                              .toggleShowMainWalletPref();
-                        },
-                        tooltip: 'إخفاء المحفظة',
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                return const SizedBox.shrink();
-              }
-            },
-          ),
           bottom: Container(
             height: 50.h,
 
@@ -136,10 +51,10 @@ class TransactionDetailsScreen extends StatelessWidget {
               dividerHeight: 0,
               labelColor: AppColors.primaryColor,
               unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
-              labelStyle: AppTextStyles.style14W600.copyWith(
+              labelStyle: AppTextStyle.style14W600.copyWith(
                 fontFamily: kPrimaryFont,
               ),
-              unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
+              unselectedLabelStyle: AppTextStyle.style14W600.copyWith(
                 fontFamily: kPrimaryFont,
               ),
               tabs: const [
@@ -349,7 +264,7 @@ class _CategoryTransactionList extends StatelessWidget {
             type == TransactionType.income
                 ? 'فلوسك جت منين؟'
                 : 'فلوسك راحت فين؟',
-            style: AppTextStyles.style18W600.copyWith(
+            style: AppTextStyle.style18W600.copyWith(
               color: AppColors.primaryColor,
             ),
           ),
@@ -401,11 +316,11 @@ class _CategoryTransactionList extends StatelessWidget {
                   ),
                   title: Text(
                     mainCategory.name,
-                    style: AppTextStyles.style14W600,
+                    style: AppTextStyle.style14W600,
                   ),
                   trailing: Text(
                     '${categoryTotal.truncate()} ج.م',
-                    style: AppTextStyles.style14W700.copyWith(
+                    style: AppTextStyle.style14W700.copyWith(
                       color: type == TransactionType.income
                           ? AppColors.greenLightColor
                           : AppColors.errorColor,
@@ -425,200 +340,6 @@ class _CategoryTransactionList extends StatelessWidget {
       ],
     );
   }
-}
-
-void _showChangeMainWalletDialog(
-  BuildContext context,
-  List<Wallet> initialWallets, // تم تغيير الاسم لتجنب التعارض
-  String currentMainWalletId,
-) {
-  showDialog<void>(
-    context: context,
-    builder: (ctx) {
-      String? selectedWalletId = currentMainWalletId;
-      return StatefulBuilder(
-        builder: (context, setState) {
-          // استخدمنا BlocBuilder هنا لكي تظهر المحفظة الجديدة فور إضافتها
-          return BlocBuilder<WalletCubit, WalletState>(
-            builder: (context, state) {
-              final wallets = (state is WalletLoaded)
-                  ? state.wallets
-                  : initialWallets;
-
-              return AlertDialog(
-                title: Text(
-                  'تغيير المحفظة الرئيسية',
-                  style: AppTextStyles.style16W600.copyWith(
-                    color: AppColors.primaryColor,
-                  ),
-                ),
-                content: SizedBox(
-                  width: double.maxFinite,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: wallets.length + 1, // +1 لزر الإضافة
-                    itemBuilder: (context, index) {
-                      // 1. عرض المحافظ الحالية
-                      if (index < wallets.length) {
-                        final wallet = wallets[index];
-                        return RadioListTile<String>(
-                          title: Text(wallet.name),
-                          subtitle: Text('${wallet.balance.truncate()} ج.م'),
-                          value: wallet.id,
-                          groupValue: selectedWalletId,
-                          onChanged: (value) {
-                            setState(() {
-                              selectedWalletId = value;
-                            });
-                          },
-                        );
-                      }
-                      // 2. زر إضافة محفظة جديدة في النهاية
-                      else {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Divider(),
-                            ListTile(
-                              leading: const Icon(
-                                Icons.add_circle_outline,
-                                color: AppColors.primaryColor,
-                              ),
-                              title: Text(
-                                'إضافة محفظة جديدة...',
-                                style: AppTextStyles.style14W600.copyWith(
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
-                              onTap: () {
-                                // الخيار الأول: إغلاق الديالوج والذهاب لشاشة المحافظ
-                                // Navigator.pop(ctx);
-                                // context.push(AppRoutes.walletsScreen);
-
-                                // الخيار الثاني: فتح ديالوج صغير لإضافة المحفظة مباشرة (وهو الأفضل)
-                                _showAddEditWalletDialog(context);
-                              },
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('إلغاء'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (selectedWalletId != null &&
-                          selectedWalletId != currentMainWalletId) {
-                        context.read<WalletCubit>().setMainWallet(
-                          selectedWalletId!,
-                        );
-                      }
-                      Navigator.of(ctx).pop();
-                    },
-                    child: const Text('حفظ'),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
-    },
-  );
-}
-
-void _showAddEditWalletDialog(BuildContext context, {Wallet? wallet}) {
-  final isEditing = wallet != null;
-  final formKey = GlobalKey<FormState>();
-  final nameController = TextEditingController(text: wallet?.name);
-  final balanceController = TextEditingController(
-    text: isEditing ? wallet.balance.toString() : '',
-  );
-
-  showDialog<void>(
-    context: context,
-    builder: (ctx) {
-      return AlertDialog(
-        title: Text(
-          isEditing ? 'عدّل المحفظة' : 'ضيف محفظة جديدة',
-          style: AppTextStyles.style18W800.copyWith(
-            color: AppColors.primaryColor,
-          ),
-        ),
-        content: Form(
-          key: formKey,
-          child: Column(
-            spacing: 8.h,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomPrimaryTextfield(
-                controller: nameController,
-                text: 'اسم المحفظة',
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'متنساش تسجل اسم المحفظة' : null,
-              ),
-              CustomPrimaryTextfield(
-                controller: balanceController,
-                text: 'رصيد المحفظة',
-
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                validator: (v) {
-                  if (!isEditing &&
-                      (v == null || v.isEmpty || double.tryParse(v) == null)) {
-                    return 'سجّل مبلغ صح';
-                  }
-                  return null;
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              'إلغاء',
-              style: AppTextStyles.style14W500,
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                final newWallet = Wallet(
-                  id: wallet?.id ?? getIt<Uuid>().v4(),
-                  name: nameController.text,
-                  balance:
-                      double.tryParse(balanceController.text) ??
-                      wallet!.balance,
-                  isMain: wallet?.isMain ?? false,
-                );
-
-                if (isEditing) {
-                  context.read<WalletCubit>().updateWallet(newWallet);
-                } else {
-                  context.read<WalletCubit>().addWallet(newWallet);
-                }
-                Navigator.of(ctx).pop();
-              }
-            },
-            child: Text(
-              'حفظ',
-              style: AppTextStyles.style14W500.copyWith(
-                color: AppColors.scaffoldBackgroundLightColor,
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-  );
 }
 
 class _TransactionListItem extends StatelessWidget {
@@ -652,7 +373,7 @@ class _TransactionListItem extends StatelessWidget {
           TextButton(
             child: Text(
               'مسح',
-              style: AppTextStyles.style12W700.copyWith(
+              style: AppTextStyle.style12W700.copyWith(
                 color: AppColors.errorColor,
               ),
             ),
@@ -695,7 +416,7 @@ class _TransactionListItem extends StatelessWidget {
             children: [
               Text(
                 '${transaction.amount.truncate()} ج.م',
-                style: AppTextStyles.style16Bold.copyWith(
+                style: AppTextStyle.style16Bold.copyWith(
                   color: color,
                 ),
               ),
@@ -705,7 +426,7 @@ class _TransactionListItem extends StatelessWidget {
                   children: [
                     Text(
                       specificCategory.name,
-                      style: AppTextStyles.style12W300.copyWith(
+                      style: AppTextStyle.style12W300.copyWith(
                         color: AppColors.primaryTextColor,
                       ),
                     ),
@@ -715,7 +436,7 @@ class _TransactionListItem extends StatelessWidget {
                         transaction.note != null && transaction.note!.isNotEmpty
                             ? '(${transaction.note})'
                             : '',
-                        style: AppTextStyles.style12W300.copyWith(
+                        style: AppTextStyle.style12W300.copyWith(
                           color: AppColors.forthColor,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -803,7 +524,7 @@ class _SingleSummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: AppTextStyles.style16W500.copyWith(
+                      style: AppTextStyle.style16W500.copyWith(
                         color: AppColors.primaryTextColor,
                       ),
                     ),
@@ -811,14 +532,14 @@ class _SingleSummaryCard extends StatelessWidget {
                     Text.rich(
                       TextSpan(
                         text: totalAmount.truncate().toString(),
-                        style: AppTextStyles.style20W700.copyWith(
+                        style: AppTextStyle.style20W700.copyWith(
                           color: AppColors.primaryColor,
                           fontSize: 32.sp,
                         ),
                         children: [
                           TextSpan(
                             text: ' ج.م',
-                            style: AppTextStyles.style16W700.copyWith(
+                            style: AppTextStyle.style16W700.copyWith(
                               color: AppColors.primaryColor,
                             ),
                           ),
@@ -846,7 +567,7 @@ class _SingleSummaryCard extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
             child: InkWell(
               onTap: () {
-                context.pop();
+                context.read<MainLayoutCubit>().changeNavBarIndex(2);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -855,7 +576,7 @@ class _SingleSummaryCard extends StatelessWidget {
                     type == TransactionType.expense
                         ? 'إضافة مصاريف جديدة'
                         : 'إضافة دخل جديد',
-                    style: AppTextStyles.style12W500.copyWith(
+                    style: AppTextStyle.style12W500.copyWith(
                       color: AppColors.primaryColor,
                     ),
                   ),
@@ -902,7 +623,7 @@ class _FilterControlBar extends StatelessWidget {
               value: transactionState.selectedWalletId,
               hint: Text(
                 'كل المحافظ',
-                style: AppTextStyles.style12W600.copyWith(
+                style: AppTextStyle.style12W600.copyWith(
                   color: AppColors.greenLightColor,
                 ),
               ),
@@ -913,7 +634,7 @@ class _FilterControlBar extends StatelessWidget {
                   value: null,
                   child: Text(
                     'كل المحافظ',
-                    style: AppTextStyles.style12W600.copyWith(
+                    style: AppTextStyle.style12W600.copyWith(
                       color: AppColors.greenLightColor,
                     ),
                   ),
@@ -923,7 +644,7 @@ class _FilterControlBar extends StatelessWidget {
                     value: wallet.id,
                     child: Text(
                       wallet.name,
-                      style: AppTextStyles.style12W600.copyWith(
+                      style: AppTextStyle.style12W600.copyWith(
                         color: AppColors.greenLightColor,
                       ),
                     ),
@@ -938,7 +659,7 @@ class _FilterControlBar extends StatelessWidget {
               children: [
                 Text(
                   filterText,
-                  style: AppTextStyles.style12W600.copyWith(
+                  style: AppTextStyle.style12W600.copyWith(
                     color: AppColors.greenLightColor,
                   ),
                 ),
@@ -1164,7 +885,7 @@ class _PieChartCard extends StatelessWidget {
           children: [
             Text(
               'فلوسك على الشارت',
-              style: AppTextStyles.style18W600.copyWith(
+              style: AppTextStyle.style18W600.copyWith(
                 color: AppColors.primaryColor,
               ),
             ),
@@ -1195,7 +916,7 @@ class _PieChartCard extends StatelessWidget {
                       value: entry.value,
                       title: '${percentage.truncate()}%',
                       radius: 60.r,
-                      titleStyle: AppTextStyles.style12Bold.copyWith(
+                      titleStyle: AppTextStyle.style12Bold.copyWith(
                         color: AppColors.scaffoldBackgroundLightColor,
                       ),
                     );

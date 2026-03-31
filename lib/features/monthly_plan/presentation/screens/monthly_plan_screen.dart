@@ -131,7 +131,7 @@ class _MonthSelector extends StatelessWidget {
           ),
           Text(
             DateFormat.yMMMM('ar').format(currentMonth),
-            style: AppTextStyles.style16W400.copyWith(
+            style: AppTextStyle.style16W400.copyWith(
               color: AppColors.primaryColor,
             ),
           ),
@@ -281,7 +281,7 @@ class _SummaryItem extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     title,
-                    style: AppTextStyles.style16W300.copyWith(
+                    style: AppTextStyle.style16W300.copyWith(
                       color: AppColors.primaryColor,
                     ),
                   ),
@@ -291,7 +291,7 @@ class _SummaryItem extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     '${amount.truncate()}',
-                    style: AppTextStyles.style20Bold.copyWith(
+                    style: AppTextStyle.style20Bold.copyWith(
                       color: color,
                     ),
                   ),
@@ -329,7 +329,7 @@ class _PlannedIncomeSection extends StatelessWidget {
         child: ExpansionTile(
           title: Text(
             'الدخل المتوقع',
-            style: AppTextStyles.style14W500.copyWith(
+            style: AppTextStyle.style14W500.copyWith(
               color: AppColors.primaryColor,
             ),
           ),
@@ -391,7 +391,7 @@ class _PlannedIncomeSection extends StatelessWidget {
 
               title: Text(
                 'إدارة فئات الدخل...',
-                style: AppTextStyles.style12Bold.copyWith(
+                style: AppTextStyle.style12Bold.copyWith(
                   color: AppColors.scaffoldBackgroundLightColor,
                 ),
               ),
@@ -573,7 +573,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                     Expanded(
                       child: Text(
                         widget.category.name,
-                        style: AppTextStyles.style12Bold.copyWith(
+                        style: AppTextStyle.style12Bold.copyWith(
                           fontSize: widget.isSubCategory ? 12.sp : 14.sp,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -585,7 +585,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                         child: Center(
                           child: Text(
                             '${budgetedAmount.truncate()} ج.م',
-                            style: AppTextStyles.style14W700.copyWith(
+                            style: AppTextStyle.style14W700.copyWith(
                               color: widget.category.color,
                             ),
                           ),
@@ -613,7 +613,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                                 _controller.text.isEmpty
                                     ? '0'
                                     : '${_controller.text}  ج.م',
-                                style: AppTextStyles.style14W500.copyWith(
+                                style: AppTextStyle.style14W500.copyWith(
                                   color: AppColors.primaryColor,
                                 ),
                               ),
@@ -642,13 +642,13 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                   children: [
                     Text(
                       'الإفتراضي: ${budgetedAmount.truncate()} ج.م',
-                      style: AppTextStyles.style9W400.copyWith(
+                      style: AppTextStyle.style9W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
                     ),
                     Text(
                       'الفعلي: ${actualReceivedAmount.truncate()} ج.م',
-                      style: AppTextStyles.style9W400.copyWith(
+                      style: AppTextStyle.style9W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
                     ),
@@ -718,7 +718,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
             children: [
               Text(
                 'تعديل ميزانية ${widget.category.name}',
-                style: AppTextStyles.style16W600,
+                style: AppTextStyle.style16W600,
               ),
               20.verticalSpace,
               Row(
@@ -830,7 +830,7 @@ class _PlannedExpensesSection extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
             child: Text(
               'مصاريفك المتوقعة (الإلتزامات الثابتة)',
-              style: AppTextStyles.style14W500.copyWith(
+              style: AppTextStyle.style14W500.copyWith(
                 color: AppColors.primaryColor,
               ),
             ),
@@ -863,7 +863,7 @@ class _PlannedExpensesSection extends StatelessWidget {
                     Padding(
                       padding: subCategories.isNotEmpty
                           ? EdgeInsets.zero
-                          : EdgeInsets.symmetric(vertical: 8.h),
+                          : EdgeInsets.symmetric(vertical: 4.h),
                       child: _ExpenseBudgetTile(
                         category: mainCat,
                         plan: plan,
@@ -892,7 +892,7 @@ class _PlannedExpensesSection extends StatelessWidget {
             tileColor: AppColors.primaryColor,
             title: Text(
               'إدارة فئات المصاريف...',
-              style: AppTextStyles.style12Bold.copyWith(
+              style: AppTextStyle.style12Bold.copyWith(
                 color: AppColors.scaffoldBackgroundLightColor,
               ),
             ),
@@ -1029,7 +1029,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         : 0.0;
 
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.w),
       // tileColor: widget.category.color.withAlpha(8),
       shape: RoundedRectangleBorder(
         side: BorderSide(
@@ -1061,7 +1061,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
             child: Text(
               widget.category.name,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.style14Bold.copyWith(
+              style: AppTextStyle.style14Bold.copyWith(
                 color: AppColors.primaryColor,
               ),
             ),
@@ -1084,7 +1084,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   ),
                   child: Text(
                     '${budgetedAmount.truncate()} ج.م',
-                    style: AppTextStyles.style14W500.copyWith(
+                    style: AppTextStyle.style14W500.copyWith(
                       color: AppColors.primaryColor,
                     ),
                   ),
@@ -1094,7 +1094,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   onTap: () => _showEditBudgetSheet(context),
                   child: Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: 12.w,
+                      horizontal: 8.w,
                       vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
@@ -1111,7 +1111,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                           _controller.text.isEmpty
                               ? '0'
                               : '${_controller.text}  ج.م',
-                          style: AppTextStyles.style14W500.copyWith(
+                          style: AppTextStyle.style14W500.copyWith(
                             color: AppColors.primaryColor,
                           ),
                         ),
@@ -1130,7 +1130,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                 onPressed: () => _editCategory(context, widget.category),
                 icon: Icon(
                   Icons.settings,
-                  size: 16.r,
+                  size: 12.r,
                 ),
               ),
             ],
@@ -1140,7 +1140,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          12.verticalSpace,
+          8.verticalSpace,
           LinearProgressIndicator(
             value: progressValue,
             backgroundColor: AppColors.secondaryColor,
@@ -1151,16 +1151,22 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'صرفت: ${actualSpentAmount.truncate()}  ج.م.',
-                style: AppTextStyles.style9W400.copyWith(
-                  color: AppColors.primaryColor,
+              Expanded(
+                child: Text(
+                  textAlign: TextAlign.start,
+                  'صرفت: ${actualSpentAmount.truncate()}  ج.م.',
+                  style: AppTextStyle.style9W400.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
                 ),
               ),
-              Text(
-                'باقي لك: ${remainingAmount.truncate()}  ج.م.',
-                style: AppTextStyles.style9W400.copyWith(
-                  color: AppColors.primaryColor,
+              Expanded(
+                child: Text(
+                  textAlign: TextAlign.end,
+                  'باقي لك: ${remainingAmount.truncate()}  ج.م.',
+                  style: AppTextStyle.style9W400.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
                 ),
               ),
             ],
@@ -1240,7 +1246,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
             children: [
               Text(
                 'تعديل ميزانية ${widget.category.name}',
-                style: AppTextStyles.style16W600,
+                style: AppTextStyle.style16W600,
               ),
               20.verticalSpace,
               Row(

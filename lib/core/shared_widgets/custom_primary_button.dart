@@ -31,7 +31,7 @@ class CustomPrimaryButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: AppTextStyles.style16W500.copyWith(
+          style: AppTextStyle.style16W500.copyWith(
             fontFamily: kPrimaryFont,
             color: AppColors.scaffoldBackgroundLightColor,
           ),

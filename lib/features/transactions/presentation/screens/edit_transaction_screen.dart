@@ -85,7 +85,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
           TextButton(
             child: Text(
               'مسح',
-              style: AppTextStyles.style12W700.copyWith(
+              style: AppTextStyle.style12W700.copyWith(
                 color: AppColors.errorColor,
               ),
             ),

@@ -14,10 +14,10 @@ class Appthemes {
       fontFamily: kPrimaryFont,
 
       textTheme: TextTheme(
-        titleLarge: AppTextStyles.style18W800.copyWith(
+        titleLarge: AppTextStyle.style18W800.copyWith(
           fontFamily: kPrimaryFont,
         ),
-        titleMedium: AppTextStyles.style16W500.copyWith(
+        titleMedium: AppTextStyle.style16W500.copyWith(
           fontFamily: kPrimaryFont,
         ),
       ),
@@ -25,7 +25,7 @@ class Appthemes {
         iconTheme: const IconThemeData(
           color: AppColors.primaryColor,
         ),
-        titleTextStyle: AppTextStyles.style18Bold.copyWith(
+        titleTextStyle: AppTextStyle.style18Bold.copyWith(
           color: AppColors.primaryTextColor,
           fontFamily: kPrimaryFont,
         ),
@@ -52,7 +52,7 @@ class Appthemes {
           borderRadius: BorderRadius.circular(20.r),
         ),
         elevation: 5,
-        titleTextStyle: AppTextStyles.style18Bold.copyWith(
+        titleTextStyle: AppTextStyle.style18Bold.copyWith(
           fontFamily: kPrimaryFont,
           color: AppColors.primaryColor,
         ),
@@ -68,7 +68,7 @@ class Appthemes {
             borderRadius: BorderRadius.circular(20.r),
           ),
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
-          textStyle: AppTextStyles.style12W500.copyWith(
+          textStyle: AppTextStyle.style12W500.copyWith(
             fontFamily: kPrimaryFont,
           ),
         ),
@@ -82,7 +82,7 @@ class Appthemes {
             borderRadius: BorderRadius.circular(20.r),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          textStyle: AppTextStyles.style14W500.copyWith(
+          textStyle: AppTextStyle.style14W500.copyWith(
             fontFamily: kPrimaryFont,
           ),
         ),

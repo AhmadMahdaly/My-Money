@@ -61,7 +61,7 @@ class CustomPrimaryTextfield extends StatelessWidget {
         readOnly: readOnly ?? false,
         style:
             style ??
-            AppTextStyles.style14W500.copyWith(color: AppColors.thirdColor),
+            AppTextStyle.style14W500.copyWith(color: AppColors.thirdColor),
 
         textAlign: textAlign ?? TextAlign.start,
         validator: validator,
@@ -75,7 +75,7 @@ class CustomPrimaryTextfield extends StatelessWidget {
             text ?? '',
             style:
                 style ??
-                AppTextStyles.style14W500.copyWith(
+                AppTextStyle.style14W500.copyWith(
                   color: AppColors.secondaryColor,
                 ),
           ),
