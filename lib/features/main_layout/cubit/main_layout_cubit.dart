@@ -17,8 +17,16 @@ class MainLayoutCubit extends Cubit<MainLayoutState> {
     const MonthlyPlanScreen(),
     const MoreView(),
   ];
+  int backPressCount = 0;
+
+  void resetBackPress() {
+    backPressCount = 0;
+  }
+
   int currentIndex = 2;
   void changeNavBarIndex(int index) {
+    if (index == currentIndex) return;
+    resetBackPress();
     currentIndex = index;
     emit(ChangeNavBarState());
   }
