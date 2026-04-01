@@ -20,6 +20,18 @@ class MonthlyPlanCubit extends Cubit<MonthlyPlanState> {
     return DateFormat('yyyy-MM').format(date);
   }
 
+  void resetPlan() {
+    final currentPlan = state.plan;
+    if (currentPlan == null) return;
+
+    final clearedPlan = currentPlan.copyWith(
+      incomes: [],
+      expenses: [],
+    );
+
+    updatePlan(clearedPlan);
+  }
+
   Future<void> saveCurrentPlan() async {
     if (isClosed ||
         state.plan == null ||

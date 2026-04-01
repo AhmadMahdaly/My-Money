@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
@@ -95,11 +96,62 @@ class _MonthlyPlanView extends StatelessWidget {
                       ],
                     ),
                   ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'إدارة الميزانية',
+                          style: AppTextStyle.style14W500,
+                        ),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: () {
+                            _showResetDialog(context);
+                          },
+                          icon: const Icon(Icons.refresh, color: Colors.white),
+                          label: const Text(
+                            'إعادة تعيين',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  void _showResetDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('تأكيد'),
+        content: const Text('هل تريد إعادة تعيين كل الميزانية؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () {
+              context.read<MonthlyPlanCubit>().resetPlan();
+              Navigator.pop(context);
+            },
+            child: const Text('نعم، امسح'),
+          ),
+        ],
       ),
     );
   }
@@ -462,44 +514,44 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
     super.dispose();
   }
 
-  // void _updateIncomeInCubit(double amount) {
-  //   final category = widget.category;
-  //   final planState = context.read<MonthlyPlanCubit>().state;
+  void _updateIncomeInCubit(double amount) {
+    final category = widget.category;
+    final planState = context.read<MonthlyPlanCubit>().state;
 
-  //   final otherIncomes = widget.plan.incomes
-  //       .where((i) => i.name != category.name)
-  //       .toList();
+    final otherIncomes = widget.plan.incomes
+        .where((i) => i.name != category.name)
+        .toList();
 
-  //   final updatedIncomes = [...otherIncomes];
+    final updatedIncomes = [...otherIncomes];
 
-  //   if (amount > 0) {
-  //     final existingIncome = widget.plan.incomes.firstWhere(
-  //       (i) => i.name == category.name,
-  //       orElse: () => PlannedIncome(
-  //         id: getIt<Uuid>().v4(),
-  //         name: '',
-  //         amount: 0,
-  //         date: DateTime.now(),
-  //       ),
-  //     );
+    if (amount > 0) {
+      final existingIncome = widget.plan.incomes.firstWhere(
+        (i) => i.name == category.name,
+        orElse: () => PlannedIncome(
+          id: getIt<Uuid>().v4(),
+          name: '',
+          amount: 0,
+          date: DateTime.now(),
+        ),
+      );
 
-  //     final newIncome = PlannedIncome(
-  //       id: existingIncome.id,
-  //       name: category.name,
-  //       amount: amount,
-  //       date: DateTime(
-  //         planState.currentMonth.year,
-  //         planState.currentMonth.month,
-  //         1,
-  //       ),
-  //     );
-  //     updatedIncomes.add(newIncome);
-  //   }
+      final newIncome = PlannedIncome(
+        id: existingIncome.id,
+        name: category.name,
+        amount: amount,
+        date: DateTime(
+          planState.currentMonth.year,
+          planState.currentMonth.month,
+          1,
+        ),
+      );
+      updatedIncomes.add(newIncome);
+    }
 
-  //   context.read<MonthlyPlanCubit>().updatePlan(
-  //     widget.plan.copyWith(incomes: updatedIncomes),
-  //   );
-  // }
+    context.read<MonthlyPlanCubit>().updatePlan(
+      widget.plan.copyWith(incomes: updatedIncomes),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +645,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                       )
                     else
                       GestureDetector(
-                        onTap: () => _showEditBudgetSheet(context),
+                        onTap: () => _showEditBudgetSheet(context, true),
                         child: Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 12.w,
@@ -695,7 +747,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
     );
   }
 
-  void _showEditBudgetSheet(BuildContext context) {
+  void _showEditBudgetSheet(BuildContext context, bool isIn) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -764,7 +816,12 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                   ),
                   onPressed: () {
                     final amount = double.tryParse(_controller.text) ?? 0.0;
-                    _updateExpenseInCubit(amount);
+                    if (isIn) {
+                      _updateIncomeInCubit(amount);
+                    } else {
+                      _updateExpenseInCubit(amount);
+                    }
+
                     Navigator.pop(context);
                     setState(
                       () {},
