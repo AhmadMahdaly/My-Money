@@ -2,22 +2,20 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/features/shopping/domain/entities/shopping_item.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 part 'shopping_state.dart';
 
 class ShoppingCubit extends Cubit<ShoppingState> {
-  ShoppingCubit({required this.sharedPreferences})
-    : super(const ShoppingState()) {
+  ShoppingCubit() : super(const ShoppingState()) {
     loadItems();
   }
 
-  final SharedPreferences sharedPreferences;
   final String _cacheKey = 'cached_shopping_list';
 
   void loadItems() {
-    final jsonString = sharedPreferences.getString(_cacheKey);
+    final jsonString = CacheHelper.getData(_cacheKey) as String?;
     if (jsonString != null && jsonString.isNotEmpty) {
       final list = (json.decode(jsonString) as List)
           .cast<Map<String, dynamic>>()
@@ -29,7 +27,7 @@ class ShoppingCubit extends Cubit<ShoppingState> {
 
   Future<void> _saveItems(List<ShoppingItem> items) async {
     final jsonList = items.map((i) => i.toJson()).toList();
-    await sharedPreferences.setString(_cacheKey, json.encode(jsonList));
+    await CacheHelper.saveData(key: _cacheKey, value: json.encode(jsonList));
     emit(state.copyWith(items: items));
   }
 
@@ -53,5 +51,3 @@ class ShoppingCubit extends Cubit<ShoppingState> {
     await _saveItems(updatedList);
   }
 }
-
-// --- ملف State ---

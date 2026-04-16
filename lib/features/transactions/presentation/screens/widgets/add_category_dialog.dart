@@ -114,7 +114,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف الفئة؟'),
+        title: const Text('حذف المخصص؟'),
         content: Text(
           'سيتم حذف "${category.name}" وجميع العمليات المرتبطة بها.',
         ),
@@ -155,7 +155,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.scaffoldBackgroundLightColor,
         title: Text(
-          widget.categoryToEdit != null ? 'تعديل الفئة' : 'إضافة فئة ذكية',
+          widget.categoryToEdit != null ? 'تعديل المخصص' : 'إضافة مخصص ذكي',
           style: AppTextStyle.style16W600.copyWith(
             color: AppColors.primaryColor,
           ),
@@ -209,7 +209,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                       children: [
                         CustomPrimaryTextfield(
                           controller: _nameController,
-                          text: 'اسم الفئة',
+                          text: 'اسم المخصص',
                           validator: (v) => v!.isEmpty ? 'سجل الاسم' : null,
                         ),
                         16.verticalSpace,
@@ -221,7 +221,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             Padding(
                               padding: EdgeInsets.only(bottom: 16.h),
                               child: Text(
-                                '⚠️ لا يمكن تحويل هذه الفئة إلى فرعية لأن بداخلها فئات فرعية بالفعل.',
+                                '⚠️ لا يمكن تحويل هذا المخصص إلى فرعي لأن بداخله مخصصات فرعية بالفعل.',
                                 style: AppTextStyle.style12W400.copyWith(
                                   color: AppColors.orangeColor,
                                 ),
@@ -231,7 +231,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             SwitchListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(
-                                'هل هذه فئة فرعية؟',
+                                'هل هذا مخصص فرعي؟',
                                 style: AppTextStyle.style14W600,
                               ),
                               value: _isSubCategory,
@@ -242,7 +242,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                               DropdownButtonFormField<String>(
                                 initialValue: _selectedParentId,
                                 decoration: const InputDecoration(
-                                  labelText: 'تندرج تحت فئة:',
+                                  labelText: 'يندرج تحت مخصص:',
                                 ),
                                 items: mainCategories
                                     .where(
@@ -258,7 +258,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                                 onChanged: (v) =>
                                     setState(() => _selectedParentId = v),
                                 validator: (v) => _isSubCategory && v == null
-                                    ? 'اختر الفئة الرئيسية'
+                                    ? 'اختر المخصص الرئيسي'
                                     : null,
                               ),
                               16.verticalSpace,
@@ -297,7 +297,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
-                            'فئة مكررة (التزامات ثابتة)',
+                            'مخصص مكرر (التزامات ثابتة)',
                             style: AppTextStyle.style14W600,
                           ),
                           subtitle: Text(
@@ -382,13 +382,13 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                               children: List.generate(7, (index) {
                                 final day = index + 1;
                                 final days = [
-                                  'ن',
-                                  'ث',
-                                  'ر',
-                                  'خ',
-                                  'ج',
-                                  'س',
-                                  'ح',
+                                  'أحد',
+                                  'اثنين',
+                                  'ثلاثاء',
+                                  'أربعاء',
+                                  'خميس',
+                                  'جمعة',
+                                  'سبت',
                                 ];
                                 final isSelected = _selectedDaysOfWeek.contains(
                                   day,

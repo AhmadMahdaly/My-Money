@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/core/services/cache_helper/cache_values.dart';
 import 'package:opration/features/goals/data/models/financial_goal_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class FinancialGoalLocalDataSource {
   Future<List<FinancialGoalModel>> getGoals();
@@ -10,16 +10,15 @@ abstract class FinancialGoalLocalDataSource {
 }
 
 class FinancialGoalLocalDataSourceImpl implements FinancialGoalLocalDataSource {
-  FinancialGoalLocalDataSourceImpl({required this.sharedPreferences});
-  final SharedPreferences sharedPreferences;
+  FinancialGoalLocalDataSourceImpl();
 
   @override
-  Future<List<FinancialGoalModel>> getGoals() {
-    final jsonString = sharedPreferences.getString(
+  Future<List<FinancialGoalModel>> getGoals() async {
+    final jsonString = await CacheHelper.getData(
       CacheKeys.cachedFinancialGoals,
     );
     if (jsonString != null) {
-      final jsonList = json.decode(jsonString) as List<dynamic>;
+      final jsonList = json.decode(jsonString.toString()) as List<dynamic>;
       return Future.value(
         jsonList
             .map(
@@ -34,11 +33,11 @@ class FinancialGoalLocalDataSourceImpl implements FinancialGoalLocalDataSource {
   }
 
   @override
-  Future<void> saveGoals(List<FinancialGoalModel> goals) {
+  Future<bool> saveGoals(List<FinancialGoalModel> goals) async {
     final jsonList = goals.map((goal) => goal.toJson()).toList();
-    return sharedPreferences.setString(
-      CacheKeys.cachedFinancialGoals,
-      json.encode(jsonList),
+    return CacheHelper.saveData(
+      key: CacheKeys.cachedFinancialGoals,
+      value: json.encode(jsonList),
     );
   }
 }

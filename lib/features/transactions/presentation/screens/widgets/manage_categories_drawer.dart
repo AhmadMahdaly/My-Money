@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
@@ -18,7 +19,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
     return Scaffold(
       appBar: const PageHeader(
         isLeading: true,
-        title: 'إدارة فئاتك',
+        title: 'إدارة مخصصاتك',
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {
@@ -32,12 +33,12 @@ class ManageCategoriesDrawer extends StatelessWidget {
           return ListView(
             children: [
               _CategoryListSection(
-                title: 'فئات الدخل',
+                title: 'مخصصات الدخل',
                 categories: incomeCategories,
               ),
               const Divider(),
               _CategoryListSection(
-                title: 'فئات الصرف',
+                title: 'مخصصات الصرف',
                 categories: expenseCategories,
               ),
               60.verticalSpace,
@@ -68,18 +69,21 @@ class ManageCategoriesDrawer extends StatelessWidget {
         titleTextStyle: AppTextStyle.style18W600,
         title: Text(
           textAlign: TextAlign.center,
-          'اختار نوع الفئة',
-          style: AppTextStyle.style14W500.copyWith(
-            color: AppColors.primaryColor,
+          'اختار نوع المخصص',
+          style: AppTextStyle.style16W700.copyWith(
+            color: AppColors.forthColor,
           ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.add, color: AppColors.successColor),
+              leading: Icon(
+                CupertinoIcons.add_circled,
+                color: AppColors.successColor,
+              ),
               title: Text(
-                'دخل (Income)',
+                'مخصص دخل',
                 style: AppTextStyle.style14W500.copyWith(
                   color: AppColors.successColor,
                 ),
@@ -90,9 +94,12 @@ class ManageCategoriesDrawer extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.minimize, color: AppColors.errorColor),
+              leading: const Icon(
+                CupertinoIcons.minus_circle,
+                color: AppColors.errorColor,
+              ),
               title: Text(
-                'صرف (Expense)',
+                'مخصص صرف',
                 style: AppTextStyle.style14W500.copyWith(
                   color: AppColors.errorColor,
                 ),

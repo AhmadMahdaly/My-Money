@@ -1,5 +1,5 @@
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/core/services/cache_helper/cache_values.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class AuthLocalDataSource {
   Future<void> saveUsername(String username);
@@ -8,21 +8,20 @@ abstract class AuthLocalDataSource {
 }
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
-  AuthLocalDataSourceImpl({required this.sharedPreferences});
-  final SharedPreferences sharedPreferences;
+  AuthLocalDataSourceImpl();
 
   @override
   Future<void> saveUsername(String username) {
-    return sharedPreferences.setString(CacheKeys.userName, username);
+    return CacheHelper.saveData(key: CacheKeys.userName, value: username);
   }
 
   @override
   Future<String?> getUsername() async {
-    return sharedPreferences.getString(CacheKeys.userName);
+    return CacheHelper.getData(CacheKeys.userName) as String?;
   }
 
   @override
   Future<void> clearUsername() {
-    return sharedPreferences.remove(CacheKeys.userName);
+    return CacheHelper.removeData(CacheKeys.userName);
   }
 }

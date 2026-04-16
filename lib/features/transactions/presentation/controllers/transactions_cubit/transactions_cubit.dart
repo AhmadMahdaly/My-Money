@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/domain/usecases/add_category.dart';
@@ -15,7 +16,6 @@ import 'package:opration/features/transactions/domain/usecases/save_filter_setti
 import 'package:opration/features/transactions/domain/usecases/update_category.dart';
 import 'package:opration/features/transactions/domain/usecases/update_transaction.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 part 'transactions_state.dart';
@@ -23,7 +23,6 @@ part 'transactions_state.dart';
 class TransactionCubit extends Cubit<TransactionState> {
   TransactionCubit({
     required this.uuid,
-    required this.sharedPreferences,
     required this.getTransactionsUseCase,
     required this.addTransactionUseCase,
     required this.updateTransactionUseCase,
@@ -47,7 +46,6 @@ class TransactionCubit extends Cubit<TransactionState> {
   final GetFilterSettingsUseCase getFilterSettingsUseCase;
   final SaveFilterSettingsUseCase saveFilterSettingsUseCase;
   final WalletCubit walletCubit;
-  final SharedPreferences sharedPreferences;
   final Uuid uuid;
   Future<void> loadInitialData() async {
     emit(state.copyWith(isLoading: true));
@@ -98,7 +96,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     DateTime now,
   ) async {
     final periodKey = _getPeriodKey(category, now);
-    await sharedPreferences.setBool(periodKey, true);
+    await CacheHelper.saveData(key: periodKey, value: true);
   }
 
   Future<void> checkScheduledTransactions() async {
@@ -140,7 +138,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   bool _checkIfAlreadyExecuted(TransactionCategory category, DateTime now) {
     final periodKey = _getPeriodKey(category, now);
-    return sharedPreferences.getBool(periodKey) ?? false;
+    return CacheHelper.getData(periodKey) as bool? ?? false;
   }
 
   Future<void> executeRecurringTransaction(TransactionCategory category) async {
@@ -200,7 +198,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   Future<void> processRecurringTransactions() async {
     final now = DateTime.now();
-    final lastCheck = sharedPreferences.getString('last_recurring_check');
+    final lastCheck = CacheHelper.getData('last_recurring_check') as String?;
 
     if (lastCheck == DateFormat('yyyy-MM-dd').format(now)) return;
 
@@ -227,9 +225,9 @@ class TransactionCubit extends Cubit<TransactionState> {
         }
       }
     }
-    await sharedPreferences.setString(
-      'last_recurring_check',
-      DateFormat('yyyy-MM-dd').format(now),
+    await CacheHelper.saveData(
+      key: 'last_recurring_check',
+      value: DateFormat('yyyy-MM-dd').format(now),
     );
   }
 

@@ -3,12 +3,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/core/services/cache_helper/cache_values.dart';
 import 'package:opration/features/monthly_plan/domain/entities/monthly_plan.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class TransactionLocalDataSource {
@@ -35,14 +35,12 @@ abstract class TransactionLocalDataSource {
 
 class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
   TransactionLocalDataSourceImpl({
-    required this.sharedPreferences,
     required this.uuid,
   });
-  final SharedPreferences sharedPreferences;
   final Uuid uuid;
 
   Future<List<Map<String, dynamic>>> _getDecodedList(String key) async {
-    final jsonString = sharedPreferences.getString(key);
+    final jsonString = CacheHelper.getData(key) as String?;
     if (jsonString != null && jsonString.isNotEmpty) {
       return (json.decode(jsonString) as List).cast<Map<String, dynamic>>();
     }
@@ -53,7 +51,7 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     String key,
     List<Map<String, dynamic>> list,
   ) async {
-    await sharedPreferences.setString(key, json.encode(list));
+    await CacheHelper.saveData(key: key, value: json.encode(list));
   }
 
   @override
@@ -184,31 +182,28 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     DateTime endDate,
     PredefinedFilter activeFilter,
   ) async {
-    await sharedPreferences.setString(
-      CacheKeys.cachedFilterStartDate,
-      startDate.toIso8601String(),
+    await CacheHelper.saveData(
+      key: CacheKeys.cachedFilterStartDate,
+      value: startDate.toIso8601String(),
     );
-    await sharedPreferences.setString(
-      CacheKeys.cachedFilterEndDate,
-      endDate.toIso8601String(),
+    await CacheHelper.saveData(
+      key: CacheKeys.cachedFilterEndDate,
+      value: endDate.toIso8601String(),
     );
-    await sharedPreferences.setString(
-      CacheKeys.cachedActiveFilter,
-      activeFilter.name,
+    await CacheHelper.saveData(
+      key: CacheKeys.cachedActiveFilter,
+      value: activeFilter.name,
     );
   }
 
   @override
   Future<Map<String, dynamic>> getDateFilter() async {
-    final startDateString = sharedPreferences.getString(
-      CacheKeys.cachedFilterStartDate,
-    );
-    final endDateString = sharedPreferences.getString(
-      CacheKeys.cachedFilterEndDate,
-    );
-    final activeFilterString = sharedPreferences.getString(
-      CacheKeys.cachedActiveFilter,
-    );
+    final startDateString =
+        CacheHelper.getData(CacheKeys.cachedFilterStartDate) as String?;
+    final endDateString =
+        CacheHelper.getData(CacheKeys.cachedFilterEndDate) as String?;
+    final activeFilterString =
+        CacheHelper.getData(CacheKeys.cachedActiveFilter) as String?;
 
     final activeFilter = PredefinedFilter.values.firstWhere(
       (e) => e.name == activeFilterString,
@@ -224,22 +219,53 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     };
   }
 
-  String _getPlanCacheKey(String yearMonth) => 'monthly_plan_$yearMonth';
+  // String _getPlanCacheKey(String yearMonth) => 'monthly_plan_$yearMonth';
 
   @override
   Future<MonthlyPlan> getMonthlyPlan(String yearMonth) async {
-    final jsonString = sharedPreferences.getString(_getPlanCacheKey(yearMonth));
-    if (jsonString != null && jsonString.isNotEmpty) {
+    final plans = await _getAllPlans();
+
+    if (plans.containsKey(yearMonth)) {
       return MonthlyPlan.fromJson(
-        json.decode(jsonString) as Map<String, dynamic>,
+        Map<String, dynamic>.from(plans[yearMonth] as Map),
       );
     }
-    return MonthlyPlan(id: yearMonth);
+
+    /// 🔥 هنا بننشئ ونحفظ فورًا
+    final newPlan = MonthlyPlan(id: yearMonth);
+
+    plans[yearMonth] = newPlan.toJson();
+
+    await _saveAllPlans(plans);
+
+    return newPlan;
   }
 
   @override
   Future<void> saveMonthlyPlan(MonthlyPlan plan) async {
-    final key = _getPlanCacheKey(plan.id);
-    await sharedPreferences.setString(key, json.encode(plan.toJson()));
+    final plans = await _getAllPlans();
+
+    plans[plan.id] = plan.toJson();
+
+    await _saveAllPlans(plans);
+  }
+
+  Future<Map<String, dynamic>> _getAllPlans() async {
+    final jsonString = CacheHelper.getData(monthlyPlansKey) as String?;
+
+    if (jsonString == null || jsonString.isEmpty) {
+      return {};
+    }
+
+    return Map<String, dynamic>.from(json.decode(jsonString) as Map);
+  }
+
+  Future<void> _saveAllPlans(Map<String, dynamic> plans) async {
+    await CacheHelper.saveData(
+      key: monthlyPlansKey,
+      value: json.encode(plans),
+    );
   }
 }
+
+const String monthlyPlansKey = 'monthly_plans';

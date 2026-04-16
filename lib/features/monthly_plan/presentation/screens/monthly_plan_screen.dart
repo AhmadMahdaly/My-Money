@@ -46,6 +46,14 @@ class _MonthlyPlanView extends StatelessWidget {
         isLeading: false,
         height: 16.h,
         title: 'الخطة الشهرية',
+        actions: [
+          InkWell(
+            onTap: () {
+              _showResetDialog(context);
+            },
+            child: const Icon(Icons.refresh, color: Colors.white),
+          ),
+        ],
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, transactionState) {
@@ -93,31 +101,6 @@ class _MonthlyPlanView extends StatelessWidget {
                         _PlannedExpensesSection(plan: planState.plan!),
 
                         30.verticalSpace,
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'إدارة الميزانية',
-                          style: AppTextStyle.style14W500,
-                        ),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          onPressed: () {
-                            _showResetDialog(context);
-                          },
-                          icon: const Icon(Icons.refresh, color: Colors.white),
-                          label: const Text(
-                            'إعادة تعيين',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -1010,7 +993,8 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         ? amount.truncate().toString()
         : amount.toString();
 
-    if (_controller.text != textValue) {
+    if (_controller.text != textValue ||
+        (textValue == '0' && _controller.text.isEmpty)) {
       _controller.text = textValue;
     }
   }
@@ -1114,7 +1098,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           SizedBox(
-            width: SizeConfig.screenWidth / 3 - 20.w,
+            width: SizeConfig.screenWidth / 3 - 40.w,
             child: Text(
               widget.category.name,
               overflow: TextOverflow.ellipsis,
@@ -1128,21 +1112,22 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
               if (hasSubCategories)
                 Container(
                   padding: EdgeInsets.only(
-                    right: 12.w,
-                    left: 12.w,
+                    top: 4.h,
+                    right: 8.w,
+                    left: 8.w,
                     bottom: 4.h,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withAlpha(16),
+                    color: AppColors.forthColor.withAlpha(16),
                     borderRadius: BorderRadius.circular(8.r),
                     border: Border.all(
-                      color: AppColors.primaryColor.withAlpha(77),
+                      color: AppColors.forthColor.withAlpha(77),
                     ),
                   ),
                   child: Text(
                     '${budgetedAmount.truncate()} ج.م',
-                    style: AppTextStyle.style14W500.copyWith(
-                      color: AppColors.primaryColor,
+                    style: AppTextStyle.style12W500.copyWith(
+                      color: AppColors.forthColor.withAlpha(200),
                     ),
                   ),
                 )
@@ -1151,7 +1136,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   onTap: () => _showEditBudgetSheet(context),
                   child: Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: 8.w,
+                      horizontal: 4.w,
                       vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
@@ -1168,11 +1153,11 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                           _controller.text.isEmpty
                               ? '0'
                               : '${_controller.text}  ج.م',
-                          style: AppTextStyle.style14W500.copyWith(
-                            color: AppColors.primaryColor,
+                          style: AppTextStyle.style12W500.copyWith(
+                            color: AppColors.primaryTextColor,
                           ),
                         ),
-                        8.horizontalSpace,
+                        4.horizontalSpace,
                         Icon(
                           Icons.edit_note,
                           size: 18.r,

@@ -2,25 +2,24 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/features/debt/domain/entities/debt.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 part 'debt_state.dart';
 
 class DebtCubit extends Cubit<DebtState> {
-  DebtCubit({required this.sharedPreferences}) : super(const DebtState()) {
+  DebtCubit() : super(const DebtState()) {
     loadDebts();
   }
 
-  final SharedPreferences sharedPreferences;
   final String _cacheKey = 'cached_debts_list';
 
   void loadDebts() {
-    final jsonString = sharedPreferences.getString(_cacheKey);
+    final jsonString = CacheHelper.getData(_cacheKey) as String?;
     if (jsonString != null && jsonString.isNotEmpty) {
       final list = (json.decode(jsonString) as List)
           .cast<Map<String, dynamic>>()
@@ -32,7 +31,7 @@ class DebtCubit extends Cubit<DebtState> {
 
   Future<void> _saveDebts(List<Debt> debts) async {
     final jsonList = debts.map((d) => d.toJson()).toList();
-    await sharedPreferences.setString(_cacheKey, json.encode(jsonList));
+    await CacheHelper.saveData(key: _cacheKey, value: json.encode(jsonList));
     emit(state.copyWith(debts: debts));
   }
 

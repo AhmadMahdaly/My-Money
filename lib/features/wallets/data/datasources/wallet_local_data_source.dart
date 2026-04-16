@@ -1,9 +1,9 @@
 import 'dart:convert';
 
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/core/services/cache_helper/cache_values.dart';
 import 'package:opration/features/wallets/data/models/transfer_record_model.dart';
 import 'package:opration/features/wallets/data/models/wallet_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class WalletLocalDataSource {
@@ -17,15 +17,13 @@ abstract class WalletLocalDataSource {
 
 class WalletLocalDataSourceImpl implements WalletLocalDataSource {
   WalletLocalDataSourceImpl({
-    required this.sharedPreferences,
     required this.uuid,
   });
-  final SharedPreferences sharedPreferences;
   final Uuid uuid;
 
   @override
   Future<List<WalletModel>> getWallets() async {
-    final jsonString = sharedPreferences.getString(CacheKeys.cachedWallets);
+    final jsonString = CacheHelper.getData(CacheKeys.cachedWallets) as String?;
     if (jsonString != null && jsonString.isNotEmpty) {
       final jsonList = json.decode(jsonString) as List<dynamic>;
       final wallets = jsonList
@@ -49,22 +47,22 @@ class WalletLocalDataSourceImpl implements WalletLocalDataSource {
   @override
   Future<void> saveWallets(List<WalletModel> wallets) {
     final jsonList = wallets.map((wallet) => wallet.toJson()).toList();
-    return sharedPreferences.setString(
-      CacheKeys.cachedWallets,
-      json.encode(jsonList),
+    return CacheHelper.saveData(
+      key: CacheKeys.cachedWallets,
+      value: json.encode(jsonList),
     );
   }
 
   @override
   Future<bool> getShowMainWalletPref() {
     return Future.value(
-      sharedPreferences.getBool(CacheKeys.showMainWalletPref) ?? true,
+      CacheHelper.getData(CacheKeys.showMainWalletPref) as bool? ?? true,
     );
   }
 
   @override
   Future<void> setShowMainWalletPref(bool show) {
-    return sharedPreferences.setBool(CacheKeys.showMainWalletPref, show);
+    return CacheHelper.saveData(key: CacheKeys.showMainWalletPref, value: show);
   }
 
   @override
@@ -72,15 +70,15 @@ class WalletLocalDataSourceImpl implements WalletLocalDataSource {
     final records = await getTransferHistory();
     records.insert(0, record);
     final jsonList = records.map((r) => r.toJson()).toList();
-    await sharedPreferences.setString(
-      'transfer_history',
-      json.encode(jsonList),
+    await CacheHelper.saveData(
+      key: 'transfer_history',
+      value: json.encode(jsonList),
     );
   }
 
   @override
   Future<List<TransferRecordModel>> getTransferHistory() async {
-    final jsonString = sharedPreferences.getString('transfer_history');
+    final jsonString = CacheHelper.getData('transfer_history') as String?;
     if (jsonString == null) return [];
     final jsonList = json.decode(jsonString) as List<dynamic>;
     return jsonList

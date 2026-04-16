@@ -23,6 +23,7 @@ class WalletsScreen extends StatelessWidget {
       appBar: PageHeader(
         isLeading: false,
         heightBar: 80.h,
+        height: 16.h,
         title: 'المحافظ',
       ),
       body: BlocBuilder<WalletCubit, WalletState>(

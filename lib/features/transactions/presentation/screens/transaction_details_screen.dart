@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -75,7 +76,7 @@ class TransactionDetailsScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: Icon(
-                          Icons.notifications_outlined,
+                          CupertinoIcons.bell,
                           color: AppColors.scaffoldBackgroundLightColor,
                           size: 24.r,
                         ),

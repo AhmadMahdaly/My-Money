@@ -1,75 +1,123 @@
-// import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-// import 'package:opration/core/services/cache_helper/cache_values.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
-// class CacheHelper {
-//   static late SharedPreferences sharedPreferences;
-//   static const flutterSecureStorage = FlutterSecureStorage();
+import 'package:shared_preferences/shared_preferences.dart';
 
-//   static Future<void> init() async {
-//     sharedPreferences = await SharedPreferences.getInstance();
-//   }
+class CacheHelper {
+  static late SharedPreferences sharedPreferences;
 
-//   static dynamic getData({required String key}) {
-//     return sharedPreferences.get(key);
-//   }
+  static Future<void> init() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+  }
 
-//   static Future<void> cacheLanguageCode(String languageCode) async {
-//     await sharedPreferences.setString(CacheKeys.currentLanguage, languageCode);
-//   }
+  static dynamic getData(String key) {
+    return sharedPreferences.get(key);
+  }
 
-//   static dynamic getCurrentLanguage() {
-//     return CacheHelper.getData(key: CacheKeys.currentLanguage) ?? 'en';
-//   }
+  static Future<bool> saveData({
+    required String key,
+    required dynamic value,
+  }) async {
+    if (value is String) return sharedPreferences.setString(key, value);
+    if (value is int) return sharedPreferences.setInt(key, value);
+    if (value is bool) return sharedPreferences.setBool(key, value);
+    if (value is double) return sharedPreferences.setDouble(key, value);
 
-//   static Future setBool({required String key, required bool value}) async {
-//     return sharedPreferences.setBool(key, value);
-//   }
+    if (value is List<String>) {
+      return sharedPreferences.setStringList(key, value);
+    }
 
-//   static Future saveData({required String key, required dynamic value}) async {
-//     if (value is String) return sharedPreferences.setString(key, value);
-//     if (value is int) return sharedPreferences.setInt(key, value);
-//     if (value is bool) return sharedPreferences.setBool(key, value);
+    throw Exception(
+      'Type ${value.runtimeType} is not supported by CacheHelper',
+    );
+  }
 
-//     if (value is double) {
-//       return sharedPreferences.setDouble(key, value);
-//     }
-//     if (value is List<String>) {
-//       return sharedPreferences.setStringList(key, value);
-//     }
-//     return null;
-//     // log('Unsupported type for SharedPreferences: ${value.runtimeType}');
-//   }
+  static Future<bool> removeData(String key) async {
+    return sharedPreferences.remove(key);
+  }
 
-//   static Future<bool> removeData({required String key}) async {
-//     return sharedPreferences.remove(key);
-//   }
+  static Future<bool> clearAllData() async {
+    return sharedPreferences.clear();
+  }
 
-//   static Future<bool> clearAllData() async {
-//     return sharedPreferences.clear();
-//   }
+  // static Future saveSecuredString({
+  //   required String key,
+  //   required dynamic value,
+  // }) async {
+  //   const flutterSecureStorage = FlutterSecureStorage();
+  //   debugPrint(
+  //     'FlutterSecureStorage : setSecuredString with key : $key and value : $value',
+  //   );
+  //   await flutterSecureStorage.write(key: key, value: value.toString());
+  // }
 
-//   ///
-//   static Future saveSecuredString({
-//     required String key,
-//     required dynamic value,
-//   }) async {
-//     await flutterSecureStorage.write(key: key, value: value.toString());
-//   }
+  // static Future getSecuredString({required String key}) async {
+  //   const flutterSecureStorage = FlutterSecureStorage();
+  //   debugPrint('FlutterSecureStorage : getSecuredString with key :');
+  //   try {
+  //     return await flutterSecureStorage.read(key: key);
+  //   } catch (e) {
+  //     return null;
+  //   }
+  // }
 
-//   static Future<String?>? getSecuredString({required String key}) async {
-//     try {
-//       return flutterSecureStorage.read(key: key);
-//     } catch (e) {
-//       return null;
-//     }
-//   }
+  // static Future clearAllSecuredData() async {
+  //   debugPrint('FlutterSecureStorage : all data has been cleared');
+  //   const flutterSecureStorage = FlutterSecureStorage();
+  //   await flutterSecureStorage.deleteAll();
+  // }
 
-//   static Future removeSecuredData({required String key}) async {
-//     await flutterSecureStorage.delete(key: key);
-//   }
+  static Future<Map<String, dynamic>> getAllData() async {
+    final data = <String, dynamic>{};
 
-//   static Future clearAllSecuredData() async {
-//     await flutterSecureStorage.deleteAll();
-//   }
-// }
+    for (final key in sharedPreferences.getKeys()) {
+      data[key] = sharedPreferences.get(key);
+    }
+
+    // Secure storage (اختياري)
+    // const secureStorage = FlutterSecureStorage();
+
+    // final secureKeys = <String>[CacheKeys.userToken, CacheKeys.userPassword];
+
+    // for (final key in secureKeys) {
+    //   final value = await secureStorage.read(key: key);
+    //   if (value != null) {
+    //     data[key] = value;
+    //   }
+    // }
+
+    return data;
+  }
+
+  static Future<String> exportToJson() async {
+    final data = await getAllData();
+    return jsonEncode(data);
+  }
+
+  static Future<void> restoreFromJson(String jsonString) async {
+    final data = jsonDecode(jsonString) as Map<String, dynamic>;
+
+    for (final entry in data.entries) {
+      final key = entry.key;
+      final value = entry.value;
+
+      if (value is String) {
+        await saveData(key: key, value: value);
+      } else if (value is int) {
+        await saveData(key: key, value: value);
+      } else if (value is bool) {
+        await saveData(key: key, value: value);
+      } else if (value is double) {
+        await saveData(key: key, value: value);
+      } else if (value is List || value is Map) {
+        await CacheHelper.saveData(
+          key: key,
+          value: jsonEncode(value),
+        );
+      } else {
+        throw Exception(
+          'Type ${value.runtimeType} is not supported by CacheHelper',
+        );
+      }
+    }
+  }
+}

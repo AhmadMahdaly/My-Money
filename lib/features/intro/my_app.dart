@@ -45,7 +45,6 @@ class MyApp extends StatelessWidget {
           BlocProvider<TransactionCubit>(
             create: (_) => TransactionCubit(
               uuid: getIt(),
-              sharedPreferences: getIt(),
               getTransactionsUseCase: getIt(),
               addTransactionUseCase: getIt(),
               updateTransactionUseCase: getIt(),
@@ -82,6 +81,7 @@ class MyApp extends StatelessWidget {
           BlocProvider(create: (_) => getIt<DebtCubit>()),
         ],
         child: MaterialApp.router(
+          scaffoldMessengerKey: GlobalVariable.scaffoldMessengerKey,
           debugShowCheckedModeBanner: false,
           title: 'فلوسي',
           routerConfig: RouterGenerationConfig.goRouter,
@@ -112,5 +112,19 @@ void unfocusScope(BuildContext context) {
   final currentFocus = FocusScope.of(context);
   if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
     currentFocus.unfocus();
+  }
+}
+
+class GlobalVariable {
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
+  static void showMessage(String msg, {bool isError = false}) {
+    scaffoldMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
   }
 }

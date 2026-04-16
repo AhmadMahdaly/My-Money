@@ -3,6 +3,7 @@
 import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -83,7 +84,7 @@ class AddTransactionScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: Icon(
-                          Icons.notifications_outlined,
+                          CupertinoIcons.bell,
                           color: AppColors.scaffoldBackgroundLightColor,
                           size: 24.r,
                         ),
@@ -526,8 +527,8 @@ class _TransactionFormState extends State<_TransactionForm> {
 
                     Text(
                       widget.type == TransactionType.income
-                          ? 'معاك كام (المبلغ)'
-                          : 'صرفت كام (المبلغ)',
+                          ? 'معاك كام؟'
+                          : 'صرفت كام؟',
                       style: AppTextStyle.style14W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
@@ -648,8 +649,8 @@ class _TransactionFormState extends State<_TransactionForm> {
                       children: [
                         Text(
                           widget.type == TransactionType.income
-                              ? 'الفلوس دي جاية منين (الرئيسية)'
-                              : 'صرفت على ايه (الرئيسية)',
+                              ? 'الفلوس دي جاية منين (المخصص الرئيسي)؟'
+                              : 'صرفت على ايه (المخصص الرئيسي)؟',
                           style: AppTextStyle.style14W400.copyWith(
                             color: AppColors.primaryColor,
                           ),
@@ -658,7 +659,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                     ),
 
                     _buildCategorySelectionField(
-                      hint: 'اختر الفئة الرئيسية',
+                      hint: 'اختر المخصص الرئيسي',
                       selectedCategory: selectedMainCategory,
                       onTap: () => _showCategorySelectionSheet(
                         context: context,
@@ -669,13 +670,13 @@ class _TransactionFormState extends State<_TransactionForm> {
 
                     if (_selectedMainCategoryId != null) ...[
                       Text(
-                        'اختر الفئة الفرعية (اختياري):',
+                        'اختر المخصص الفرعي (اختياري):',
                         style: AppTextStyle.style12W300,
                       ),
                       _buildCategorySelectionField(
                         hint: subCategories.isEmpty
                             ? 'لا توجد تفريعات، اضغط لإضافة واحدة'
-                            : 'اختر الفئة الفرعية',
+                            : 'اختر المخصص الفرعي',
                         selectedCategory: selectedSubCategory,
                         onTap: () => _showCategorySelectionSheet(
                           context: context,
@@ -768,6 +769,7 @@ class _TransactionFormState extends State<_TransactionForm> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      showDragHandle: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
@@ -780,11 +782,11 @@ class _TransactionFormState extends State<_TransactionForm> {
             return Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.all(16.r),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Text(
                     isMainCategory
-                        ? 'اختر الفئة الرئيسية'
-                        : 'اختر الفئة الفرعية',
+                        ? 'اختر المخصص الرئيسي'
+                        : 'اختر المخصص الفرعي',
                     style: AppTextStyle.style18W600,
                   ),
                 ),
@@ -793,7 +795,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                   child: categories.isEmpty
                       ? Center(
                           child: Text(
-                            'مفيش فئات مسجلة هنا',
+                            'مفيش مخصصات مسجلة هنا',
                             style: AppTextStyle.style14W400.copyWith(
                               color: Colors.grey,
                             ),
@@ -889,21 +891,21 @@ class _TransactionFormState extends State<_TransactionForm> {
                               title: Text(
                                 category.name,
                                 style: AppTextStyle.style14W600,
-                                overflow: TextOverflow.ellipsis,
+                                overflow: TextOverflow.fade,
                               ),
                               trailing: budgeted > 0
                                   ? Text(
                                       widget.type == TransactionType.expense
-                                          ? 'صرفت: ${spent.truncate()} ج.م | باقي: ${remaining.truncate()} ج.م'
-                                          : 'مخطط: ${budgeted.truncate()} ج.م | فعلي: ${spent.truncate()} ج.م',
+                                          ? 'صرفت ${spent.truncate()} من ${remaining.truncate()} ج.م'
+                                          : 'مخطط ${budgeted.truncate()} ج.م | فعلي: ${spent.truncate()} ج.م',
                                       style: AppTextStyle.style9W400.copyWith(
                                         color: category.color,
                                       ),
                                     )
                                   : Text(
                                       spent > 0
-                                          ? 'صرفت: ${spent.truncate()} ج.م (بدون ميزانية)'
-                                          : 'بدون ميزانية محددة',
+                                          ? 'صرفت ${spent.truncate()} ج.م'
+                                          : '',
                                       style: AppTextStyle.style9W400.copyWith(
                                         color: Colors.grey,
                                       ),
@@ -924,22 +926,26 @@ class _TransactionFormState extends State<_TransactionForm> {
                           },
                         ),
                 ),
-                const Divider(),
+                // const Divider(),
                 ColoredBox(
-                  color: AppColors.primaryColor,
+                  color: AppColors.primaryColor.withAlpha(25),
                   child: Padding(
-                    padding: EdgeInsets.all(16.r),
+                    padding: EdgeInsets.only(
+                      right: 16.w,
+                      left: 16.w,
+                      bottom: 8.h,
+                    ),
                     child: ListTile(
                       leading: const Icon(
                         Icons.add_circle_outline,
-                        color: AppColors.scaffoldBackgroundLightColor,
+                        color: AppColors.primaryTextColor,
                       ),
                       title: Text(
                         isMainCategory
-                            ? 'إضافة فئة رئيسية جديدة'
-                            : 'إضافة فئة فرعية جديدة',
+                            ? 'إضافة مخصص رئيسي جديد'
+                            : 'إضافة مخصص فرعي جديد',
                         style: AppTextStyle.style14W600.copyWith(
-                          color: AppColors.scaffoldBackgroundLightColor,
+                          color: AppColors.primaryTextColor,
                         ),
                       ),
                       onTap: () {
@@ -1005,16 +1011,14 @@ class _TransactionFormState extends State<_TransactionForm> {
     showDialog<void>(
       context: context,
       builder: (ctx) {
-        // استخدمنا BlocBuilder هنا عشان الديالوج يتحدث تلقائياً لما تعتمد معاملة
-        return BlocBuilder<TransactionCubit, TransactionState>(
+        return BlocConsumer<TransactionCubit, TransactionState>(
+          listener: (context, state) {
+            if (state.pendingTransactions.isEmpty) {
+              context.pop();
+            }
+          },
           builder: (context, state) {
             final pendingCategories = state.pendingTransactions;
-
-            // لو كل المعاملات المعلقة خلصت، نقفل الديالوج تلقائياً
-            if (pendingCategories.isEmpty) {
-              Future.microtask(() => Navigator.of(ctx).pop());
-              return const SizedBox.shrink();
-            }
 
             return AlertDialog(
               title: Row(
