@@ -118,7 +118,7 @@ class _MonthlyPlanView extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('تأكيد'),
-        content: const Text('هل تريد إعادة تعيين كل الميزانية؟'),
+        content: const Text('هل تريد إعادة تعيين كل الميزانية لهذا الشهر؟'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

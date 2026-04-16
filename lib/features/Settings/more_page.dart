@@ -40,7 +40,7 @@ class MoreView extends StatelessWidget {
 
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'إدارة فئات الدخل والمصاريف',
+            text: 'إدارة مخصصات الدخل والمصاريف',
             onTap: () => context.pushNamed(AppRoutes.manageCategoriesScreen),
           ),
           4.verticalSpace,
