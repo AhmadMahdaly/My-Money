@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
-import 'package:opration/core/shared_widgets/page_header.dart' show PageHeader;
+import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/wallets/data/datasources/wallet_local_data_source.dart';
@@ -16,7 +16,7 @@ class TransferHistoryScreen extends StatelessWidget {
       appBar: PageHeader(
         isLeading: true,
         heightBar: 80.h,
-        title: 'سجل التحويلات',
+        title: 'سجل العمليات',
       ),
       body: FutureBuilder<List<TransferRecordModel>>(
         future: getIt<WalletLocalDataSource>().getTransferHistory(),
@@ -37,7 +37,7 @@ class TransferHistoryScreen extends StatelessWidget {
                   ),
                   16.verticalSpace,
                   Text(
-                    'لا توجد تحويلات سابقة',
+                    'لا توجد تحويلات أو إيداعات سابقة',
                     style: AppTextStyle.style14W500.copyWith(
                       color: AppColors.textGreyColor,
                     ),
@@ -51,12 +51,20 @@ class TransferHistoryScreen extends StatelessWidget {
             itemCount: history.length,
             itemBuilder: (context, index) {
               final item = history[index];
+
+              final isDeposit = item.fromWalletName == 'إيداع خارجي';
+
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                 child: ListTile(
-                  leading: const Icon(Icons.swap_horiz, color: Colors.blue),
+                  leading: Icon(
+                    isDeposit ? Icons.arrow_downward_rounded : Icons.swap_horiz,
+                    color: isDeposit ? Colors.green : Colors.blue,
+                  ),
                   title: Text(
-                    'من ${item.fromWalletName} إلى ${item.toWalletName}',
+                    isDeposit
+                        ? 'إيداع إلى ${item.toWalletName}'
+                        : 'من ${item.fromWalletName} إلى ${item.toWalletName}',
                     style: AppTextStyle.style14W500,
                   ),
                   subtitle: Text(
@@ -64,7 +72,7 @@ class TransferHistoryScreen extends StatelessWidget {
                     style: AppTextStyle.style14W500,
                   ),
                   trailing: Text(
-                    '${item.amount.truncate()} ج.م',
+                    '+${item.amount.truncate()} ج.م',
                     style: AppTextStyle.style14Bold.copyWith(
                       color: Colors.green,
                     ),

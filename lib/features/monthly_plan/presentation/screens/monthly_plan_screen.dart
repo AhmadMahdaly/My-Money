@@ -14,7 +14,6 @@ import 'package:opration/features/monthly_plan/presentation/controllers/monthly_
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/calculator_dialog.dart';
 import 'package:uuid/uuid.dart';
 
@@ -893,39 +892,13 @@ class _PlannedExpensesSection extends StatelessWidget {
             )
           else
             ...mainCategories.map((mainCat) {
-              final subCategories = allExpenseCategories
-                  .where((c) => c.parentId == mainCat.id)
-                  .toList();
-
-              return Column(
-                children: [
-                  ...[
-                    Padding(
-                      padding: subCategories.isNotEmpty
-                          ? EdgeInsets.zero
-                          : EdgeInsets.symmetric(vertical: 4.h),
-                      child: _ExpenseBudgetTile(
-                        category: mainCat,
-                        plan: plan,
-                        isSubCategory: false,
-                      ),
-                    ),
-
-                    if (subCategories.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(right: 24.w),
-                        child: Column(
-                          children: subCategories.map((subCat) {
-                            return _ExpenseBudgetTile(
-                              category: subCat,
-                              plan: plan,
-                              isSubCategory: true,
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                  ],
-                ],
+              return Padding(
+                padding: EdgeInsets.only(bottom: 4.h),
+                child: _ExpenseBudgetTile(
+                  category: mainCat,
+                  plan: plan,
+                  isSubCategory: false,
+                ),
               );
             }),
           ListTile(
@@ -976,7 +949,6 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
   @override
   void didUpdateWidget(covariant _ExpenseBudgetTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (widget.plan != oldWidget.plan ||
         widget.category.id != oldWidget.category.id) {
       _updateControllerText();
@@ -1069,200 +1041,238 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         ? (actualSpentAmount / budgetedAmount).clamp(0.0, 1.0)
         : 0.0;
 
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16.w),
-      // tileColor: widget.category.color.withAlpha(8),
-      shape: RoundedRectangleBorder(
-        side: BorderSide(
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
           color: widget.category.color.withAlpha(50),
         ),
       ),
-      leading: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (widget.isSubCategory) ...[
-            Icon(
-              Icons.subdirectory_arrow_left,
-              size: 16.r,
-              color: AppColors.primaryColor.withAlpha(150),
-            ),
-            4.horizontalSpace,
-          ],
-          CircleAvatar(
-            backgroundColor: widget.category.color,
-            radius: widget.isSubCategory ? 10.r : 15.r,
-          ),
-        ],
-      ),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          SizedBox(
-            width: SizeConfig.screenWidth / 3 - 40.w,
-            child: Text(
-              widget.category.name,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyle.style14Bold.copyWith(
-                color: AppColors.primaryColor,
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              if (hasSubCategories)
-                Container(
-                  padding: EdgeInsets.only(
-                    top: 4.h,
-                    right: 8.w,
-                    left: 8.w,
-                    bottom: 4.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.forthColor.withAlpha(16),
-                    borderRadius: BorderRadius.circular(8.r),
-                    border: Border.all(
-                      color: AppColors.forthColor.withAlpha(77),
-                    ),
-                  ),
-                  child: Text(
-                    '${budgetedAmount.truncate()} ج.م',
-                    style: AppTextStyle.style12W500.copyWith(
-                      color: AppColors.forthColor.withAlpha(200),
-                    ),
-                  ),
-                )
-              else
-                GestureDetector(
-                  onTap: () => _showEditBudgetSheet(context),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 4.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withAlpha(16),
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(
-                        color: AppColors.primaryColor.withAlpha(77),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12.r),
+          onTap: () {
+            if (hasSubCategories) {
+              _showSubCategoriesSheet(context, subCategories);
+            } else {
+              _showEditBudgetSheet(context);
+            }
+          },
+          child: Padding(
+            padding: EdgeInsets.all(12.r),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (widget.isSubCategory) ...[
+                      Icon(
+                        Icons.subdirectory_arrow_left,
+                        size: 16.r,
+                        color: AppColors.primaryColor.withAlpha(150),
                       ),
+                      4.horizontalSpace,
+                    ],
+                    CircleAvatar(
+                      backgroundColor: widget.category.color,
+                      radius: widget.isSubCategory ? 10.r : 15.r,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _controller.text.isEmpty
-                              ? '0'
-                              : '${_controller.text}  ج.م',
-                          style: AppTextStyle.style12W500.copyWith(
-                            color: AppColors.primaryTextColor,
-                          ),
-                        ),
-                        4.horizontalSpace,
-                        Icon(
-                          Icons.edit_note,
-                          size: 18.r,
+                    8.horizontalSpace,
+                    Expanded(
+                      child: Text(
+                        widget.category.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.style14Bold.copyWith(
                           color: AppColors.primaryColor,
                         ),
-                      ],
+                      ),
                     ),
+                    if (hasSubCategories && !widget.isSubCategory)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.forthColor.withAlpha(16),
+                          borderRadius: BorderRadius.circular(8.r),
+                          border: Border.all(
+                            color: AppColors.forthColor.withAlpha(77),
+                          ),
+                        ),
+                        child: Text(
+                          '${budgetedAmount.truncate()} ج.م',
+                          style: AppTextStyle.style12W500.copyWith(
+                            color: AppColors.forthColor.withAlpha(200),
+                          ),
+                        ),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: () => _showEditBudgetSheet(context),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withAlpha(16),
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(
+                              color: AppColors.primaryColor.withAlpha(77),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _controller.text.isEmpty
+                                    ? '0'
+                                    : '${_controller.text} ج.م',
+                                style: AppTextStyle.style12W500.copyWith(
+                                  color: AppColors.primaryTextColor,
+                                ),
+                              ),
+                              4.horizontalSpace,
+                              Icon(
+                                Icons.edit_note,
+                                size: 18.r,
+                                color: AppColors.primaryColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                8.verticalSpace,
+                LinearProgressIndicator(
+                  value: progressValue,
+                  backgroundColor: AppColors.secondaryColor,
+                  color: widget.category.color,
+                  minHeight: 6.h,
+                ),
+                4.verticalSpace,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'صرفت: ${actualSpentAmount.truncate()} ج.م',
+                        style: AppTextStyle.style9W400.copyWith(
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        textAlign: TextAlign.end,
+                        'باقي: ${remainingAmount.truncate()} ج.م',
+                        style: AppTextStyle.style9W400.copyWith(
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (hasSubCategories && !widget.isSubCategory) ...[
+                  8.verticalSpace,
+                  Wrap(
+                    spacing: 6.w,
+                    runSpacing: 6.h,
+                    children: subCategories.map((sub) {
+                      return Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: sub.color.withAlpha(20),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(
+                            color: sub.color.withAlpha(80),
+                          ),
+                        ),
+                        child: Text(
+                          sub.name,
+                          style: AppTextStyle.style9W400.copyWith(
+                            color: sub.color.withAlpha(200),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
-                ),
-
-              IconButton(
-                onPressed: () => _editCategory(context, widget.category),
-                icon: Icon(
-                  Icons.settings,
-                  size: 12.r,
-                ),
-              ),
-            ],
+                ],
+              ],
+            ),
           ),
-        ],
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          8.verticalSpace,
-          LinearProgressIndicator(
-            value: progressValue,
-            backgroundColor: AppColors.secondaryColor,
-            color: widget.category.color,
-            minHeight: 6.h,
-          ),
-          4.verticalSpace,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  textAlign: TextAlign.start,
-                  'صرفت: ${actualSpentAmount.truncate()}  ج.م.',
-                  style: AppTextStyle.style9W400.copyWith(
-                    color: AppColors.primaryColor,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  textAlign: TextAlign.end,
-                  'باقي لك: ${remainingAmount.truncate()}  ج.م.',
-                  style: AppTextStyle.style9W400.copyWith(
-                    color: AppColors.primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  void _editCategory(BuildContext context, TransactionCategory category) {
-    showModalBottomSheet<TransactionCategory>(
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      context: context,
-      builder: (_) => AddCategoryWidget(
-        type: category.type,
-        categoryToEdit: category,
-      ),
-    ).then((updated) {
-      if (updated != null) {
-        context.read<TransactionCubit>().updateCategory(updated);
-      }
-    });
-  }
-
-  void showAddSubCategoryDialog(
+  void _showSubCategoriesSheet(
     BuildContext context,
-    TransactionCategory parentCategory,
+    List<TransactionCategory> subCategories,
   ) {
-    final dummyCategoryForParent = TransactionCategory(
-      id: '',
-      name: '',
-      colorValue: parentCategory.colorValue,
-      type: parentCategory.type,
-      parentId: parentCategory.id,
-    );
-
     showModalBottomSheet<TransactionCategory>(
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
       context: context,
-      builder: (_) => AddCategoryWidget(
-        type: parentCategory.type,
 
-        categoryToEdit: dummyCategoryForParent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
-    ).then((result) {
-      if (result != null) {
-        final newSubCategory = result.copyWith(id: const Uuid().v4());
-        context.read<TransactionCubit>().addCategory(newSubCategory);
-      }
-    });
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.5,
+          maxChildSize: 0.9,
+          minChildSize: 0.3,
+          builder: (_, controller) {
+            return Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'الفئات الفرعية لـ ${widget.category.name}',
+                        style: AppTextStyle.style16W600,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, color: AppColors.secondaryColor),
+                Expanded(
+                  child: ListView.builder(
+                    controller: controller,
+                    padding: EdgeInsets.symmetric(vertical: 4.h),
+                    itemCount: subCategories.length,
+                    itemBuilder: (context, index) {
+                      return _ExpenseBudgetTile(
+                        category: subCategories[index],
+                        plan: widget.plan,
+                        isSubCategory: true,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showEditBudgetSheet(BuildContext context) {
@@ -1275,9 +1285,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(
-              context,
-            ).viewInsets.bottom,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
             left: 20.w,
             right: 20.w,
             top: 20.h,
@@ -1336,9 +1344,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                     final amount = double.tryParse(_controller.text) ?? 0.0;
                     _updateExpenseInCubit(amount);
                     Navigator.pop(context);
-                    setState(
-                      () {},
-                    );
+                    setState(() {});
                   },
                   child: const Text(
                     'حفظ',

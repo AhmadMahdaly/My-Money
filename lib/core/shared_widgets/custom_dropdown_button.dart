@@ -33,7 +33,7 @@ class CustomDropdownButtonFormField<T> extends StatelessWidget {
       isExpanded: true,
       icon: const Icon(
         Icons.keyboard_arrow_down,
-        color: AppColors.secondaryColor,
+        color: AppColors.primaryColor,
       ),
       style: AppTextStyle.style14W500.copyWith(
         color: AppColors.thirdColor,

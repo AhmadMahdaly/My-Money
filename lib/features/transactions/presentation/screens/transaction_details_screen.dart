@@ -126,7 +126,7 @@ class TransactionDetailsScreen extends StatelessWidget {
               children: [
                 4.verticalSpace,
                 _FilterControlBar(),
-                // 4.verticalSpace,
+
                 if (state.isLoading)
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 8.r),
@@ -299,46 +299,308 @@ class _CategoryTransactionList extends StatelessWidget {
               ),
               clipBehavior: Clip.antiAlias,
               margin: EdgeInsets.only(bottom: 10.h),
-              child: Theme(
-                data: Theme.of(
-                  context,
-                ).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  leading: CircleAvatar(
-                    backgroundColor: mainCategory.color,
-                    radius: 18.r,
-                    child: Icon(
-                      type == TransactionType.income
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
-                      color: Colors.white,
-                      size: 16.r,
+              child: InkWell(
+                onTap: () {
+                  showModalBottomSheet<TransactionCategory>(
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    showDragHandle: true,
+                    context: context,
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20.r),
+                      ),
+                    ),
+                    builder: (_) => _CategoryDetailsSheet(
+                      mainCategory: mainCategory,
+                      type: type,
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.h),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: mainCategory.color,
+                      radius: 18.r,
+                      child: Icon(
+                        type == TransactionType.income
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
+                        color: Colors.white,
+                        size: 16.r,
+                      ),
+                    ),
+                    title: Text(
+                      mainCategory.name,
+                      style: AppTextStyle.style14W600,
+                    ),
+                    subtitle: Text(
+                      '${categoryTransactions.length} عمليات',
+                      style: AppTextStyle.style9W300.copyWith(
+                        color: AppColors.primaryTextColor.withAlpha(140),
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${categoryTotal.truncate()} ج.م',
+                          style: AppTextStyle.style14W700.copyWith(
+                            color: type == TransactionType.income
+                                ? AppColors.greenLightColor
+                                : AppColors.errorColor,
+                          ),
+                        ),
+                        8.horizontalSpace,
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 12.r,
+                          color: AppColors.primaryColor,
+                        ),
+                      ],
                     ),
                   ),
-                  title: Text(
-                    mainCategory.name,
-                    style: AppTextStyle.style14W600,
-                  ),
-                  trailing: Text(
-                    '${categoryTotal.truncate()} ج.م',
-                    style: AppTextStyle.style14W700.copyWith(
-                      color: type == TransactionType.income
-                          ? AppColors.greenLightColor
-                          : AppColors.errorColor,
-                    ),
-                  ),
-                  children: categoryTransactions.map((transaction) {
-                    return _TransactionListItem(
-                      transaction: transaction,
-                      allCategories: categories,
-                    );
-                  }).toList(),
                 ),
               ),
             );
           },
         ),
       ],
+    );
+  }
+}
+
+class _CategoryDetailsSheet extends StatefulWidget {
+  const _CategoryDetailsSheet({
+    required this.mainCategory,
+    required this.type,
+  });
+
+  final TransactionCategory mainCategory;
+  final TransactionType type;
+
+  @override
+  State<_CategoryDetailsSheet> createState() => _CategoryDetailsSheetState();
+}
+
+class _CategoryDetailsSheetState extends State<_CategoryDetailsSheet> {
+  String? selectedSubCategoryId;
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) {
+        return BlocBuilder<TransactionCubit, TransactionState>(
+          builder: (context, state) {
+            final allCategoryTransactions = state.filteredTransactions.where((
+              t,
+            ) {
+              final cat = state.allCategories.firstWhere(
+                (c) => c.id == t.categoryId,
+                orElse: () => widget.mainCategory,
+              );
+              return (cat.parentId ?? cat.id) == widget.mainCategory.id;
+            }).toList();
+
+            final totalMainAmount = allCategoryTransactions.fold(
+              0.0,
+              (sum, item) => sum + item.amount,
+            );
+
+            final subCategoryTotals = <String, double>{};
+            for (final t in allCategoryTransactions) {
+              subCategoryTotals[t.categoryId] =
+                  (subCategoryTotals[t.categoryId] ?? 0) + t.amount;
+            }
+
+            final displayedTransactions = selectedSubCategoryId == null
+                ? allCategoryTransactions
+                : allCategoryTransactions
+                      .where((t) => t.categoryId == selectedSubCategoryId)
+                      .toList();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: widget.mainCategory.color,
+                        radius: 20.r,
+                        child: Icon(
+                          widget.type == TransactionType.income
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                          color: Colors.white,
+                          size: 20.r,
+                        ),
+                      ),
+                      12.horizontalSpace,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.mainCategory.name,
+                              style: AppTextStyle.style18W600.copyWith(
+                                color: AppColors.primaryColor,
+                              ),
+                            ),
+                            Text(
+                              'الإجمالي: ${totalMainAmount.truncate()} ج.م',
+                              style: AppTextStyle.style14W700.copyWith(
+                                color: widget.type == TransactionType.income
+                                    ? AppColors.greenLightColor
+                                    : AppColors.errorColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                ),
+
+                16.verticalSpace,
+                const Divider(height: 1),
+                16.verticalSpace,
+
+                if (subCategoryTotals.length > 1) ...[
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Text(
+                      'تحليل وفلتر الفئات الفرعية:',
+                      style: AppTextStyle.style14W600,
+                    ),
+                  ),
+                  8.verticalSpace,
+                  SizedBox(
+                    height: 45.h,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      children: [
+                        _buildFilterChip(
+                          title: 'الكل',
+                          amount: totalMainAmount,
+                          isSelected: selectedSubCategoryId == null,
+                          color: widget.mainCategory.color,
+                          onTap: () {
+                            setState(() => selectedSubCategoryId = null);
+                          },
+                        ),
+                        8.horizontalSpace,
+
+                        ...subCategoryTotals.entries.map((entry) {
+                          final subCat = state.allCategories.firstWhere(
+                            (c) => c.id == entry.key,
+                            orElse: () => widget.mainCategory,
+                          );
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              left: 8.w,
+                            ),
+                            child: _buildFilterChip(
+                              title: subCat.id == widget.mainCategory.id
+                                  ? 'عام / غير محدد'
+                                  : subCat.name,
+                              amount: entry.value,
+                              isSelected: selectedSubCategoryId == entry.key,
+                              color: subCat.color,
+                              onTap: () {
+                                setState(
+                                  () => selectedSubCategoryId = entry.key,
+                                );
+                              },
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                  16.verticalSpace,
+                  const Divider(height: 1),
+                ],
+
+                Expanded(
+                  child: displayedTransactions.isEmpty
+                      ? const Center(child: Text('مفيش عمليات هنا'))
+                      : ListView.builder(
+                          controller: scrollController,
+                          itemCount: displayedTransactions.length,
+                          itemBuilder: (context, index) {
+                            return _TransactionListItem(
+                              transaction: displayedTransactions[index],
+                              allCategories: state.allCategories,
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String title,
+    required double amount,
+    required bool isSelected,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
+          border: Border.all(
+            color: isSelected ? color : Colors.grey.withOpacity(0.3),
+            width: isSelected ? 1.5 : 1,
+          ),
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSelected) ...[
+              Icon(Icons.check_circle, size: 14.r, color: color),
+              4.horizontalSpace,
+            ],
+            Text(
+              title,
+              style: AppTextStyle.style12W600.copyWith(
+                color: isSelected ? color : AppColors.primaryTextColor,
+              ),
+            ),
+            6.horizontalSpace,
+            Text(
+              '${amount.truncate()}',
+              style: AppTextStyle.style12W700.copyWith(
+                color: isSelected
+                    ? color
+                    : AppColors.primaryTextColor.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

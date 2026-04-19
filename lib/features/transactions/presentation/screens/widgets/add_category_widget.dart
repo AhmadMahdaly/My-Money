@@ -382,13 +382,13 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                               children: List.generate(7, (index) {
                                 final day = index + 1;
                                 final days = [
-                                  'أحد',
                                   'اثنين',
                                   'ثلاثاء',
                                   'أربعاء',
                                   'خميس',
                                   'جمعة',
                                   'سبت',
+                                  'أحد',
                                 ];
                                 final isSelected = _selectedDaysOfWeek.contains(
                                   day,

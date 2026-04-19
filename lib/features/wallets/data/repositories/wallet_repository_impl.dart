@@ -32,15 +32,28 @@ class WalletRepositoryImpl implements WalletRepository {
   @override
   Future<void> updateWallet(Wallet wallet) async {
     final currentWallets = await localDataSource.getWallets();
-
     final index = currentWallets.indexWhere((w) => w.id == wallet.id);
 
     if (index != -1) {
-      final updatedWallets = List<WalletModel>.from(currentWallets);
+      final oldWallet = currentWallets[index];
+      final amountDifference = wallet.balance - oldWallet.balance;
 
+      final updatedWallets = List<WalletModel>.from(currentWallets);
       updatedWallets[index] = WalletModel.fromEntity(wallet);
 
       await localDataSource.saveWallets(updatedWallets);
+
+      if (amountDifference > 0) {
+        await localDataSource.saveTransferRecord(
+          TransferRecordModel(
+            id: uuid.v4(),
+            fromWalletName: 'إيداع خارجي',
+            toWalletName: wallet.name,
+            amount: amountDifference,
+            date: DateTime.now(),
+          ),
+        );
+      }
     }
   }
 

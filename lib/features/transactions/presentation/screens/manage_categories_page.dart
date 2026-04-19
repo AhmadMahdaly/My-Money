@@ -8,7 +8,7 @@ import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/add_category_dialog.dart';
+import 'package:opration/features/transactions/presentation/screens/widgets/add_category_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class ManageCategoriesDrawer extends StatelessWidget {
@@ -163,7 +163,9 @@ class _CategoryListSection extends StatelessWidget {
               .toList();
 
           return Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            data: Theme.of(
+              context,
+            ).copyWith(dividerColor: AppColors.primaryColor.withAlpha(15)),
             child: ExpansionTile(
               initiallyExpanded: subCategories.isNotEmpty,
               leading: CircleAvatar(

@@ -13,8 +13,8 @@ import 'package:opration/features/shopping/presentation/screens/shopping_list_vi
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/screens/add_transaction_screen.dart';
 import 'package:opration/features/transactions/presentation/screens/edit_transaction_screen.dart';
+import 'package:opration/features/transactions/presentation/screens/manage_categories_page.dart';
 import 'package:opration/features/transactions/presentation/screens/transaction_details_screen.dart';
-import 'package:opration/features/transactions/presentation/screens/widgets/manage_categories_drawer.dart';
 import 'package:opration/features/wallets/presentation/screens/transfer_history_screen.dart';
 import 'package:opration/features/wallets/presentation/screens/wallets_screen.dart';
 
