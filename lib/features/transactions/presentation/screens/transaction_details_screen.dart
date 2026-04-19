@@ -270,11 +270,11 @@ class _CategoryTransactionList extends StatelessWidget {
             ),
           ),
         ),
-        ListView.separated(
+        ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: sortedMainCategoryIds.length,
-          separatorBuilder: (context, index) => 8.verticalSpace,
+          // separatorBuilder: (context, index) => 4.verticalSpace,
           itemBuilder: (context, index) {
             final mainCategoryId = sortedMainCategoryIds[index];
             final categoryTransactions = groupedTransactions[mainCategoryId]!;
@@ -298,7 +298,7 @@ class _CategoryTransactionList extends StatelessWidget {
                 borderRadius: BorderRadius.circular(kRadius),
               ),
               clipBehavior: Clip.antiAlias,
-              margin: EdgeInsets.only(bottom: 10.h),
+              margin: EdgeInsets.only(bottom: 4.h),
               child: InkWell(
                 onTap: () {
                   showModalBottomSheet<TransactionCategory>(
@@ -318,49 +318,46 @@ class _CategoryTransactionList extends StatelessWidget {
                     ),
                   );
                 },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.h),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: mainCategory.color,
-                      radius: 18.r,
-                      child: Icon(
-                        type == TransactionType.income
-                            ? Icons.arrow_upward
-                            : Icons.arrow_downward,
-                        color: Colors.white,
-                        size: 16.r,
-                      ),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: mainCategory.color,
+                    radius: 18.r,
+                    child: Icon(
+                      type == TransactionType.income
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                      color: Colors.white,
+                      size: 16.r,
                     ),
-                    title: Text(
-                      mainCategory.name,
-                      style: AppTextStyle.style14W600,
+                  ),
+                  title: Text(
+                    mainCategory.name,
+                    style: AppTextStyle.style14W600,
+                  ),
+                  subtitle: Text(
+                    '${categoryTransactions.length} عمليات',
+                    style: AppTextStyle.style9W300.copyWith(
+                      color: AppColors.primaryTextColor.withAlpha(140),
                     ),
-                    subtitle: Text(
-                      '${categoryTransactions.length} عمليات',
-                      style: AppTextStyle.style9W300.copyWith(
-                        color: AppColors.primaryTextColor.withAlpha(140),
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${categoryTotal.truncate()} ج.م',
-                          style: AppTextStyle.style14W700.copyWith(
-                            color: type == TransactionType.income
-                                ? AppColors.greenLightColor
-                                : AppColors.errorColor,
-                          ),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${categoryTotal.truncate()} ج.م',
+                        style: AppTextStyle.style14W700.copyWith(
+                          color: type == TransactionType.income
+                              ? AppColors.greenLightColor
+                              : AppColors.errorColor,
                         ),
-                        8.horizontalSpace,
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 12.r,
-                          color: AppColors.primaryColor,
-                        ),
-                      ],
-                    ),
+                      ),
+                      12.horizontalSpace,
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12.r,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
                   ),
                 ),
               ),

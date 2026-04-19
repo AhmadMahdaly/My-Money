@@ -204,7 +204,7 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
           onPressed: () => _buttonPressed(text),
           child: Text(
             text,
-            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            style: AppTextStyle.style16Bold,
           ),
         ),
       ),
@@ -228,7 +228,7 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
     return AlertDialog(
       title: Text(
         'اعمل حسبتك',
-        style: AppTextStyle.style18Bold.copyWith(fontFamily: kPrimaryFont),
+        style: AppTextStyle.style16Bold.copyWith(fontFamily: kPrimaryFont),
       ),
       content: SizedBox(
         width: 300.w,
@@ -242,9 +242,11 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                 fit: BoxFit.scaleDown,
                 child: Text(
                   _output,
-                  style: TextStyle(
-                    fontSize: 48.sp,
-                    fontWeight: FontWeight.bold,
+                  style: AppTextStyle.style12Bold.copyWith(
+                    fontSize: 32.sp,
+                    color: _justCalculated
+                        ? AppColors.primaryColor
+                        : Colors.black,
                   ),
                 ),
               ),
@@ -306,6 +308,7 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
         ),
         ElevatedButton(
           onPressed: () {
+            _calculate();
             Navigator.pop(context, double.tryParse(_output) ?? 0.0);
           },
           child: const Text('استخدم الناتج'),

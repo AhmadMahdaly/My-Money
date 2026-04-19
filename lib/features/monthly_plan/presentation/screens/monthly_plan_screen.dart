@@ -91,10 +91,9 @@ class _MonthlyPlanView extends StatelessWidget {
                       padding: EdgeInsets.all(8.r),
                       children: [
                         _PlannedSummarySection(plan: planState.plan!),
-                        // 8.verticalSpace,
+
                         _SummarySection(plan: planState.plan!),
 
-                        // 10.verticalSpace,
                         _PlannedIncomeSection(plan: planState.plan!),
                         8.verticalSpace,
                         _PlannedExpensesSection(plan: planState.plan!),
@@ -201,7 +200,23 @@ class _SummarySection extends StatelessWidget {
     final year = currentMonth.year;
     final month = currentMonth.month;
 
-    final actualTotalIncome = transactionState.allTransactions
+    final startOfCurrentMonth = DateTime(year, month, 1);
+
+    final previousTransactions = transactionState.allTransactions.where(
+      (t) => t.date.isBefore(startOfCurrentMonth),
+    );
+
+    final previousIncome = previousTransactions
+        .where((t) => t.type == TransactionType.income)
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    final previousExpense = previousTransactions
+        .where((t) => t.type == TransactionType.expense)
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    final previousMonthBalance = previousIncome - previousExpense;
+
+    final currentMonthIncome = transactionState.allTransactions
         .where(
           (t) =>
               t.type == TransactionType.income &&
@@ -209,6 +224,8 @@ class _SummarySection extends StatelessWidget {
               t.date.month == month,
         )
         .fold(0.0, (sum, t) => sum + t.amount);
+
+    final totalActualAvailable = previousMonthBalance + currentMonthIncome;
 
     final actualTotalExpense = transactionState.allTransactions
         .where(
@@ -219,36 +236,68 @@ class _SummarySection extends StatelessWidget {
         )
         .fold(0.0, (sum, t) => sum + t.amount);
 
-    final actualSavings = actualTotalIncome - actualTotalExpense;
+    final actualSavings = totalActualAvailable - actualTotalExpense;
 
     return Theme(
       data: Theme.of(
         context,
       ).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        title: const Text('ملخص عملياتك الفعلية'),
+        initiallyExpanded: true,
+        title: Text(
+          'ملخص عملياتك الفعلية',
+          style: AppTextStyle.style14W500.copyWith(
+            color: AppColors.primaryColor,
+          ),
+        ),
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _SummaryItem(
-                title: 'الدخل الفعلي',
-                amount: actualTotalIncome,
-                color: AppColors.successColor.withAlpha(200),
-              ),
-              _SummaryItem(
-                title: 'المصروف الفعلي',
-                amount: actualTotalExpense,
-                color: AppColors.errorColor.withAlpha(200),
-              ),
-              _SummaryItem(
-                title: 'الباقي الفعلي',
-                amount: actualSavings,
-                color: actualSavings >= 0
-                    ? AppColors.primaryColor.withAlpha(200)
-                    : AppColors.orangeColor.withAlpha(200),
-              ),
-            ],
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _SummaryItem(
+                      title: 'الرصيد المرحل',
+                      amount: previousMonthBalance,
+                      color: previousMonthBalance >= 0
+                          ? AppColors.primaryColor.withAlpha(200)
+                          : AppColors.orangeColor.withAlpha(200),
+                    ),
+                    _SummaryItem(
+                      title: 'دخل الشهر',
+                      amount: currentMonthIncome,
+                      color: AppColors.successColor.withAlpha(150),
+                    ),
+                  ],
+                ),
+                4.verticalSpace,
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _SummaryItem(
+                      title: 'إجمالي المتاح',
+                      amount: totalActualAvailable,
+                      color: AppColors.successColor.withAlpha(200),
+                    ),
+                    _SummaryItem(
+                      title: 'المصروف الفعلي',
+                      amount: actualTotalExpense,
+                      color: AppColors.errorColor.withAlpha(200),
+                    ),
+                    _SummaryItem(
+                      title: 'الباقي الفعلي',
+                      amount: actualSavings,
+                      color: actualSavings >= 0
+                          ? AppColors.primaryColor.withAlpha(200)
+                          : AppColors.orangeColor.withAlpha(200),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -693,39 +742,6 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
           ),
         ],
       ),
-
-      //  SizedBox(
-      //   width: 120.w,
-      //   child: CustomPrimaryTextfield(
-      //     controller: _controller,
-      //     text: 'المخطط',
-      //     textAlign: TextAlign.center,
-      //     keyboardType: TextInputType.number,
-      //     suffix: IconButton(
-      //       icon: Icon(
-      //         Icons.calculate_outlined,
-      //         size: 24.r,
-      //         color: AppColors.primaryColor,
-      //       ),
-      //       onPressed: () async {
-      //         final result = await showDialog<double>(
-      //           context: context,
-      //           builder: (_) => CalculatorDialog(
-      //             initialValue: double.tryParse(_controller.text) ?? 0,
-      //           ),
-      //         );
-      //         if (result != null && mounted) {
-      //           _controller.text = result.truncate().toString();
-      //           _updateIncomeInCubit(result);
-      //         }
-      //       },
-      //     ),
-      //     onChanged: (value) {
-      //       final amount = double.tryParse(value) ?? 0.0;
-      //       _updateIncomeInCubit(amount);
-      //     },
-      //   ),
-      // ),
     );
   }
 

@@ -60,7 +60,7 @@ class WalletsScreen extends StatelessWidget {
                   });
                 final wallet = wallets[index];
                 return SizedBox(
-                  height: wallet.isMain ? 120.h : null,
+                  height: wallet.isMain ? 100.h : null,
                   child: Card(
                     elevation: wallet.isMain ? 6 : 2,
                     color: wallet.isMain
@@ -75,7 +75,7 @@ class WalletsScreen extends StatelessWidget {
                             )
                           : BorderSide.none,
                     ),
-                    margin: EdgeInsets.symmetric(vertical: 6.h),
+                    margin: EdgeInsets.symmetric(vertical: 4.h),
                     child: Center(
                       child: ListTile(
                         leading: CircleAvatar(
@@ -92,28 +92,22 @@ class WalletsScreen extends StatelessWidget {
                         ),
                         title: Row(
                           children: [
-                            Text(
-                              wallet.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            Text(wallet.name, style: AppTextStyle.style14Bold),
                             if (wallet.isMain) ...[
-                              const SizedBox(width: 8),
+                              8.horizontalSpace,
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6.w,
+                                  vertical: 2.h,
                                 ),
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).primaryColor,
-                                  borderRadius: BorderRadius.circular(6),
+                                  borderRadius: BorderRadius.circular(6.r),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'رئيسية',
-                                  style: TextStyle(
+                                  style: AppTextStyle.style9W500.copyWith(
                                     color: Colors.white,
-                                    fontSize: 10,
                                   ),
                                 ),
                               ),

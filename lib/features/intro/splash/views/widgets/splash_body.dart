@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
@@ -64,12 +63,28 @@ class _SplashBodyState extends State<SplashBody> {
             ),
           ),
           10.verticalSpace,
-          Text(
-            kAppQuote,
-            textAlign: TextAlign.center,
-            style: AppTextStyle.style20W400.copyWith(
-              color: AppColors.primaryTextColor,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgImage(
+                imagePath: 'assets/image/svg/quote-1.svg',
+                height: 14.h,
+                color: AppColors.primaryTextColor,
+              ),
+              4.horizontalSpace,
+              Text(
+                'ما تفعله الآن هو ما تجني ثماره في الغد',
+                style: AppTextStyle.style14W400.copyWith(
+                  color: AppColors.primaryTextColor,
+                ),
+              ),
+              4.horizontalSpace,
+              SvgImage(
+                imagePath: 'assets/image/svg/quote-1.svg',
+                height: 14.h,
+                color: AppColors.primaryTextColor,
+              ),
+            ],
           ),
         ],
       ),

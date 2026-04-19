@@ -7,6 +7,7 @@ import 'package:opration/core/theme/text_style.dart';
 
 class CustomPrimaryTextfield extends StatelessWidget {
   const CustomPrimaryTextfield({
+    this.height = 10,
     this.controller,
     this.focusNode,
     super.key,
@@ -47,6 +48,7 @@ class CustomPrimaryTextfield extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final bool? enabled;
   final int? maxLines;
+  final double height;
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -72,9 +74,10 @@ class CustomPrimaryTextfield extends StatelessWidget {
         obscureText: isPassword ?? false,
         decoration: InputDecoration(
           hint: Text(
+            textAlign: textAlign,
             text ?? '',
             style:
-                style ??
+                // style ??
                 AppTextStyle.style14W500.copyWith(
                   color: AppColors.secondaryColor,
                 ),
@@ -87,7 +90,7 @@ class CustomPrimaryTextfield extends StatelessWidget {
           prefixIcon: prefix,
           contentPadding: EdgeInsets.symmetric(
             horizontal: 12.w,
-            vertical: 10.h,
+            vertical: height.h,
           ),
           filled: true,
           fillColor: AppColors.scaffoldBackgroundLightColor,

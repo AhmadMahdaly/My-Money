@@ -23,6 +23,7 @@ import 'package:opration/features/transactions/domain/entities/transaction.dart'
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_widget.dart';
+import 'package:opration/features/transactions/presentation/screens/widgets/calculator_dialog.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
@@ -532,13 +533,39 @@ class _TransactionFormState extends State<_TransactionForm> {
                       ),
                     ),
                     CustomPrimaryTextfield(
-                      suffix: IconButton(
+                      height: 12,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyle.style20W600.copyWith(
+                        color: AppColors.primaryColor,
+                      ),
+                      prefix: IconButton(
                         icon: Icon(
                           Icons.calendar_month_outlined,
                           size: 22.r,
                           color: AppColors.primaryColor,
                         ),
                         onPressed: () => _selectDate(context),
+                      ),
+                      suffix: IconButton(
+                        onPressed: () async {
+                          final result = await showDialog<double>(
+                            context: context,
+                            builder: (_) => CalculatorDialog(
+                              initialValue:
+                                  double.tryParse(_amountController.text) ?? 0,
+                            ),
+                          );
+                          if (result != null) {
+                            _amountController.text = result
+                                .truncate()
+                                .toString();
+                          }
+                        },
+                        icon: Icon(
+                          Icons.calculate_outlined,
+                          size: 22.r,
+                          color: AppColors.primaryColor,
+                        ),
                       ),
                       controller: _amountController,
                       keyboardType: const TextInputType.numberWithOptions(
