@@ -1103,7 +1103,7 @@ class _FilterControlBar extends StatelessWidget {
   }
 }
 
-class _PieChartCard extends StatelessWidget {
+class _PieChartCard extends StatefulWidget {
   const _PieChartCard({
     required this.transactions,
     required this.categories,
@@ -1115,15 +1115,23 @@ class _PieChartCard extends StatelessWidget {
   final double totalExpense;
 
   @override
+  State<_PieChartCard> createState() => _PieChartCardState();
+}
+
+class _PieChartCardState extends State<_PieChartCard> {
+  int touchedIndex = -1;
+
+  @override
   Widget build(BuildContext context) {
+    // 1. تجميع البيانات
     final expenseByMainCategory = <String, double>{};
 
-    for (final t in transactions) {
-      final category = categories.firstWhere(
+    for (final t in widget.transactions) {
+      final category = widget.categories.firstWhere(
         (c) => c.id == t.categoryId,
         orElse: () => TransactionCategory(
           id: '',
-          name: 'في المجهول',
+          name: 'غير محدد',
           colorValue: Colors.grey.value,
           type: TransactionType.expense,
         ),
@@ -1138,51 +1146,227 @@ class _PieChartCard extends StatelessWidget {
       );
     }
 
+    // 2. ترتيب البيانات من الأكبر للأصغر
+    final sortedEntries = expenseByMainCategory.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    // 3. استخراج بيانات الفئة التي تم لمسها لعرضها في المنتصف
+    TransactionCategory? touchedCategory;
+    double? touchedAmount;
+    double? touchedPercentage;
+
+    if (touchedIndex >= 0 && touchedIndex < sortedEntries.length) {
+      final entry = sortedEntries[touchedIndex];
+      touchedAmount = entry.value;
+      touchedPercentage = widget.totalExpense > 0
+          ? (entry.value / widget.totalExpense) * 100
+          : 0;
+
+      touchedCategory = widget.categories.firstWhere(
+        (c) => c.id == entry.key,
+        orElse: () => TransactionCategory(
+          id: '',
+          name: 'غير محدد',
+          colorValue: Colors.grey.value,
+          type: TransactionType.expense,
+        ),
+      );
+    }
+
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.r),
+      ),
       child: Padding(
         padding: EdgeInsets.all(16.r),
         child: Column(
           children: [
             Text(
-              'فلوسك على الشارت',
-              style: AppTextStyle.style18W600.copyWith(
+              'تحليل المصاريف التفصيلي',
+              style: AppTextStyle.style16W600.copyWith(
                 color: AppColors.primaryColor,
               ),
             ),
             20.verticalSpace,
+
+            // الشارت التفاعلي داخل Stack لعرض البيانات في المنتصف
             SizedBox(
-              height: 200.h,
-              child: PieChart(
-                PieChartData(
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 40.r,
-                  sections: expenseByMainCategory.entries.map((entry) {
-                    final mainCategory = categories.firstWhere(
-                      (c) => c.id == entry.key,
-                      orElse: () => TransactionCategory(
-                        id: '',
-                        name: 'في المجهول',
-                        colorValue: Colors.grey.value,
-                        type: TransactionType.expense,
+              height: 220.h, // كبرنا الارتفاع قليلاً ليعطي مساحة للشارت
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  PieChart(
+                    PieChartData(
+                      pieTouchData: PieTouchData(
+                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          setState(() {
+                            if (!event.isInterestedForInteractions ||
+                                pieTouchResponse == null ||
+                                pieTouchResponse.touchedSection == null) {
+                              touchedIndex = -1;
+                              return;
+                            }
+                            touchedIndex = pieTouchResponse
+                                .touchedSection!
+                                .touchedSectionIndex;
+                          });
+                        },
                       ),
-                    );
+                      sectionsSpace: 2,
+                      // كبرنا الفراغ الداخلي ليحتوي النص المكتوب
+                      centerSpaceRadius: 60.r,
+                      sections: sortedEntries.asMap().entries.map((mapEntry) {
+                        final index = mapEntry.key;
+                        final entry = mapEntry.value;
 
-                    final percentage = totalExpense > 0
-                        ? (entry.value / totalExpense) * 100
-                        : 0;
+                        final mainCategory = widget.categories.firstWhere(
+                          (c) => c.id == entry.key,
+                          orElse: () => TransactionCategory(
+                            id: '',
+                            name: 'غير محدد',
+                            colorValue: Colors.grey.value,
+                            type: TransactionType.expense,
+                          ),
+                        );
 
-                    return PieChartSectionData(
-                      color: mainCategory.color,
-                      value: entry.value,
-                      title: '${percentage.truncate()}%',
-                      radius: 60.r,
-                      titleStyle: AppTextStyle.style12Bold.copyWith(
-                        color: AppColors.scaffoldBackgroundLightColor,
+                        final isTouched = index == touchedIndex;
+                        final radius = isTouched ? 65.r : 50.r;
+                        final percentage = widget.totalExpense > 0
+                            ? (entry.value / widget.totalExpense) * 100
+                            : 0;
+
+                        return PieChartSectionData(
+                          color: mainCategory.color,
+                          value: entry.value,
+                          // نخفي النسبة من هنا إذا كان الجزء ملموساً لأننا سنعرضها في المنتصف
+                          title: (!isTouched && percentage > 5)
+                              ? '${percentage.truncate()}%'
+                              : '',
+                          radius: radius,
+                          titleStyle: AppTextStyle.style12Bold.copyWith(
+                            color: AppColors.scaffoldBackgroundLightColor,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  // النصوص التي تظهر في منتصف الدائرة عند اللمس
+                  if (touchedCategory != null && touchedAmount != null)
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          touchedCategory.name,
+                          style: AppTextStyle.style14W600.copyWith(
+                            color: touchedCategory.color,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        4.verticalSpace,
+                        Text(
+                          '${touchedAmount.truncate()} ج.م',
+                          style: AppTextStyle.style12W500.copyWith(
+                            color: AppColors.primaryTextColor,
+                          ),
+                        ),
+                        Text(
+                          '${touchedPercentage?.toStringAsFixed(1)}%',
+                          style: AppTextStyle.style14Bold.copyWith(
+                            color: AppColors.primaryTextColor.withAlpha(150),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    // نص افتراضي في المنتصف في حال عدم لمس أي جزء
+                    Text(
+                      'اضغط للتفاصيل',
+                      style: AppTextStyle.style12W300.copyWith(
+                        color: AppColors.primaryTextColor.withAlpha(100),
                       ),
-                    );
-                  }).toList(),
-                ),
+                    ),
+                ],
               ),
+            ),
+
+            24.verticalSpace,
+            const Divider(height: 1),
+            16.verticalSpace,
+
+            // المفتاح التفصيلي (Legend)
+            Column(
+              children: sortedEntries.map((entry) {
+                final mainCategory = widget.categories.firstWhere(
+                  (c) => c.id == entry.key,
+                  orElse: () => TransactionCategory(
+                    id: '',
+                    name: 'غير محدد',
+                    colorValue: Colors.grey.value,
+                    type: TransactionType.expense,
+                  ),
+                );
+
+                final percentage = widget.totalExpense > 0
+                    ? (entry.value / widget.totalExpense) * 100
+                    : 0;
+
+                // تمييز الفئة في الـ Legend إذا تم لمسها في الشارت
+                final isTouched = sortedEntries.indexOf(entry) == touchedIndex;
+
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 8.w),
+                  decoration: BoxDecoration(
+                    color: isTouched
+                        ? mainCategory.color.withAlpha(20)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  margin: EdgeInsets.only(bottom: 8.h),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 16.r,
+                        height: 16.r,
+                        decoration: BoxDecoration(
+                          color: mainCategory.color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      8.horizontalSpace,
+                      Expanded(
+                        child: Text(
+                          mainCategory.name,
+                          style: AppTextStyle.style14W500.copyWith(
+                            fontWeight: isTouched
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '${entry.value.truncate()} ج.م',
+                        style: AppTextStyle.style12W700.copyWith(
+                          color: AppColors.errorColor.withAlpha(100),
+                        ),
+                      ),
+                      8.horizontalSpace,
+                      SizedBox(
+                        width: 60.w,
+                        child: Text(
+                          '${percentage.toStringAsFixed(1)}%',
+                          textAlign: TextAlign.end,
+                          style: AppTextStyle.style12W500.copyWith(
+                            color: AppColors.primaryTextColor.withAlpha(150),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_floating_action_buttom.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
@@ -124,7 +125,7 @@ class DebtsView extends StatelessWidget {
       color: AppColors.primaryTextColor.withAlpha(40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
       child: Padding(
-        padding: EdgeInsets.all(12.r),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -164,14 +165,14 @@ class DebtsView extends StatelessWidget {
                 ),
               ],
             ),
-            8.verticalSpace,
+            4.verticalSpace,
             Text(
               'المتبقي: ${debt.remainingAmount.truncate()} ج.م',
-              style: AppTextStyle.style14W700.copyWith(
+              style: AppTextStyle.style12W500.copyWith(
                 color: AppColors.errorColor,
               ),
             ),
-            4.verticalSpace,
+            8.verticalSpace,
             LinearProgressIndicator(
               value: debt.totalAmount > 0
                   ? (debt.paidAmount / debt.totalAmount)
@@ -180,13 +181,13 @@ class DebtsView extends StatelessWidget {
               color: AppColors.successColor,
               minHeight: 6.h,
             ),
-            8.verticalSpace,
+            4.verticalSpace,
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'المدفوع: ${debt.paidAmount.truncate()} ج.م',
-                  style: AppTextStyle.style12W400,
+                  style: AppTextStyle.style12W400.copyWith(fontSize: 10.sp),
                 ),
                 TextButton(
                   onPressed: debt.isFullyPaid
@@ -383,6 +384,7 @@ class DebtsView extends StatelessWidget {
       useSafeArea: true,
       showDragHandle: true,
       context: context,
+      routeSettings: const RouteSettings(name: AppRoutes.addDebtsView),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) {
           return Column(

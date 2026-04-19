@@ -714,10 +714,12 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                 ),
                 8.verticalSpace,
                 LinearProgressIndicator(
-                  value: progressValue,
-                  backgroundColor: AppColors.secondaryColor,
-                  color: widget.category.color,
-                  minHeight: 6.h,
+                  value: budgetedAmount > 0 ? progressValue : 0.0,
+                  backgroundColor: AppColors.secondaryColor.withAlpha(50),
+                  color: budgetedAmount > 0
+                      ? widget.category.color
+                      : AppColors.secondaryColor.withAlpha(100),
+                  minHeight: 8.h,
                 ),
                 4.verticalSpace,
                 Row(
@@ -1164,14 +1166,25 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                       ),
                   ],
                 ),
-                8.verticalSpace,
+                10.verticalSpace,
                 LinearProgressIndicator(
-                  value: progressValue,
-                  backgroundColor: AppColors.secondaryColor,
-                  color: widget.category.color,
-                  minHeight: 6.h,
+                  // إذا أردت الشريط يبدأ ممتلئاً وينقص كلما صرفت، نستخدم (1.0 - progressValue)
+                  // أما إذا أردته أن يبدأ فارغاً ويمتلئ بلون الفئة كلما صرفت، استخدم progressValue فقط
+                  value: budgetedAmount > 0
+                      ? (1.0 - progressValue).clamp(0.0, 1.0)
+                      : 0.0,
+
+                  // الخلفية الثابتة (لون رمادي خفيف)
+                  backgroundColor: AppColors.secondaryColor.withAlpha(50),
+
+                  // لون الشريط نفسه (يأخذ لون الفئة فقط إذا حددت ميزانية أكبر من 0)
+                  color: budgetedAmount > 0
+                      ? widget.category.color
+                      : AppColors.secondaryColor.withAlpha(100),
+
+                  minHeight: 8.h,
                 ),
-                4.verticalSpace,
+                8.verticalSpace,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/features/Settings/backup_screen.dart';
 import 'package:opration/features/Settings/more_page.dart';
+import 'package:opration/features/Settings/recurring_operations_screen.dart';
 import 'package:opration/features/auth/presentation/views/login_view.dart';
 import 'package:opration/features/debt/presentation/screens/debts_view.dart';
 import 'package:opration/features/goals/presentation/screens/financial_goals_screen.dart';
@@ -106,6 +107,11 @@ class RouterGenerationConfig {
         path: AppRoutes.backupScreen,
         name: AppRoutes.backupScreen,
         builder: (context, state) => const BackupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.recurringOperationsScreen,
+        name: AppRoutes.recurringOperationsScreen,
+        builder: (context, state) => const RecurringOperationsScreen(),
       ),
     ],
   );

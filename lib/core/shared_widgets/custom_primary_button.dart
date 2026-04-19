@@ -10,17 +10,21 @@ class CustomPrimaryButton extends StatelessWidget {
     super.key,
     this.onPressed,
     this.width,
+    this.color,
   });
   final void Function()? onPressed;
   final String text;
   final double? width;
+  final Color? color;
   @override
   Widget build(BuildContext context) {
     return Center(
       child: TextButton(
         onPressed: onPressed,
         style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(AppColors.primaryColor),
+          backgroundColor: WidgetStateProperty.all(
+            color ?? AppColors.primaryColor,
+          ),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           minimumSize: WidgetStateProperty.all(Size(width ?? 300.w, 52.h)),
           shape: WidgetStateProperty.all(

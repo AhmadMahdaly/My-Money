@@ -46,6 +46,17 @@ class MoreView extends StatelessWidget {
           4.verticalSpace,
           CustomMorePageCard(
             icon: Image.asset(
+              'assets/image/png/refresh.png',
+              height: 24.r,
+
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+            text: 'إدارة العمليات المتكررة',
+            onTap: () => context.pushNamed(AppRoutes.recurringOperationsScreen),
+          ),
+          4.verticalSpace,
+          CustomMorePageCard(
+            icon: Image.asset(
               'assets/image/png/shopping-cart.png',
               height: 24.r,
 

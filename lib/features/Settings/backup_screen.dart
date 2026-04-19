@@ -4,6 +4,7 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/services/cache_helper/backup_service.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
+import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/auth/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_cubit.dart';
 import 'package:opration/features/goals/presentation/controllers/financial_goal_cubit/financial_goal_cubit.dart';
@@ -88,25 +89,36 @@ class _BackupScreenState extends State<BackupScreen> {
       ),
       body: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.all(16.r),
-            child: Column(
-              children: [
-                /// Backup Button
-                CustomPrimaryButton(
+          Column(
+            children: [
+              const BackupRestoreInfoCard(),
+              const Spacer(),
+
+              /// Backup Button
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: CustomPrimaryButton(
+                  color: Colors.green,
+                  width: double.infinity,
                   onPressed: () => isLoading ? null : handleBackup(),
                   text: 'إنشاء نسخة احتياطية من البيانات',
                 ),
+              ),
 
-                20.verticalSpace,
+              20.verticalSpace,
 
-                /// Restore Button
-                CustomPrimaryButton(
+              /// Restore Button
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: CustomPrimaryButton(
+                  color: Colors.orange,
+                  width: double.infinity,
                   onPressed: () => isLoading ? null : handleRestore(),
                   text: 'استعادة النسخة الاحتياطية',
                 ),
-              ],
-            ),
+              ),
+              55.verticalSpace,
+            ],
           ),
 
           /// 🔹 Loading Overlay
@@ -117,6 +129,135 @@ class _BackupScreenState extends State<BackupScreen> {
             ),
         ],
       ),
+    );
+  }
+}
+
+class BackupRestoreInfoCard extends StatelessWidget {
+  const BackupRestoreInfoCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.all(16.r),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16.r),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 🔹 Title
+            // Row(
+            //   children: [
+            //     const Icon(Icons.info_outline, color: Colors.blue),
+            //     8.horizontalSpace,
+            //     Text(
+            //       'النسخ الاحتياطي والاستعادة',
+            //       style: AppTextStyle.style16Bold,
+            //     ),
+            //   ],
+            // ),
+
+            // const SizedBox(height: 12),
+
+            /// 🔹 Backup Section
+            const _Section(
+              icon: Icons.backup,
+              title: 'إنشاء نسخة احتياطية',
+              description:
+                  'يقوم بحفظ جميع بياناتك (المعاملات، المحافظ، الفئات، والخطط الشهرية) في ملف يمكنك مشاركته أو الاحتفاظ به.',
+              color: Colors.green,
+            ),
+            24.verticalSpace,
+
+            /// 🔹 Restore Section
+            const _Section(
+              icon: Icons.restore,
+              title: 'استعادة نسخة احتياطية',
+              description:
+                  'يقوم بتحميل البيانات من ملف واستبدال البيانات الحالية بالكامل بالبيانات الموجودة في النسخة الاحتياطية.',
+              color: Colors.orange,
+            ),
+
+            12.verticalSpace,
+
+            /// 🔥 Warning
+            Container(
+              padding: EdgeInsets.all(12.r),
+              decoration: BoxDecoration(
+                color: Colors.red.withAlpha(20),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: Colors.red.withAlpha(77)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                  8.horizontalSpace,
+                  Expanded(
+                    child: Text(
+                      'عند الاستعادة سيتم حذف البيانات الحالية واستبدالها بالكامل، تأكد من أخذ نسخة احتياطية أولاً إذا لزم الأمر.',
+                      style: AppTextStyle.style12W300,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 🔹 Section Widget
+class _Section extends StatelessWidget {
+  const _Section({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: color.withAlpha(50),
+          child: Icon(icon, color: color),
+        ),
+        10.horizontalSpace,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: AppTextStyle.style16Bold,
+              ),
+              4.verticalSpace,
+              Text(
+                description,
+                style: AppTextStyle.style12W300.copyWith(
+                  // fontSize: 10.sp,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
