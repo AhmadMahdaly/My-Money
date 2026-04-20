@@ -76,8 +76,22 @@ class DebtCubit extends Cubit<DebtState> {
             now.weekday == debt.recurrenceValue! &&
             (debt.lastProcessedDate == null ||
                 now.difference(debt.lastProcessedDate!).inDays >= 7);
+      } else if (debt.recurrence == DebtRecurrence.custom &&
+          debt.customDates != null) {
+        // التحقق مما إذا كان اليوم الحالي موجوداً ضمن التواريخ المخصصة ولم يتم الدفع اليوم
+        final today = DateTime(now.year, now.month, now.day);
+        isDue =
+            debt.customDates!.any(
+              (d) => DateTime(d.year, d.month, d.day).isAtSameMomentAs(today),
+            ) &&
+            (debt.lastProcessedDate == null ||
+                DateTime(
+                      debt.lastProcessedDate!.year,
+                      debt.lastProcessedDate!.month,
+                      debt.lastProcessedDate!.day,
+                    ) !=
+                    today);
       }
-
       if (isDue &&
           debt.autoDeduct &&
           debt.targetWalletId != null &&

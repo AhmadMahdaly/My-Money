@@ -182,6 +182,25 @@ class DebtsView extends StatelessWidget {
               minHeight: 6.h,
             ),
             4.verticalSpace,
+            if (debt.nextDueDate != null && !debt.isFullyPaid) ...[
+              4.verticalSpace,
+              Row(
+                children: [
+                  Icon(
+                    Icons.calendar_month,
+                    size: 14.sp,
+                    color: AppColors.textGreyColor,
+                  ),
+                  4.horizontalSpace,
+                  Text(
+                    'الاستحقاق القادم: ${DateFormat.yMMMd('ar').format(debt.nextDueDate!)}',
+                    style: AppTextStyle.style12W400.copyWith(
+                      color: AppColors.textGreyColor,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -356,7 +375,7 @@ class DebtsView extends StatelessWidget {
     final nameController = TextEditingController();
     final amountController = TextEditingController();
     final installmentController = TextEditingController();
-
+    final customDatesList = <DateTime>[];
     var selectedRecurrence = DebtRecurrence.once;
     int? recurrenceValue;
     DateTime? selectedDate = DateTime.now();
@@ -432,6 +451,10 @@ class DebtsView extends StatelessWidget {
                               value: DebtRecurrence.monthly,
                               child: Text('قسط شهري'),
                             ),
+                            DropdownMenuItem(
+                              value: DebtRecurrence.custom,
+                              child: Text('تواريخ مخصصة'),
+                            ),
                           ],
                           onChanged: (v) {
                             setState(() {
@@ -487,6 +510,61 @@ class DebtsView extends StatelessWidget {
                             onChanged: (v) =>
                                 setState(() => recurrenceValue = v),
                             validator: (v) => v == null ? 'اختر اليوم' : null,
+                          )
+                        else if (selectedRecurrence == DebtRecurrence.custom)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(
+                                  'إضافة تواريخ معينة',
+                                  style: AppTextStyle.style12W600,
+                                ),
+                                trailing: const Icon(Icons.add_circle_outline),
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) {
+                                    setState(() {
+                                      // التأكد من عدم تكرار نفس اليوم
+                                      if (!customDatesList.any(
+                                        (d) =>
+                                            d.year == picked.year &&
+                                            d.month == picked.month &&
+                                            d.day == picked.day,
+                                      )) {
+                                        customDatesList.add(picked);
+                                      }
+                                    });
+                                  }
+                                },
+                              ),
+                              if (customDatesList.isNotEmpty)
+                                Wrap(
+                                  spacing: 8.w,
+                                  children: customDatesList.map((date) {
+                                    return Chip(
+                                      label: Text(
+                                        DateFormat.MMMd('ar').format(date),
+                                      ),
+                                      deleteIcon: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                      ),
+                                      onDeleted: () {
+                                        setState(
+                                          () => customDatesList.remove(date),
+                                        );
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                            ],
                           )
                         else if (selectedRecurrence == DebtRecurrence.weekly)
                           CustomDropdownButtonFormField<int>(
@@ -639,14 +717,19 @@ class DebtsView extends StatelessWidget {
                               name: nameController.text,
                               totalAmount: total,
                               installmentAmount: inst,
-                              recurrence: selectedRecurrence,
-                              dueDate: selectedRecurrence == DebtRecurrence.once
-                                  ? selectedDate
-                                  : null,
+
                               recurrenceValue: recurrenceValue,
                               autoDeduct: autoDeduct,
                               targetWalletId: selectedWalletId,
                               categoryId: finalCategoryId,
+                              recurrence: selectedRecurrence,
+                              customDates:
+                                  selectedRecurrence == DebtRecurrence.custom
+                                  ? customDatesList
+                                  : null,
+                              dueDate: selectedRecurrence == DebtRecurrence.once
+                                  ? selectedDate
+                                  : null,
                             );
 
                             context.read<DebtCubit>().addDebt(newDebt);
