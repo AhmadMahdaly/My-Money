@@ -523,6 +523,121 @@ class _TransactionFormState extends State<_TransactionForm> {
                           ],
                         ),
                       ),
+                    BlocBuilder<WalletCubit, WalletState>(
+                      builder: (context, walletState) {
+                        var showMainWallet = true;
+                        Wallet? mainWallet;
+
+                        if (walletState is WalletLoaded) {
+                          showMainWallet = walletState.showMainWallet;
+                          if (walletState.wallets.isNotEmpty) {
+                            mainWallet = walletState.wallets.firstWhere(
+                              (w) => w.isMain,
+                              orElse: () => walletState.wallets.first,
+                            );
+                          }
+                        }
+
+                        if (walletState is WalletLoaded && mainWallet != null) {
+                          return InkWell(
+                            onTap: () {
+                              _showChangeMainWalletDialog(
+                                context,
+                                walletState.wallets,
+                                mainWallet!.id,
+                              );
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor.withAlpha(33),
+                                border: Border.all(
+                                  color: AppColors.primaryColor.withAlpha(24),
+                                ),
+                                borderRadius: BorderRadius.circular(10.r),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  16.horizontalSpace,
+
+                                  SvgImage(
+                                    imagePath:
+                                        'assets/image/svg/change_wallet.svg',
+                                    height: 18.r,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  const Spacer(),
+
+                                  ImageFiltered(
+                                    imageFilter: ui.ImageFilter.blur(
+                                      sigmaX: showMainWallet ? 0 : 4.0,
+                                      sigmaY: showMainWallet ? 0 : 4.0,
+                                    ),
+                                    child: Text.rich(
+                                      showMainWallet
+                                          ? TextSpan(
+                                              text: '${mainWallet.name}: ',
+                                              style: AppTextStyle.style14W500
+                                                  .copyWith(
+                                                    color:
+                                                        AppColors.primaryColor,
+                                                  ),
+                                              children: [
+                                                TextSpan(
+                                                  text:
+                                                      '${mainWallet.balance.truncate()} ج.م',
+                                                  style: AppTextStyle
+                                                      .style16W700
+                                                      .copyWith(
+                                                        color: AppColors
+                                                            .primaryColor,
+                                                      ),
+                                                ),
+                                              ],
+                                            )
+                                          : TextSpan(
+                                              text:
+                                                  '${mainWallet.name}: ****** ج.م',
+                                              style: AppTextStyle.style16W700
+                                                  .copyWith(
+                                                    color:
+                                                        AppColors.primaryColor,
+                                                  ),
+                                            ),
+                                      style: AppTextStyle.style14W500.copyWith(
+                                        color: AppColors.primaryColor,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: Icon(
+                                      showMainWallet
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+
+                                      color: AppColors.primaryColor,
+                                      size: 20.r,
+                                    ),
+                                    onPressed: () {
+                                      context
+                                          .read<WalletCubit>()
+                                          .toggleShowMainWalletPref();
+                                    },
+                                    tooltip: 'إخفاء المحفظة',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
 
                     Text(
                       widget.type == TransactionType.income
@@ -575,131 +690,42 @@ class _TransactionFormState extends State<_TransactionForm> {
                       validator: (value) =>
                           value == null || value.isEmpty ? 'سجل المبلغ' : null,
                     ),
-                    Theme(
-                      data: Theme.of(
-                        context,
-                      ).copyWith(dividerColor: Colors.transparent),
-                      child: ExpansionTile(
-                        childrenPadding: EdgeInsets.zero,
-                        tilePadding: EdgeInsets.zero,
-                        title: Text(
-                          'لو عايز تغير المحفظة',
-                          style: AppTextStyle.style14W400.copyWith(
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                        children: [
-                          BlocBuilder<WalletCubit, WalletState>(
-                            builder: (context, walletState) {
-                              var showMainWallet = true;
-                              Wallet? mainWallet;
+                    4.verticalSpace,
+                    // Theme(
+                    //   data: Theme.of(
+                    //     context,
+                    //   ).copyWith(dividerColor: Colors.transparent),
+                    //   child: ExpansionTile(
+                    //     childrenPadding: EdgeInsets.zero,
+                    //     tilePadding: EdgeInsets.zero,
+                    //     title: Text(
+                    //       'لو عايز تغير المحفظة',
+                    //       style: AppTextStyle.style14W400.copyWith(
+                    //         color: AppColors.primaryColor,
+                    //       ),
+                    //     ),
+                    //     children: [
+                    //    ],
+                    //   ),
+                    // ),
 
-                              if (walletState is WalletLoaded) {
-                                showMainWallet = walletState.showMainWallet;
-                                if (walletState.wallets.isNotEmpty) {
-                                  mainWallet = walletState.wallets.firstWhere(
-                                    (w) => w.isMain,
-                                    orElse: () => walletState.wallets.first,
-                                  );
-                                }
-                              }
-
-                              if (walletState is WalletLoaded &&
-                                  mainWallet != null) {
-                                return InkWell(
-                                  onTap: () {
-                                    _showChangeMainWalletDialog(
-                                      context,
-                                      walletState.wallets,
-                                      mainWallet!.id,
-                                    );
-                                  },
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: AppColors.primaryColor.withAlpha(
-                                          100,
-                                        ),
-                                      ),
-                                      borderRadius: BorderRadius.circular(10.r),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        16.horizontalSpace,
-
-                                        SvgImage(
-                                          imagePath:
-                                              'assets/image/svg/change_wallet.svg',
-                                          height: 18.r,
-                                          color: AppColors.primaryColor,
-                                        ),
-                                        12.horizontalSpace,
-
-                                        ImageFiltered(
-                                          imageFilter: ui.ImageFilter.blur(
-                                            sigmaX: showMainWallet ? 0 : 4.0,
-                                            sigmaY: showMainWallet ? 0 : 4.0,
-                                          ),
-                                          child: Text(
-                                            showMainWallet
-                                                ? '${mainWallet.name} (${mainWallet.balance.truncate()} ج.م)'
-                                                : '${mainWallet.name} (****** ج.م)',
-                                            style: AppTextStyle.style14W500
-                                                .copyWith(
-                                                  color: AppColors.primaryColor,
-                                                ),
-                                            textAlign: TextAlign.center,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        IconButton(
-                                          icon: Icon(
-                                            showMainWallet
-                                                ? Icons.visibility_off_outlined
-                                                : Icons.visibility_outlined,
-
-                                            color: AppColors.primaryColor,
-                                            size: 20.r,
-                                          ),
-                                          onPressed: () {
-                                            context
-                                                .read<WalletCubit>()
-                                                .toggleShowMainWalletPref();
-                                          },
-                                          tooltip: 'إخفاء المحفظة',
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return const SizedBox.shrink();
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          widget.type == TransactionType.income
-                              ? 'الفلوس دي جاية منين (المخصص الرئيسي)؟'
-                              : 'صرفت على ايه (المخصص الرئيسي)؟',
-                          style: AppTextStyle.style14W400.copyWith(
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     Text(
+                    //       widget.type == TransactionType.income
+                    //           ? 'الفلوس دي جاية منين (المخصص الرئيسي)؟'
+                    //           : 'صرفت على ايه (المخصص الرئيسي)؟',
+                    //       style: AppTextStyle.style14W400.copyWith(
+                    //         color: AppColors.primaryColor,
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     _buildCategorySelectionField(
-                      hint: 'اختر المخصص الرئيسي',
+                      hint: widget.type == TransactionType.income
+                          ? 'الفلوس دي جاية منين (اختار المخصص الرئيسي)؟'
+                          : 'صرفت على ايه (اختار المخصص الرئيسي)؟',
                       selectedCategory: selectedMainCategory,
                       onTap: () => _showCategorySelectionSheet(
                         context: context,
@@ -709,10 +735,10 @@ class _TransactionFormState extends State<_TransactionForm> {
                     ),
 
                     if (_selectedMainCategoryId != null) ...[
-                      Text(
-                        'اختر المخصص الفرعي (اختياري):',
-                        style: AppTextStyle.style12W300,
-                      ),
+                      // Text(
+                      //   'اختر المخصص الفرعي (اختياري):',
+                      //   style: AppTextStyle.style12W300,
+                      // ),
                       _buildCategorySelectionField(
                         hint: subCategories.isEmpty
                             ? 'لا توجد تفريعات، اضغط لإضافة واحدة'
@@ -764,13 +790,16 @@ class _TransactionFormState extends State<_TransactionForm> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primaryColor.withAlpha(100)),
+          border: Border.all(color: AppColors.primaryColor.withAlpha(50)),
           borderRadius: BorderRadius.circular(10.r),
-          color: selectedCategory?.color.withAlpha(15) ?? Colors.transparent,
+          color:
+              selectedCategory?.color.withAlpha(15) ??
+              AppColors.primaryColor.withAlpha(24),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // 40.horizontalSpace,
             Row(
               children: [
                 if (selectedCategory != null) ...[
@@ -786,11 +815,14 @@ class _TransactionFormState extends State<_TransactionForm> {
                       ? AppTextStyle.style14W600.copyWith(
                           color: selectedCategory.color,
                         )
-                      : AppTextStyle.style14W400.copyWith(color: Colors.grey),
+                      : AppTextStyle.style12W400.copyWith(color: Colors.grey),
                 ),
               ],
             ),
-            const Icon(Icons.arrow_drop_down, color: AppColors.primaryColor),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.primaryColor,
+            ),
           ],
         ),
       ),

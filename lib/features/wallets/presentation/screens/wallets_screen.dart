@@ -40,134 +40,161 @@ class WalletsScreen extends StatelessWidget {
             );
           }
           if (state is WalletLoaded) {
-            if (state.wallets.isEmpty) {
-              return Center(
-                child: Text(
-                  'لسا مفيش محافظ، ضيف محفظة الأول!',
-                  style: AppTextStyle.style14W500,
-                ),
-              );
-            }
-            return ListView.builder(
-              padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
-              itemCount: state.wallets.length,
-              itemBuilder: (context, index) {
-                final wallets = [...state.wallets]
-                  ..sort((a, b) {
-                    if (a.isMain && !b.isMain) return -1;
-                    if (!a.isMain && b.isMain) return 1;
-                    return 0;
-                  });
-                final wallet = wallets[index];
-                return SizedBox(
-                  height: wallet.isMain ? 100.h : null,
-                  child: Card(
-                    elevation: wallet.isMain ? 6 : 2,
-                    color: wallet.isMain
-                        ? Theme.of(context).primaryColor.withAlpha(15)
-                        : Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      side: wallet.isMain
-                          ? BorderSide(
-                              color: Theme.of(context).primaryColor,
-                              width: 1.5,
-                            )
-                          : BorderSide.none,
-                    ),
-                    margin: EdgeInsets.symmetric(vertical: 4.h),
-                    child: Center(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: wallet.isMain
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey.shade300,
-                          radius: wallet.isMain ? 26 : 22,
-                          child: Icon(
-                            Icons.account_balance_wallet_outlined,
-                            color: wallet.isMain
-                                ? Colors.white
-                                : Colors.grey.shade800,
+            final totalBalance = state.wallets.fold(
+              0.0,
+              (sum, wallet) => sum + wallet.balance,
+            );
+
+            return Column(
+              children: [
+                _buildTotalBalanceCard(context, totalBalance),
+
+                Expanded(
+                  child: state.wallets.isEmpty
+                      ? Center(
+                          child: Text(
+                            'لسا مفيش محافظ، ضيف محفظة الأول!',
+                            style: AppTextStyle.style14W500,
                           ),
-                        ),
-                        title: Row(
-                          children: [
-                            Text(wallet.name, style: AppTextStyle.style14Bold),
-                            if (wallet.isMain) ...[
-                              8.horizontalSpace,
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 6.w,
-                                  vertical: 2.h,
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 8.h,
+                            horizontal: 16.w,
+                          ),
+                          itemCount: state.wallets.length,
+                          itemBuilder: (context, index) {
+                            final wallets = [...state.wallets]
+                              ..sort((a, b) {
+                                if (a.isMain && !b.isMain) return -1;
+                                if (!a.isMain && b.isMain) return 1;
+                                return 0;
+                              });
+                            final wallet = wallets[index];
+
+                            return SizedBox(
+                              height: wallet.isMain ? 100.h : null,
+                              child: Card(
+                                elevation: wallet.isMain ? 6 : 2,
+                                color: wallet.isMain
+                                    ? Theme.of(
+                                        context,
+                                      ).primaryColor.withAlpha(15)
+                                    : Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  side: wallet.isMain
+                                      ? BorderSide(
+                                          color: Theme.of(context).primaryColor,
+                                          width: 1.5,
+                                        )
+                                      : BorderSide.none,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor,
-                                  borderRadius: BorderRadius.circular(6.r),
-                                ),
-                                child: Text(
-                                  'رئيسية',
-                                  style: AppTextStyle.style9W500.copyWith(
-                                    color: Colors.white,
+                                margin: EdgeInsets.symmetric(vertical: 4.h),
+                                child: Center(
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: wallet.isMain
+                                          ? Theme.of(context).primaryColor
+                                          : Colors.grey.shade300,
+                                      radius: wallet.isMain ? 26 : 22,
+                                      child: Icon(
+                                        Icons.account_balance_wallet_outlined,
+                                        color: wallet.isMain
+                                            ? Colors.white
+                                            : Colors.grey.shade800,
+                                      ),
+                                    ),
+                                    title: Row(
+                                      children: [
+                                        Text(
+                                          wallet.name,
+                                          style: AppTextStyle.style14Bold,
+                                        ),
+                                        if (wallet.isMain) ...[
+                                          8.horizontalSpace,
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 6.w,
+                                              vertical: 2.h,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(
+                                                context,
+                                              ).primaryColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(6.r),
+                                            ),
+                                            child: Text(
+                                              'رئيسية',
+                                              style: AppTextStyle.style9W500
+                                                  .copyWith(
+                                                    color: Colors.white,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    subtitle: Text(
+                                      'الرصيد: ${wallet.balance.truncate()} ج.م',
+                                      style: AppTextStyle.style14W500.copyWith(
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    trailing: PopupMenuButton<String>(
+                                      onSelected: (value) {
+                                        if (value == 'edit') {
+                                          _showAddEditWalletDialog(
+                                            context,
+                                            wallet: wallet,
+                                          );
+                                        } else if (value == 'delete') {
+                                          context
+                                              .read<WalletCubit>()
+                                              .deleteWallet(wallet.id);
+                                        } else if (value == 'set_main') {
+                                          context
+                                              .read<WalletCubit>()
+                                              .setMainWallet(wallet.id);
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        if (!wallet.isMain)
+                                          PopupMenuItem(
+                                            value: 'set_main',
+                                            child: Text(
+                                              'خليها كـ محفظة رئيسية',
+                                              style: AppTextStyle.style14W500,
+                                            ),
+                                          ),
+                                        PopupMenuItem(
+                                          value: 'edit',
+                                          child: Text(
+                                            'عدّل',
+                                            style: AppTextStyle.style14W500,
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'delete',
+                                          child: Text(
+                                            'مسح',
+                                            style: AppTextStyle.style14W500
+                                                .copyWith(
+                                                  color: Colors.red,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ],
-                          ],
-                        ),
-                        subtitle: Text(
-                          'الرصيد: ${wallet.balance.truncate()} ج.م',
-
-                          style: AppTextStyle.style14W500.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        trailing: PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _showAddEditWalletDialog(context, wallet: wallet);
-                            } else if (value == 'delete') {
-                              context.read<WalletCubit>().deleteWallet(
-                                wallet.id,
-                              );
-                            } else if (value == 'set_main') {
-                              context.read<WalletCubit>().setMainWallet(
-                                wallet.id,
-                              );
-                            }
+                            );
                           },
-                          itemBuilder: (context) => [
-                            if (!wallet.isMain)
-                              PopupMenuItem(
-                                value: 'set_main',
-                                child: Text(
-                                  'خليها كـ محفظة رئيسية',
-                                  style: AppTextStyle.style14W500,
-                                ),
-                              ),
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Text(
-                                'عدّل',
-                                style: AppTextStyle.style14W500,
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Text(
-                                'مسح',
-
-                                style: AppTextStyle.style14W500.copyWith(
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
-                    ),
-                  ),
-                );
-              },
+                ),
+              ],
             );
           }
           return Center(
@@ -212,6 +239,60 @@ class WalletsScreen extends StatelessWidget {
             child: const Icon(Icons.account_balance_wallet_outlined),
             label: 'إضافة محفظة',
             onTap: () => _showAddEditWalletDialog(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTotalBalanceCard(BuildContext context, double totalBalance) {
+    return Container(
+      margin: EdgeInsets.only(top: 16.h, left: 16.w, right: 16.w, bottom: 8.h),
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withAlpha(245),
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).primaryColor.withAlpha(77),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'إجمالي الرصيد الحالي',
+                style: AppTextStyle.style14W500.copyWith(
+                  color: Colors.white.withAlpha(200),
+                ),
+              ),
+              8.verticalSpace,
+              Text(
+                '${totalBalance.truncate()} ج.م',
+                style: AppTextStyle.style18W800.copyWith(
+                  color: Colors.white,
+                  fontSize: 24.sp, // لو بتستخدم ScreenUtil للـ Fonts
+                ),
+              ),
+            ],
+          ),
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(50),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.account_balance_wallet_rounded,
+              color: Colors.white,
+              size: 32.r,
+            ),
           ),
         ],
       ),

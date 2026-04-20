@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
@@ -65,7 +66,6 @@ class RecurringOperationsScreen extends StatelessWidget {
                     ),
                     20.verticalSpace,
                   ],
-
                   if (recurringDebts.isNotEmpty) ...[
                     Text(
                       'الالتزامات والأقساط المتكررة',
@@ -104,6 +104,9 @@ class RecurringOperationsScreen extends StatelessWidget {
     );
   }
 
+  // ---------------------------------------------------------
+  // ديالوجات تحديد نوع الإضافة (جديد أم موجود)
+  // ---------------------------------------------------------
   void _showAddChoiceDialog(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -126,7 +129,7 @@ class RecurringOperationsScreen extends StatelessWidget {
               title: const Text('مخصص متكرر (راتب، إيجار...)'),
               onTap: () {
                 Navigator.pop(ctx);
-                _showCategoryTypeSelection(context);
+                _showExistingOrNewCategoryDialog(context);
               },
             ),
             const Divider(),
@@ -138,8 +141,7 @@ class RecurringOperationsScreen extends StatelessWidget {
               title: const Text('التزام / قسط متكرر'),
               onTap: () {
                 Navigator.pop(ctx);
-
-                _showAddDebtDialog(context);
+                _showExistingOrNewDebtDialog(context);
               },
             ),
           ],
@@ -148,30 +150,252 @@ class RecurringOperationsScreen extends StatelessWidget {
     );
   }
 
-  void _showAddDebtDialog(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController();
-    final amountController = TextEditingController();
-    final installmentController = TextEditingController();
+  void _showExistingOrNewCategoryDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('مخصص موجود أم جديد؟', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showExistingCategoriesSheet(context);
+              },
+              child: const Text('تحويل مخصص حالي لمتكرر'),
+            ),
+            8.verticalSpace,
+            OutlinedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showCategoryTypeSelection(context);
+              },
+              child: const Text('إنشاء مخصص جديد تماماً'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    var selectedRecurrence = DebtRecurrence.monthly;
-    int? recurrenceValue;
-    DateTime? selectedDate = DateTime.now();
-    var autoDeduct = false;
-    String? selectedWalletId;
+  void _showExistingOrNewDebtDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('التزام موجود أم جديد؟', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showExistingDebtsSheet(context);
+              },
+              child: const Text('تحويل دين حالي لقسط متكرر'),
+            ),
+            8.verticalSpace,
+            OutlinedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showAddDebtDialog(context); // جديد
+              },
+              child: const Text('إضافة التزام جديد تماماً'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------
+  // Bottom Sheets لاختيار عناصر موجودة
+  // ---------------------------------------------------------
+  void _showExistingCategoriesSheet(BuildContext context) {
+    final allCategories = context.read<TransactionCubit>().state.allCategories;
+    // جلب الفئات العادية فقط (التي ليست متكررة بعد)
+    final normalCategories = allCategories
+        .where((c) => !c.isRecurring)
+        .toList();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (ctx) => normalCategories.isEmpty
+          ? const Center(child: Text('لا توجد مخصصات عادية لتحويلها.'))
+          : ListView.builder(
+              padding: EdgeInsets.all(16.r),
+              itemCount: normalCategories.length,
+              itemBuilder: (context, index) {
+                final cat = normalCategories[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: cat.color,
+                    radius: 16.r,
+                  ),
+                  title: Text(cat.name),
+                  subtitle: Text(
+                    cat.type == TransactionType.income ? 'دخل' : 'صرف',
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _openCategoryDialog(context, cat.type, cat);
+                  },
+                );
+              },
+            ),
+    );
+  }
+
+  void _showExistingDebtsSheet(BuildContext context) {
+    final allDebts = context.read<DebtCubit>().state.items;
+    // جلب الديون المخصصة لمرة واحدة فقط لتفعيل التكرار عليها
+    final onceDebts = allDebts
+        .where((d) => d.recurrence == DebtRecurrence.once)
+        .toList();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (ctx) => onceDebts.isEmpty
+          ? const Center(
+              child: Text('لا توجد ديون (لمرة واحدة) لتحويلها لأقساط.'),
+            )
+          : ListView.builder(
+              padding: EdgeInsets.all(16.r),
+              itemCount: onceDebts.length,
+              itemBuilder: (context, index) {
+                final debt = onceDebts[index];
+                return ListTile(
+                  leading: const Icon(
+                    Icons.receipt_long,
+                    color: AppColors.orangeColor,
+                  ),
+                  title: Text(debt.name),
+                  subtitle: Text(
+                    'المتبقي: ${debt.remainingAmount.truncate()} ج.م',
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _showAddDebtDialog(context, debtToEdit: debt);
+                  },
+                );
+              },
+            ),
+    );
+  }
+
+  // ---------------------------------------------------------
+  // منطق الإنشاء والتعديل
+  // ---------------------------------------------------------
+  void _showCategoryTypeSelection(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('نوع المخصص المتكرر', textAlign: TextAlign.center),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            TextButton.icon(
+              icon: Icon(
+                CupertinoIcons.add_circled,
+                color: AppColors.successColor,
+              ),
+              label: Text(
+                'دخل',
+                style: TextStyle(color: AppColors.successColor),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _openCategoryDialog(context, TransactionType.income);
+              },
+            ),
+            TextButton.icon(
+              icon: const Icon(
+                CupertinoIcons.minus_circle,
+                color: AppColors.errorColor,
+              ),
+              label: const Text(
+                'صرف',
+                style: TextStyle(color: AppColors.errorColor),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _openCategoryDialog(context, TransactionType.expense);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openCategoryDialog(
+    BuildContext context,
+    TransactionType type, [
+    TransactionCategory? categoryToEdit,
+  ]) {
+    showModalBottomSheet<TransactionCategory>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      context: context,
+      builder: (_) => AddCategoryWidget(
+        type: type,
+        categoryToEdit: categoryToEdit,
+      ),
+    ).then((result) {
+      if (result != null) {
+        if (categoryToEdit == null) {
+          context.read<TransactionCubit>().addCategory(result);
+        } else {
+          context.read<TransactionCubit>().updateCategory(result);
+        }
+      }
+    });
+  }
+
+  void _showAddDebtDialog(BuildContext context, {Debt? debtToEdit}) {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController(text: debtToEdit?.name ?? '');
+    final amountController = TextEditingController(
+      text: debtToEdit?.totalAmount.truncate().toString() ?? '',
+    );
+    final installmentController = TextEditingController(
+      text: debtToEdit?.installmentAmount.truncate().toString() ?? '',
+    );
+
+    // جلب التواريخ المخصصة القديمة إذا كان تعديلاً، أو تهيئة قائمة فارغة
+    final customDatesList = List<DateTime>.from(debtToEdit?.customDates ?? []);
+
+    // اجعل الافتراضي شهرياً إذا كان جديداً أو لمرة واحدة، وإلا استخدم تكرار الدين
+    var selectedRecurrence = debtToEdit?.recurrence == DebtRecurrence.once
+        ? DebtRecurrence.monthly
+        : (debtToEdit?.recurrence ?? DebtRecurrence.monthly);
+
+    var recurrenceValue = debtToEdit?.recurrenceValue;
+    DateTime? selectedDate = debtToEdit?.dueDate ?? DateTime.now();
+    var autoDeduct = debtToEdit?.autoDeduct ?? false;
+    var selectedWalletId = debtToEdit?.targetWalletId;
 
     String? selectedMainCategoryId;
     String? selectedSubCategoryId;
 
-    final wallets = (context.read<WalletCubit>().state as WalletLoaded).wallets;
+    if (debtToEdit?.categoryId != null) {
+      selectedMainCategoryId = debtToEdit?.categoryId;
+    }
 
+    final wallets = (context.read<WalletCubit>().state as WalletLoaded).wallets;
     final allExpenseCategories = context
         .read<TransactionCubit>()
         .state
         .allCategories
         .where((c) => c.type == TransactionType.expense)
         .toList();
-
     final mainCategories = allExpenseCategories
         .where((c) => c.parentId == null)
         .toList();
@@ -181,12 +405,15 @@ class RecurringOperationsScreen extends StatelessWidget {
       useSafeArea: true,
       showDragHandle: true,
       context: context,
+      routeSettings: const RouteSettings(name: AppRoutes.addDebtsView),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setState) {
           return Column(
             children: [
               Text(
-                'إضافة التزام أو قسط',
+                debtToEdit == null
+                    ? 'إضافة دين أو قسط متكرر'
+                    : 'تحويل "${debtToEdit.name}" لقسط',
                 style: AppTextStyle.style14W600,
               ),
               20.verticalSpace,
@@ -200,13 +427,13 @@ class RecurringOperationsScreen extends StatelessWidget {
                       children: [
                         CustomPrimaryTextfield(
                           controller: nameController,
-                          text: 'لمن هذا الدين؟ (مثال: إيجار الشقة)',
+                          text: 'لمن هذا الدين؟ (مثال: قسط العربية)',
                           validator: (v) => v!.isEmpty ? 'مطلوب' : null,
                         ),
                         12.verticalSpace,
                         CustomPrimaryTextfield(
                           controller: amountController,
-                          text: 'المبلغ الإجمالي (أو السنوي)',
+                          text: 'المبلغ الإجمالي للدين',
                           keyboardType: TextInputType.number,
                           validator: (v) => v!.isEmpty ? 'مطلوب' : null,
                         ),
@@ -227,6 +454,10 @@ class RecurringOperationsScreen extends StatelessWidget {
                             DropdownMenuItem(
                               value: DebtRecurrence.monthly,
                               child: Text('قسط شهري'),
+                            ),
+                            DropdownMenuItem(
+                              value: DebtRecurrence.custom,
+                              child: Text('تواريخ مخصصة'),
                             ),
                           ],
                           onChanged: (v) {
@@ -284,6 +515,61 @@ class RecurringOperationsScreen extends StatelessWidget {
                                 setState(() => recurrenceValue = v),
                             validator: (v) => v == null ? 'اختر اليوم' : null,
                           )
+                        else if (selectedRecurrence == DebtRecurrence.custom)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(
+                                  'إضافة تواريخ معينة',
+                                  style: AppTextStyle.style12W600,
+                                ),
+                                trailing: const Icon(Icons.add_circle_outline),
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) {
+                                    setState(() {
+                                      // التأكد من عدم تكرار نفس اليوم
+                                      if (!customDatesList.any(
+                                        (d) =>
+                                            d.year == picked.year &&
+                                            d.month == picked.month &&
+                                            d.day == picked.day,
+                                      )) {
+                                        customDatesList.add(picked);
+                                      }
+                                    });
+                                  }
+                                },
+                              ),
+                              if (customDatesList.isNotEmpty)
+                                Wrap(
+                                  spacing: 8.w,
+                                  children: customDatesList.map((date) {
+                                    return Chip(
+                                      label: Text(
+                                        DateFormat.MMMd('ar').format(date),
+                                      ),
+                                      deleteIcon: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                      ),
+                                      onDeleted: () {
+                                        setState(
+                                          () => customDatesList.remove(date),
+                                        );
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                            ],
+                          )
                         else if (selectedRecurrence == DebtRecurrence.weekly)
                           CustomDropdownButtonFormField<int>(
                             hintText: 'أي يوم في الأسبوع؟',
@@ -314,8 +600,13 @@ class RecurringOperationsScreen extends StatelessWidget {
                         const Divider(),
 
                         CustomDropdownButtonFormField<String>(
-                          hintText: 'صنف هذا الالتزام تحت فئة:',
-                          value: selectedMainCategoryId,
+                          hintText: 'صنف هذا الدين تحت فئة:',
+                          value:
+                              mainCategories.any(
+                                (c) => c.id == selectedMainCategoryId,
+                              )
+                              ? selectedMainCategoryId
+                              : null,
                           items: mainCategories
                               .map(
                                 (c) => DropdownMenuItem(
@@ -415,6 +706,17 @@ class RecurringOperationsScreen extends StatelessWidget {
                         ),
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
+                            // تحقق إضافي: إذا كان التكرار "مخصص"، يجب أن يختار تاريخاً واحداً على الأقل
+                            if (selectedRecurrence == DebtRecurrence.custom &&
+                                customDatesList.isEmpty) {
+                              showCustomSnackBar(
+                                context,
+                                message:
+                                    'برجاء إضافة تاريخ واحد على الأقل للاستحقاق.',
+                              );
+                              return;
+                            }
+
                             final total = double.parse(amountController.text);
                             final inst =
                                 selectedRecurrence == DebtRecurrence.once
@@ -428,32 +730,44 @@ class RecurringOperationsScreen extends StatelessWidget {
                                 selectedSubCategoryId ?? selectedMainCategoryId;
 
                             final newDebt = Debt(
-                              id: const Uuid().v4(),
+                              id: debtToEdit?.id ?? const Uuid().v4(),
                               name: nameController.text,
                               totalAmount: total,
                               installmentAmount: inst,
-                              recurrence: selectedRecurrence,
-                              dueDate: selectedRecurrence == DebtRecurrence.once
-                                  ? selectedDate
-                                  : null,
                               recurrenceValue: recurrenceValue,
                               autoDeduct: autoDeduct,
                               targetWalletId: selectedWalletId,
                               categoryId: finalCategoryId,
+                              recurrence: selectedRecurrence,
+                              customDates:
+                                  selectedRecurrence == DebtRecurrence.custom
+                                  ? customDatesList
+                                  : null,
+                              dueDate: selectedRecurrence == DebtRecurrence.once
+                                  ? selectedDate
+                                  : null,
+                              // نحافظ على ما تم دفعه في حال كان تعديلاً
+                              paidAmount: debtToEdit?.paidAmount ?? 0.0,
                             );
 
-                            context.read<DebtCubit>().addDebt(newDebt);
+                            if (debtToEdit == null) {
+                              context.read<DebtCubit>().addDebt(newDebt);
+                            } else {
+                              context.read<DebtCubit>().updateDebt(newDebt);
+                            }
 
                             Navigator.pop(ctx);
                             showCustomSnackBar(
                               context,
-                              message: 'تم إضافة الالتزام بنجاح!',
+                              message: debtToEdit == null
+                                  ? 'تم إضافة الدين بنجاح!'
+                                  : 'تم تحديث الالتزام بنجاح!',
                             );
                           }
                         },
-                        child: const Text(
-                          'إضافة الالتزام',
-                          style: TextStyle(color: Colors.white),
+                        child: Text(
+                          debtToEdit == null ? 'إضافة الدين' : 'حفظ التعديل',
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
                     ),
@@ -465,66 +779,6 @@ class RecurringOperationsScreen extends StatelessWidget {
         },
       ),
     );
-  }
-
-  void _showCategoryTypeSelection(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(
-          'نوع المخصص المتكرر',
-          textAlign: TextAlign.center,
-          style: AppTextStyle.style16W700,
-        ),
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            TextButton.icon(
-              icon: Icon(
-                CupertinoIcons.add_circled,
-                color: AppColors.successColor,
-              ),
-              label: Text(
-                'دخل',
-                style: TextStyle(color: AppColors.successColor),
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                _openCategoryDialog(context, TransactionType.income);
-              },
-            ),
-            TextButton.icon(
-              icon: const Icon(
-                CupertinoIcons.minus_circle,
-                color: AppColors.errorColor,
-              ),
-              label: const Text(
-                'صرف',
-                style: TextStyle(color: AppColors.errorColor),
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                _openCategoryDialog(context, TransactionType.expense);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _openCategoryDialog(BuildContext context, TransactionType type) {
-    showModalBottomSheet<TransactionCategory>(
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      context: context,
-      builder: (_) => AddCategoryWidget(type: type),
-    ).then((result) {
-      if (result != null) {
-        context.read<TransactionCubit>().addCategory(result);
-      }
-    });
   }
 }
 

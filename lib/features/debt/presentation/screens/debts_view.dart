@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -89,17 +90,16 @@ class DebtsView extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.receipt_long_outlined,
-                              size: 36.r,
-                              color: AppColors.textGreyColor,
+                              CupertinoIcons.check_mark_circled_solid,
+                              size: 40.r,
+                              color: AppColors.textGreyColor.withAlpha(100),
                             ),
                             12.verticalSpace,
                             Center(
                               child: Text(
                                 'الحمد لله، مفيش ديون أو أقساط متسجلة!',
-
-                                style: AppTextStyle.style14W500.copyWith(
-                                  color: AppColors.textGreyColor,
+                                style: AppTextStyle.style14W400.copyWith(
+                                  color: AppColors.textGreyColor.withAlpha(100),
                                 ),
                               ),
                             ),

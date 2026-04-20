@@ -45,6 +45,13 @@ class DebtCubit extends Cubit<DebtState> {
     await _saveDebts(updatedList);
   }
 
+  Future<void> updateDebt(Debt debt) async {
+    final updatedList = state.items
+        .map((d) => d.id == debt.id ? debt : d)
+        .toList();
+    await _saveDebts(updatedList);
+  }
+
   Future<void> processDueDebts(
     TransactionCubit transactionCubit,
     WalletCubit walletCubit,

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opration/core/di.dart';
@@ -95,16 +96,18 @@ class ShoppingListView extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.wysiwyg_rounded,
-                                size: 36.r,
-                                color: AppColors.textGreyColor,
+                                CupertinoIcons.shopping_cart,
+                                size: 40.r,
+                                color: AppColors.textGreyColor.withAlpha(100),
                               ),
                               12.verticalSpace,
                               Center(
                                 child: Text(
                                   'مفيش حاجات مسجلها حالياً.',
-                                  style: AppTextStyle.style14W500.copyWith(
-                                    color: AppColors.textGreyColor,
+                                  style: AppTextStyle.style14W400.copyWith(
+                                    color: AppColors.textGreyColor.withAlpha(
+                                      100,
+                                    ),
                                   ),
                                 ),
                               ),

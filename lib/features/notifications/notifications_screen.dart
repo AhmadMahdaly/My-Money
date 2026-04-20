@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
@@ -27,15 +28,15 @@ class NotificationsScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.notifications_off_outlined,
-                    size: 80.r,
+                    CupertinoIcons.bell_slash,
+                    size: 40.r,
                     color: AppColors.textGreyColor.withAlpha(100),
                   ),
                   16.verticalSpace,
                   Text(
                     'مفيش أي إشعارات أو عمليات معلقة',
-                    style: AppTextStyle.style16W500.copyWith(
-                      color: AppColors.textGreyColor,
+                    style: AppTextStyle.style14W400.copyWith(
+                      color: AppColors.textGreyColor.withAlpha(100),
                     ),
                   ),
                 ],

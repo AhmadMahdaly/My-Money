@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -82,16 +83,16 @@ class _GoalsView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.wb_incandescent_outlined,
-                      size: 36.r,
-                      color: AppColors.textGreyColor,
+                      CupertinoIcons.star_lefthalf_fill,
+                      size: 40.r,
+                      color: AppColors.textGreyColor.withAlpha(100),
                     ),
                     12.verticalSpace,
 
                     Text(
                       'مفيش أهداف لسا، ضيف هدف جديد!',
-                      style: AppTextStyle.style14W500.copyWith(
-                        color: AppColors.textGreyColor,
+                      style: AppTextStyle.style14W400.copyWith(
+                        color: AppColors.textGreyColor.withAlpha(100),
                       ),
                     ),
                     12.verticalSpace,
