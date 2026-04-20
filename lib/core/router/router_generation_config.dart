@@ -106,7 +106,10 @@ class RouterGenerationConfig {
       GoRoute(
         path: AppRoutes.backupScreen,
         name: AppRoutes.backupScreen,
-        builder: (context, state) => const BackupScreen(),
+        builder: (context, state) {
+          final isFromMorePage = state.extra as bool? ?? false;
+          return BackupScreen(isFromMorePage: isFromMorePage);
+        },
       ),
       GoRoute(
         path: AppRoutes.recurringOperationsScreen,

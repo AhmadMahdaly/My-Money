@@ -82,7 +82,7 @@ class MoreView extends StatelessWidget {
               color: AppColors.scaffoldBackgroundLightColor,
             ),
             text: 'نسخ البيانات احتياطياً أو استعادتها',
-            onTap: () => context.pushNamed(AppRoutes.backupScreen),
+            onTap: () => context.pushNamed(AppRoutes.backupScreen, extra: true),
           ),
         ],
       ),

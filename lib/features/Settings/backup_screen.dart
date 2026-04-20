@@ -20,8 +20,8 @@ import 'package:opration/features/transactions/presentation/controllers/transact
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 
 class BackupScreen extends StatefulWidget {
-  const BackupScreen({super.key});
-
+  const BackupScreen({required this.isFromMorePage, super.key});
+  final bool isFromMorePage;
   @override
   State<BackupScreen> createState() => _BackupScreenState();
 }
@@ -123,74 +123,76 @@ class _BackupScreenState extends State<BackupScreen> {
                   text: 'استعادة النسخة الاحتياطية',
                 ),
               ),
-              20.verticalSpace,
-              CustomOutLineMorePageCard(
-                mainAxisAlignment: MainAxisAlignment.start,
-                color: AppColors.errorColor,
-                icon: Image.asset(
-                  'assets/image/png/quit.png',
-                  height: 24.r,
-
+              if (widget.isFromMorePage) ...[
+                20.verticalSpace,
+                CustomOutLineMorePageCard(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   color: AppColors.errorColor,
-                ),
-                text: 'حذف الحساب وتسجيل الخروج',
-                onTap: () async {
-                  Future<void> refreshAllCubits() async {
-                    await context.read<AuthCubit>().checkAuthStatus();
-                    await context.read<TransactionCubit>().loadInitialData();
-                    await context.read<MonthlyPlanCubit>().loadPlanForMonth(
-                      DateTime.now(),
-                    );
-                    await context.read<WalletCubit>().loadWallets();
-                    await context.read<FinancialGoalCubit>().loadGoals();
-                    await context.read<DebtCubit>().processDueDebts(
-                      context.read<TransactionCubit>(),
-                      context.read<WalletCubit>(),
-                    );
-                  }
+                  icon: Image.asset(
+                    'assets/image/png/quit.png',
+                    height: 24.r,
 
-                  await showDialog<void>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('تأكيد الخروج'),
-                      content: const Text(
-                        'هل أنت متأكد أنك تريد تسجيل الخروج وحذف كل بيانات الحساب؟',
+                    color: AppColors.errorColor,
+                  ),
+                  text: 'حذف الحساب وتسجيل الخروج',
+                  onTap: () async {
+                    Future<void> refreshAllCubits() async {
+                      await context.read<AuthCubit>().checkAuthStatus();
+                      await context.read<TransactionCubit>().loadInitialData();
+                      await context.read<MonthlyPlanCubit>().loadPlanForMonth(
+                        DateTime.now(),
+                      );
+                      await context.read<WalletCubit>().loadWallets();
+                      await context.read<FinancialGoalCubit>().loadGoals();
+                      await context.read<DebtCubit>().processDueDebts(
+                        context.read<TransactionCubit>(),
+                        context.read<WalletCubit>(),
+                      );
+                    }
+
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('تأكيد الخروج'),
+                        content: const Text(
+                          'هل أنت متأكد أنك تريد تسجيل الخروج وحذف كل بيانات الحساب؟',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('إلغاء'),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              try {
+                                if (context.mounted) {
+                                  await context.read<AuthCubit>().logout();
+                                }
+                                await CacheHelper.clearAllData();
+                                await refreshAllCubits();
+                                if (context.mounted) {
+                                  context.go(AppRoutes.loginScreen);
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  showCustomSnackBar(
+                                    context,
+                                    message: 'حدث خطأ أثناء تسجيل الخروج',
+                                    backgroundColor: AppColors.errorColor,
+                                  );
+                                }
+                              }
+                            },
+                            child: const Text('تأكيد'),
+                          ),
+                        ],
                       ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('إلغاء'),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            Navigator.pop(context);
-                            try {
-                              if (context.mounted) {
-                                await context.read<AuthCubit>().logout();
-                              }
-                              await CacheHelper.clearAllData();
-                              await refreshAllCubits();
-                              if (context.mounted) {
-                                context.go(AppRoutes.loginScreen);
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                showCustomSnackBar(
-                                  context,
-                                  message: 'حدث خطأ أثناء تسجيل الخروج',
-                                  backgroundColor: AppColors.errorColor,
-                                );
-                              }
-                            }
-                          },
-                          child: const Text('تأكيد'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              4.verticalSpace,
+                    );
+                  },
+                ),
+                4.verticalSpace,
+              ],
 
               55.verticalSpace,
             ],

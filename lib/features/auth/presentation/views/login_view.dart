@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              context.pushNamed(AppRoutes.backupScreen);
+              context.pushNamed(AppRoutes.backupScreen, extra: false);
             },
             icon: const Icon(Icons.restart_alt_rounded),
           ),
