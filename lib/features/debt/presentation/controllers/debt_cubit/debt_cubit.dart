@@ -45,10 +45,46 @@ class DebtCubit extends Cubit<DebtState> {
     await _saveDebts(updatedList);
   }
 
-  Future<void> updateDebt(Debt debt) async {
-    final updatedList = state.items
-        .map((d) => d.id == debt.id ? debt : d)
-        .toList();
+  Future<void> updateDebt(Debt updatedDebt) async {
+    final updatedList = state.items.map((d) {
+      return d.id == updatedDebt.id ? updatedDebt : d;
+    }).toList();
+
+    await _saveDebts(updatedList);
+  }
+
+  Future<void> recordManualPayment({
+    required Debt debt,
+    required double amount,
+    required String walletId,
+    required String categoryId,
+    required DateTime paymentDate,
+    required TransactionCubit transactionCubit,
+    required WalletCubit walletCubit,
+  }) async {
+    final transaction = Transaction(
+      id: const Uuid().v4(),
+      amount: amount,
+      categoryId: categoryId,
+      date: paymentDate,
+      type: TransactionType.expense,
+      walletId: walletId,
+      note: 'دفعة يدوية: ${debt.name}',
+    );
+
+    await transactionCubit.addTransaction(transaction);
+    await walletCubit.updateWalletBalance(walletId, -amount);
+
+    final updatedList = state.items.map((d) {
+      if (d.id == debt.id) {
+        return d.copyWith(
+          paidAmount: d.paidAmount + amount,
+          lastProcessedDate: paymentDate,
+        );
+      }
+      return d;
+    }).toList();
+
     await _saveDebts(updatedList);
   }
 
@@ -85,7 +121,6 @@ class DebtCubit extends Cubit<DebtState> {
                 now.difference(debt.lastProcessedDate!).inDays >= 7);
       } else if (debt.recurrence == DebtRecurrence.custom &&
           debt.customDates != null) {
-        // التحقق مما إذا كان اليوم الحالي موجوداً ضمن التواريخ المخصصة ولم يتم الدفع اليوم
         final today = DateTime(now.year, now.month, now.day);
         isDue =
             debt.customDates!.any(
@@ -138,40 +173,5 @@ class DebtCubit extends Cubit<DebtState> {
     if (needsUpdate) {
       await _saveDebts(updatedDebts);
     }
-  }
-
-  Future<void> recordManualPayment({
-    required Debt debt,
-    required double amount,
-    required String walletId,
-    required String categoryId,
-    required TransactionCubit transactionCubit,
-    required WalletCubit walletCubit,
-  }) async {
-    final now = DateTime.now();
-
-    final transaction = Transaction(
-      id: const Uuid().v4(),
-      amount: amount,
-      categoryId: categoryId,
-      date: now,
-      type: TransactionType.expense,
-      walletId: walletId,
-      note: 'دفعة يدوية: ${debt.name}',
-    );
-    await transactionCubit.addTransaction(transaction);
-    await walletCubit.updateWalletBalance(walletId, -amount);
-
-    final updatedList = state.items.map((d) {
-      if (d.id == debt.id) {
-        return d.copyWith(
-          paidAmount: d.paidAmount + amount,
-          lastProcessedDate: now,
-        );
-      }
-      return d;
-    }).toList();
-
-    await _saveDebts(updatedList);
   }
 }

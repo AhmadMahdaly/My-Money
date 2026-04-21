@@ -1070,6 +1070,7 @@ class _RecurringDebtCard extends StatelessWidget {
                       amount: amountToPay,
                       walletId: selectedWalletId!,
                       categoryId: debt.categoryId ?? '',
+                      paymentDate: DateTime.now(),
                       transactionCubit: context.read<TransactionCubit>(),
                       walletCubit: context.read<WalletCubit>(),
                     );

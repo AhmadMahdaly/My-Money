@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum DebtRecurrence { once, weekly, monthly, custom } // <-- إضافة custom
+enum DebtRecurrence { once, weekly, monthly, custom }
 
 class Debt extends Equatable {
   const Debt({
@@ -12,7 +12,7 @@ class Debt extends Equatable {
     this.recurrence = DebtRecurrence.once,
     this.recurrenceValue,
     this.dueDate,
-    this.customDates, // <-- إضافة التواريخ المخصصة
+    this.customDates,
     this.autoDeduct = false,
     this.targetWalletId,
     this.categoryId,
@@ -34,7 +34,7 @@ class Debt extends Equatable {
       dueDate: json['dueDate'] != null
           ? DateTime.parse(json['dueDate'] as String)
           : null,
-      // قراءة التواريخ المخصصة من الـ JSON
+
       customDates: json['customDates'] != null
           ? (json['customDates'] as List)
                 .map((e) => DateTime.parse(e.toString()))
@@ -57,7 +57,7 @@ class Debt extends Equatable {
   final DebtRecurrence recurrence;
   final int? recurrenceValue;
   final DateTime? dueDate;
-  final List<DateTime>? customDates; // <-- المتغير الجديد
+  final List<DateTime>? customDates;
   final bool autoDeduct;
   final String? targetWalletId;
   final String? categoryId;
@@ -66,44 +66,79 @@ class Debt extends Equatable {
   double get remainingAmount => totalAmount - paidAmount;
   bool get isFullyPaid => paidAmount >= totalAmount;
 
-  // ==== دالة حساب موعد الاستحقاق القادم ====
   DateTime? get nextDueDate {
     if (isFullyPaid) return null;
+
+    var installmentsPaid = 0;
+    if (installmentAmount > 0) {
+      installmentsPaid = (paidAmount / installmentAmount).floor();
+    }
+
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+
+    final startDate =
+        dueDate ??
+        (customDates != null && customDates!.isNotEmpty
+            ? customDates!.first
+            : DateTime.now());
 
     switch (recurrence) {
       case DebtRecurrence.once:
-        return dueDate;
+        return paidAmount >= totalAmount ? null : dueDate;
 
       case DebtRecurrence.monthly:
         if (recurrenceValue == null) return null;
-        var nextDate = DateTime(today.year, today.month, recurrenceValue!);
-        if (nextDate.isBefore(today)) {
-          // إذا مر اليوم في هذا الشهر، ننتقل للشهر القادم
-          nextDate = DateTime(today.year, today.month + 1, recurrenceValue!);
+
+        var nextCandidate = DateTime(
+          startDate.year,
+          startDate.month + installmentsPaid,
+          recurrenceValue!,
+        );
+
+        if (nextCandidate.isBefore(DateTime(now.year, now.month, now.day))) {
+          nextCandidate = DateTime(
+            nextCandidate.year,
+            nextCandidate.month + 1,
+            recurrenceValue!,
+          );
         }
-        return nextDate;
+        return nextCandidate;
 
       case DebtRecurrence.weekly:
         if (recurrenceValue == null) return null;
-        // حساب الأيام المتبقية حتى اليوم المطلوب في الأسبوع
-        var daysToAdd = (recurrenceValue! - today.weekday) % 7;
+
+        var nextCandidate = startDate.add(
+          Duration(days: 7 * installmentsPaid),
+        );
+
+        var daysToAdd = (recurrenceValue! - nextCandidate.weekday) % 7;
         if (daysToAdd < 0) daysToAdd += 7;
-        return today.add(Duration(days: daysToAdd));
+        nextCandidate = nextCandidate.add(Duration(days: daysToAdd));
+
+        while (nextCandidate.isBefore(DateTime(now.year, now.month, now.day))) {
+          nextCandidate = nextCandidate.add(const Duration(days: 7));
+        }
+        return nextCandidate;
 
       case DebtRecurrence.custom:
         if (customDates == null || customDates!.isEmpty) return null;
-        // ترتيب التواريخ وجلب أول تاريخ لم يمر بعد
         final sortedDates = List<DateTime>.from(customDates!)..sort();
-        try {
-          return sortedDates.firstWhere(
-            (date) =>
-                !DateTime(date.year, date.month, date.day).isBefore(today),
-          );
-        } catch (e) {
-          return null; // انتهت كل المواعيد
+
+        if (installmentsPaid < sortedDates.length) {
+          final candidate = sortedDates[installmentsPaid];
+
+          if (candidate.isBefore(DateTime(now.year, now.month, now.day))) {
+            try {
+              return sortedDates.firstWhere(
+                (d) => !d.isBefore(DateTime(now.year, now.month, now.day)),
+              );
+            } catch (e) {
+              return null;
+            }
+          }
+          return candidate;
         }
+        return null;
     }
   }
 
@@ -117,9 +152,7 @@ class Debt extends Equatable {
       'recurrence': recurrence.name,
       'recurrenceValue': recurrenceValue,
       'dueDate': dueDate?.toIso8601String(),
-      'customDates': customDates
-          ?.map((e) => e.toIso8601String())
-          .toList(), // <-- الحفظ
+      'customDates': customDates?.map((e) => e.toIso8601String()).toList(),
       'autoDeduct': autoDeduct,
       'targetWalletId': targetWalletId,
       'categoryId': categoryId,

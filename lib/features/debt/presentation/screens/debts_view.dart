@@ -1,3 +1,5 @@
+// ignore_for_file: omit_local_variable_types
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,44 +35,11 @@ class DebtsView extends StatelessWidget {
             isLeading: true,
             subTitle: SubTitle(),
             title: 'الإلتزامات والديون',
-            // bottom: Container(
-            //   height: 50.h,
-            //   decoration: BoxDecoration(
-            //     border: Border.all(
-            //       color: AppColors.scaffoldBackgroundLightColor,
-            //       width: 0.5.w,
-            //     ),
-            //     borderRadius: BorderRadius.circular(kRadius),
-            //   ),
-            //   child: TabBar(
-            //     indicatorPadding: EdgeInsets.all(3.r),
-            //     indicator: BoxDecoration(
-            //       borderRadius: BorderRadius.circular(kRadius),
-            //       color: AppColors.scaffoldBackgroundLightColor,
-            //     ),
-            //     indicatorSize: TabBarIndicatorSize.tab,
-            //     dividerHeight: 0,
-            //     labelColor: AppColors.primaryColor,
-            //     unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
-            //     labelStyle: AppTextStyles.style14W600.copyWith(
-            //       fontFamily: kPrimaryFont,
-            //     ),
-            //     unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
-            //       fontFamily: kPrimaryFont,
-            //     ),
-            //     tabs: const [
-            //       Tab(text: 'الأهداف'),
-            //       Tab(text: 'المشتريات'),
-            //       Tab(text: 'الديون'),
-            //     ],
-            //   ),
-            // ),
-            // // heightBar: 170.h,
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
 
           floatingActionButton: CustomFloatingActionButton(
-            onPressed: () => _showAddDebtDialog(context),
+            onPressed: () => _showAddEditDebtDialog(context),
             tooltip: 'إضافة دين أو قسط',
           ),
           body: ListView(
@@ -149,11 +118,17 @@ class DebtsView extends StatelessWidget {
 
                 PopupMenuButton<String>(
                   onSelected: (value) {
-                    if (value == 'delete') {
+                    if (value == 'edit') {
+                      _showAddEditDebtDialog(context, existingDebt: debt);
+                    } else if (value == 'delete') {
                       _showDeleteDebtConfirmation(context, debt);
                     }
                   },
                   itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Text('تعديل الدين'),
+                    ),
                     const PopupMenuItem(
                       value: 'delete',
                       child: Text(
@@ -262,7 +237,7 @@ class DebtsView extends StatelessWidget {
 
   void _showManualPaymentDialog(BuildContext context, Debt debt) {
     final formKey = GlobalKey<FormState>();
-
+    DateTime selectedPaymentDate = DateTime.now();
     final defaultAmount =
         (debt.installmentAmount > 0 &&
             debt.installmentAmount <= debt.remainingAmount)
@@ -326,6 +301,29 @@ class DebtsView extends StatelessWidget {
                     onChanged: (v) => setState(() => selectedWalletId = v),
                     validator: (v) => v == null ? 'اختر محفظة للخصم' : null,
                   ),
+                  16.verticalSpace,
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(
+                      Icons.calendar_today,
+                      color: AppColors.primaryColor,
+                    ),
+                    title: const Text('تاريخ الدفع'),
+                    subtitle: Text(
+                      DateFormat.yMMMd('ar').format(selectedPaymentDate),
+                    ),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedPaymentDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setState(() => selectedPaymentDate = picked);
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
@@ -335,33 +333,21 @@ class DebtsView extends StatelessWidget {
                 child: const Text('إلغاء'),
               ),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.successColor,
-                ),
                 onPressed: () {
                   if (formKey.currentState!.validate()) {
-                    final amountToPay = double.parse(amountController.text);
-
                     context.read<DebtCubit>().recordManualPayment(
                       debt: debt,
-                      amount: amountToPay,
+                      amount: double.parse(amountController.text),
                       walletId: selectedWalletId!,
                       categoryId: debt.categoryId ?? '',
+                      paymentDate: selectedPaymentDate,
                       transactionCubit: context.read<TransactionCubit>(),
                       walletCubit: context.read<WalletCubit>(),
                     );
-
                     Navigator.pop(ctx);
-                    showCustomSnackBar(
-                      context,
-                      message: 'تم تسجيل الدفعة وخصمها من المحفظة بنجاح!',
-                    );
                   }
                 },
-                child: const Text(
-                  'دفع وتسجيل',
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: const Text('دفع وتسجيل'),
               ),
             ],
           );
@@ -370,33 +356,60 @@ class DebtsView extends StatelessWidget {
     );
   }
 
-  void _showAddDebtDialog(BuildContext context) {
+  void _showAddEditDebtDialog(BuildContext context, {Debt? existingDebt}) {
+    final isEditing = existingDebt != null;
     final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController();
-    final amountController = TextEditingController();
-    final installmentController = TextEditingController();
-    final customDatesList = <DateTime>[];
-    var selectedRecurrence = DebtRecurrence.once;
-    int? recurrenceValue;
-    DateTime? selectedDate = DateTime.now();
-    var autoDeduct = false;
-    String? selectedWalletId;
+
+    final nameController = TextEditingController(text: existingDebt?.name);
+    final amountController = TextEditingController(
+      text: existingDebt != null
+          ? existingDebt.totalAmount.truncate().toString()
+          : '',
+    );
+
+    final installmentController = TextEditingController(
+      text: (existingDebt != null && existingDebt.installmentAmount > 0)
+          ? existingDebt.installmentAmount.truncate().toString()
+          : '',
+    );
+
+    var selectedRecurrence = existingDebt?.recurrence ?? DebtRecurrence.once;
+    int? recurrenceValue = existingDebt?.recurrenceValue;
+    DateTime? selectedDate = existingDebt?.dueDate ?? DateTime.now();
+    final List<DateTime> customDatesList = existingDebt?.customDates != null
+        ? List.from(existingDebt!.customDates!)
+        : [];
+
+    var autoDeduct = existingDebt?.autoDeduct ?? false;
+    String? selectedWalletId = existingDebt?.targetWalletId;
 
     String? selectedMainCategoryId;
     String? selectedSubCategoryId;
 
     final wallets = (context.read<WalletCubit>().state as WalletLoaded).wallets;
-
     final allExpenseCategories = context
         .read<TransactionCubit>()
         .state
         .allCategories
         .where((c) => c.type == TransactionType.expense)
         .toList();
-
     final mainCategories = allExpenseCategories
         .where((c) => c.parentId == null)
         .toList();
+
+    if (isEditing && existingDebt.categoryId != null) {
+      try {
+        final cat = allExpenseCategories.firstWhere(
+          (c) => c.id == existingDebt.categoryId,
+        );
+        if (cat.parentId != null) {
+          selectedMainCategoryId = cat.parentId;
+          selectedSubCategoryId = cat.id;
+        } else {
+          selectedMainCategoryId = cat.id;
+        }
+      } catch (_) {}
+    }
 
     showModalBottomSheet<void>(
       isScrollControlled: true,
@@ -409,7 +422,7 @@ class DebtsView extends StatelessWidget {
           return Column(
             children: [
               Text(
-                'إضافة دين أو قسط',
+                isEditing ? 'تعديل بيانات الدين' : 'إضافة دين أو قسط',
                 style: AppTextStyle.style14W600,
               ),
               20.verticalSpace,
@@ -424,14 +437,29 @@ class DebtsView extends StatelessWidget {
                         CustomPrimaryTextfield(
                           controller: nameController,
                           text: 'لمن هذا الدين؟ (مثال: قسط العربية)',
-                          validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+
+                          validator: (v) =>
+                              (v == null || v.isEmpty) ? 'مطلوب' : null,
                         ),
                         12.verticalSpace,
                         CustomPrimaryTextfield(
                           controller: amountController,
                           text: 'المبلغ الإجمالي للدين',
                           keyboardType: TextInputType.number,
-                          validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'مطلوب';
+                            final amount = double.tryParse(v);
+                            if (amount == null || amount <= 0) {
+                              return 'رقم غير صحيح';
+                            }
+
+                            if (isEditing &&
+                                existingDebt != null &&
+                                amount < existingDebt.paidAmount) {
+                              return 'المبلغ أقل من المدفوع (${existingDebt.paidAmount})';
+                            }
+                            return null;
+                          },
                         ),
                         16.verticalSpace,
 
@@ -457,10 +485,12 @@ class DebtsView extends StatelessWidget {
                             ),
                           ],
                           onChanged: (v) {
-                            setState(() {
-                              selectedRecurrence = v!;
-                              recurrenceValue = null;
-                            });
+                            if (v != null) {
+                              setState(() {
+                                selectedRecurrence = v;
+                                recurrenceValue = null;
+                              });
+                            }
                           },
                         ),
                         12.verticalSpace,
@@ -470,8 +500,10 @@ class DebtsView extends StatelessWidget {
                             controller: installmentController,
                             text: 'قيمة القسط الواحد',
                             keyboardType: TextInputType.number,
-                            validator: (v) =>
-                                v!.isEmpty ? 'أدخل قيمة القسط' : null,
+
+                            validator: (v) => (v == null || v.isEmpty)
+                                ? 'أدخل قيمة القسط'
+                                : null,
                           ),
                           12.verticalSpace,
                         ],
@@ -480,15 +512,21 @@ class DebtsView extends StatelessWidget {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             title: const Text('تاريخ الاستحقاق'),
+
                             subtitle: Text(
-                              DateFormat.yMMMd('ar').format(selectedDate!),
+                              selectedDate != null
+                                  ? DateFormat.yMMMd('ar').format(selectedDate!)
+                                  : '',
                             ),
                             trailing: const Icon(Icons.calendar_today),
                             onTap: () async {
                               final picked = await showDatePicker(
                                 context: context,
-                                initialDate: selectedDate,
-                                firstDate: DateTime.now(),
+                                initialDate: selectedDate ?? DateTime.now(),
+                                firstDate:
+                                    (isEditing && existingDebt.dueDate != null)
+                                    ? existingDebt.dueDate!
+                                    : DateTime.now(),
                                 lastDate: DateTime(2100),
                               );
                               if (picked != null) {
@@ -507,6 +545,32 @@ class DebtsView extends StatelessWidget {
                                 child: Text('يوم ${i + 1}'),
                               ),
                             ),
+                            onChanged: (v) =>
+                                setState(() => recurrenceValue = v),
+                            validator: (v) => v == null ? 'اختر اليوم' : null,
+                          )
+                        else if (selectedRecurrence == DebtRecurrence.weekly)
+                          CustomDropdownButtonFormField<int>(
+                            hintText: 'أي يوم في الأسبوع؟',
+                            value: recurrenceValue,
+                            items: const [
+                              DropdownMenuItem(value: 6, child: Text('السبت')),
+                              DropdownMenuItem(value: 7, child: Text('الأحد')),
+                              DropdownMenuItem(
+                                value: 1,
+                                child: Text('الإثنين'),
+                              ),
+                              DropdownMenuItem(
+                                value: 2,
+                                child: Text('الثلاثاء'),
+                              ),
+                              DropdownMenuItem(
+                                value: 3,
+                                child: Text('الأربعاء'),
+                              ),
+                              DropdownMenuItem(value: 4, child: Text('الخميس')),
+                              DropdownMenuItem(value: 5, child: Text('الجمعة')),
+                            ],
                             onChanged: (v) =>
                                 setState(() => recurrenceValue = v),
                             validator: (v) => v == null ? 'اختر اليوم' : null,
@@ -531,7 +595,6 @@ class DebtsView extends StatelessWidget {
                                   );
                                   if (picked != null) {
                                     setState(() {
-                                      // التأكد من عدم تكرار نفس اليوم
                                       if (!customDatesList.any(
                                         (d) =>
                                             d.year == picked.year &&
@@ -565,39 +628,12 @@ class DebtsView extends StatelessWidget {
                                   }).toList(),
                                 ),
                             ],
-                          )
-                        else if (selectedRecurrence == DebtRecurrence.weekly)
-                          CustomDropdownButtonFormField<int>(
-                            hintText: 'أي يوم في الأسبوع؟',
-                            value: recurrenceValue,
-                            items: const [
-                              DropdownMenuItem(value: 6, child: Text('السبت')),
-                              DropdownMenuItem(value: 7, child: Text('الأحد')),
-                              DropdownMenuItem(
-                                value: 1,
-                                child: Text('الإثنين'),
-                              ),
-                              DropdownMenuItem(
-                                value: 2,
-                                child: Text('الثلاثاء'),
-                              ),
-                              DropdownMenuItem(
-                                value: 3,
-                                child: Text('الأربعاء'),
-                              ),
-                              DropdownMenuItem(value: 4, child: Text('الخميس')),
-                              DropdownMenuItem(value: 5, child: Text('الجمعة')),
-                            ],
-                            onChanged: (v) =>
-                                setState(() => recurrenceValue = v),
-                            validator: (v) => v == null ? 'اختر اليوم' : null,
                           ),
 
                         const Divider(),
 
                         CustomDropdownButtonFormField<String>(
                           hintText: 'صنف هذا الدين تحت فئة:',
-
                           value: selectedMainCategoryId,
                           items: mainCategories
                               .map(
@@ -626,11 +662,16 @@ class DebtsView extends StatelessWidget {
                               : <TransactionCategory>[];
 
                           if (subCategories.isNotEmpty) {
+                            if (selectedSubCategoryId != null &&
+                                !subCategories.any(
+                                  (c) => c.id == selectedSubCategoryId,
+                                )) {
+                              selectedSubCategoryId = null;
+                            }
                             return [
                               12.verticalSpace,
                               CustomDropdownButtonFormField<String>(
                                 hintText: 'الفئة الفرعية (اختياري):',
-
                                 value: selectedSubCategoryId,
                                 items: subCategories
                                     .map(
@@ -663,7 +704,6 @@ class DebtsView extends StatelessWidget {
                         if (autoDeduct)
                           CustomDropdownButtonFormField<String>(
                             hintText: 'خصم من أي محفظة؟',
-
                             value: selectedWalletId,
                             items: wallets
                                 .map(
@@ -696,7 +736,9 @@ class DebtsView extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.errorColor,
+                          backgroundColor: isEditing
+                              ? AppColors.primaryColor
+                              : AppColors.errorColor,
                         ),
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
@@ -713,37 +755,47 @@ class DebtsView extends StatelessWidget {
                                 selectedSubCategoryId ?? selectedMainCategoryId;
 
                             final newDebt = Debt(
-                              id: const Uuid().v4(),
+                              id: existingDebt?.id ?? const Uuid().v4(),
                               name: nameController.text,
                               totalAmount: total,
+                              paidAmount: existingDebt?.paidAmount ?? 0.0,
+                              lastProcessedDate:
+                                  existingDebt?.lastProcessedDate,
                               installmentAmount: inst,
-
-                              recurrenceValue: recurrenceValue,
-                              autoDeduct: autoDeduct,
-                              targetWalletId: selectedWalletId,
-                              categoryId: finalCategoryId,
                               recurrence: selectedRecurrence,
+                              dueDate: selectedRecurrence == DebtRecurrence.once
+                                  ? selectedDate
+                                  : null,
+                              recurrenceValue: recurrenceValue,
                               customDates:
                                   selectedRecurrence == DebtRecurrence.custom
                                   ? customDatesList
                                   : null,
-                              dueDate: selectedRecurrence == DebtRecurrence.once
-                                  ? selectedDate
-                                  : null,
+                              autoDeduct: autoDeduct,
+                              targetWalletId: selectedWalletId,
+                              categoryId: finalCategoryId,
                             );
 
-                            context.read<DebtCubit>().addDebt(newDebt);
+                            if (isEditing) {
+                              context.read<DebtCubit>().updateDebt(newDebt);
+                              showCustomSnackBar(
+                                context,
+                                message: 'تم تعديل الدين بنجاح!',
+                              );
+                            } else {
+                              context.read<DebtCubit>().addDebt(newDebt);
+                              showCustomSnackBar(
+                                context,
+                                message: 'تم إضافة الدين بنجاح!',
+                              );
+                            }
 
                             Navigator.pop(ctx);
-                            showCustomSnackBar(
-                              context,
-                              message: 'تم إضافة الدين بنجاح!',
-                            );
                           }
                         },
-                        child: const Text(
-                          'إضافة الدين',
-                          style: TextStyle(color: Colors.white),
+                        child: Text(
+                          isEditing ? 'حفظ التعديلات' : 'إضافة الدين',
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
                     ),

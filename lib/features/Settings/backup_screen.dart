@@ -91,25 +91,28 @@ class _BackupScreenState extends State<BackupScreen> {
       appBar: PageHeader(
         isLeading: true,
         height: 16.h,
-        title: 'النسخ الاحتياطي والاستعادة',
+        title: widget.isFromMorePage
+            ? 'النسخ الاحتياطي والاستعادة'
+            : 'استعادة النسخة الاحتياطية',
       ),
       body: Stack(
         children: [
           Column(
             children: [
-              const BackupRestoreInfoCard(),
+              BackupRestoreInfoCard(isFromMorePage: widget.isFromMorePage),
               const Spacer(),
 
               /// Backup Button
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: CustomPrimaryButton(
-                  color: Colors.green,
-                  width: double.infinity,
-                  onPressed: () => isLoading ? null : handleBackup(),
-                  text: 'إنشاء نسخة احتياطية من البيانات',
+              if (widget.isFromMorePage)
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: CustomPrimaryButton(
+                    color: Colors.green,
+                    width: double.infinity,
+                    onPressed: () => isLoading ? null : handleBackup(),
+                    text: 'إنشاء نسخة احتياطية من البيانات',
+                  ),
                 ),
-              ),
 
               20.verticalSpace,
 
@@ -126,7 +129,7 @@ class _BackupScreenState extends State<BackupScreen> {
               if (widget.isFromMorePage) ...[
                 20.verticalSpace,
                 CustomOutLineMorePageCard(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   color: AppColors.errorColor,
                   icon: Image.asset(
                     'assets/image/png/quit.png',
@@ -211,7 +214,8 @@ class _BackupScreenState extends State<BackupScreen> {
 }
 
 class BackupRestoreInfoCard extends StatelessWidget {
-  const BackupRestoreInfoCard({super.key});
+  const BackupRestoreInfoCard({required this.isFromMorePage, super.key});
+  final bool isFromMorePage;
 
   @override
   Widget build(BuildContext context) {
@@ -241,14 +245,16 @@ class BackupRestoreInfoCard extends StatelessWidget {
             // const SizedBox(height: 12),
 
             /// 🔹 Backup Section
-            const _Section(
-              icon: Icons.backup,
-              title: 'إنشاء نسخة احتياطية',
-              description:
-                  'يقوم بحفظ جميع بياناتك (المعاملات، المحافظ، الفئات، والخطط الشهرية) في ملف يمكنك مشاركته أو الاحتفاظ به.',
-              color: Colors.green,
-            ),
-            24.verticalSpace,
+            if (isFromMorePage) ...[
+              const _Section(
+                icon: Icons.backup,
+                title: 'إنشاء نسخة احتياطية',
+                description:
+                    'يقوم بحفظ جميع بياناتك (المعاملات، المحافظ، الفئات، والخطط الشهرية) في ملف يمكنك مشاركته أو الاحتفاظ به.',
+                color: Colors.green,
+              ),
+              24.verticalSpace,
+            ],
 
             /// 🔹 Restore Section
             const _Section(
@@ -259,30 +265,32 @@ class BackupRestoreInfoCard extends StatelessWidget {
               color: Colors.orange,
             ),
 
-            12.verticalSpace,
+            if (isFromMorePage) ...[
+              12.verticalSpace,
 
-            /// 🔥 Warning
-            Container(
-              padding: EdgeInsets.all(12.r),
-              decoration: BoxDecoration(
-                color: Colors.red.withAlpha(20),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: Colors.red.withAlpha(77)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.warning_amber_rounded, color: Colors.red),
-                  8.horizontalSpace,
-                  Expanded(
-                    child: Text(
-                      'عند الاستعادة سيتم حذف البيانات الحالية واستبدالها بالكامل، تأكد من أخذ نسخة احتياطية أولاً إذا لزم الأمر.',
-                      style: AppTextStyle.style12W300,
+              /// 🔥 Warning
+              Container(
+                padding: EdgeInsets.all(12.r),
+                decoration: BoxDecoration(
+                  color: Colors.red.withAlpha(20),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.red.withAlpha(77)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                    8.horizontalSpace,
+                    Expanded(
+                      child: Text(
+                        'عند الاستعادة سيتم حذف البيانات الحالية واستبدالها بالكامل، تأكد من أخذ نسخة احتياطية أولاً إذا لزم الأمر.',
+                        style: AppTextStyle.style12W300,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

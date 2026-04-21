@@ -7,9 +7,11 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
-import 'package:opration/core/shared_widgets/page_header.dart' show PageHeader;
+import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
+import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_cubit.dart';
+import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
@@ -150,9 +152,7 @@ class WalletsScreen extends StatelessWidget {
                                             wallet: wallet,
                                           );
                                         } else if (value == 'delete') {
-                                          context
-                                              .read<WalletCubit>()
-                                              .deleteWallet(wallet.id);
+                                          _safeDeleteWallet(context, wallet);
                                         } else if (value == 'set_main') {
                                           context
                                               .read<WalletCubit>()
@@ -245,6 +245,86 @@ class WalletsScreen extends StatelessWidget {
     );
   }
 
+  void _safeDeleteWallet(BuildContext context, Wallet wallet) {
+    if (wallet.isMain) {
+      _showWarningDialog(
+        context,
+        'محفظة رئيسية',
+        'لا يمكنك حذف المحفظة الرئيسية. قم بتعيين محفظة أخرى كرئيسية أولاً.',
+      );
+      return;
+    }
+
+    final debtsState = context.read<DebtCubit>().state;
+    final isLinkedToDebts = debtsState.items.any(
+      (d) => d.targetWalletId == wallet.id,
+    );
+
+    final transactionsState = context.read<TransactionCubit>().state;
+    final isLinkedToTransactions = transactionsState.allTransactions.any(
+      (t) => t.walletId == wallet.id,
+    );
+
+    if (isLinkedToDebts || isLinkedToTransactions) {
+      _showWarningDialog(
+        context,
+        'لا يمكن الحذف!',
+        'هذه المحفظة مرتبطة بـ ${isLinkedToDebts ? 'ديون/أقساط' : ''} ${isLinkedToDebts && isLinkedToTransactions ? 'و' : ''} ${isLinkedToTransactions ? 'سجل معاملات' : ''}.\nلا يمكن حذفها للحفاظ على صحة حساباتك.',
+      );
+    } else {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content: Text(
+            'هل أنت متأكد أنك تريد حذف محفظة "${wallet.name}" بشكل نهائي؟',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                context.read<WalletCubit>().deleteWallet(wallet.id);
+                Navigator.pop(ctx);
+              },
+              child: const Text('حذف', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _showWarningDialog(BuildContext context, String title, String message) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            8.horizontalSpace,
+            Text(title, style: AppTextStyle.style18W600),
+          ],
+        ),
+        content: Text(message, style: AppTextStyle.style14W500),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'حسناً',
+              style: AppTextStyle.style16Bold.copyWith(
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTotalBalanceCard(BuildContext context, double totalBalance) {
     return Container(
       margin: EdgeInsets.only(top: 16.h, left: 16.w, right: 16.w, bottom: 8.h),
@@ -277,7 +357,7 @@ class WalletsScreen extends StatelessWidget {
                 '${totalBalance.truncate()} ج.م',
                 style: AppTextStyle.style18W800.copyWith(
                   color: Colors.white,
-                  fontSize: 24.sp, // لو بتستخدم ScreenUtil للـ Fonts
+                  fontSize: 24.sp,
                 ),
               ),
             ],
@@ -303,6 +383,7 @@ class WalletsScreen extends StatelessWidget {
     final isEditing = wallet != null;
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: wallet?.name);
+
     final balanceController = TextEditingController(
       text: isEditing ? wallet.balance.toString() : '',
     );
@@ -312,7 +393,7 @@ class WalletsScreen extends StatelessWidget {
       builder: (ctx) {
         return AlertDialog(
           title: Text(
-            isEditing ? 'عدّل المحفظة' : 'ضيف محفظة جديدة',
+            isEditing ? 'تعديل اسم المحفظة' : 'ضيف محفظة جديدة',
             style: AppTextStyle.style18W800.copyWith(
               color: AppColors.primaryColor,
             ),
@@ -320,7 +401,7 @@ class WalletsScreen extends StatelessWidget {
           content: Form(
             key: formKey,
             child: Column(
-              spacing: 4.h,
+              spacing: 12.h,
               mainAxisSize: MainAxisSize.min,
               children: [
                 CustomPrimaryTextfield(
@@ -329,33 +410,38 @@ class WalletsScreen extends StatelessWidget {
                   validator: (v) =>
                       v == null || v.isEmpty ? 'متنساش تسجل اسم المحفظة' : null,
                 ),
-                CustomPrimaryTextfield(
-                  controller: balanceController,
-                  text: 'رصيد المحفظة',
 
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+                if (!isEditing)
+                  CustomPrimaryTextfield(
+                    controller: balanceController,
+                    text: 'الرصيد الافتتاحي',
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    validator: (v) {
+                      if (v == null ||
+                          v.isEmpty ||
+                          double.tryParse(v) == null) {
+                        return 'سجّل مبلغ صح';
+                      }
+                      return null;
+                    },
+                  )
+                else
+                  Text(
+                    'تعديل الرصيد يتم تلقائياً من خلال إضافة معاملات (مصروف أو دخل) ولا يمكن تعديله يدوياً.',
+                    style: AppTextStyle.style12W500.copyWith(
+                      color: AppColors.textGreyColor,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  validator: (v) {
-                    if (!isEditing &&
-                        (v == null ||
-                            v.isEmpty ||
-                            double.tryParse(v) == null)) {
-                      return 'سجّل مبلغ صح';
-                    }
-                    return null;
-                  },
-                ),
               ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(
-                'إلغاء',
-                style: AppTextStyle.style14W500,
-              ),
+              child: Text('إلغاء', style: AppTextStyle.style14W500),
             ),
             ElevatedButton(
               onPressed: () {
@@ -363,9 +449,10 @@ class WalletsScreen extends StatelessWidget {
                   final newWallet = Wallet(
                     id: wallet?.id ?? getIt<Uuid>().v4(),
                     name: nameController.text,
-                    balance:
-                        double.tryParse(balanceController.text) ??
-                        wallet!.balance,
+
+                    balance: isEditing
+                        ? wallet.balance
+                        : double.parse(balanceController.text),
                     isMain: wallet?.isMain ?? false,
                   );
 

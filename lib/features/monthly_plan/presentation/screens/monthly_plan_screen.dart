@@ -394,10 +394,11 @@ class _PlannedIncomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allIncomeCategories = context
-        .watch<TransactionCubit>()
-        .state
-        .allCategories
+    final transactionCubit = context.watch<TransactionCubit>();
+    final allTransactions = transactionCubit.state.allTransactions;
+    final currentMonth = context.watch<MonthlyPlanCubit>().state.currentMonth;
+
+    final allIncomeCategories = transactionCubit.state.allCategories
         .where((c) => c.type == TransactionType.income)
         .toList();
 
@@ -440,6 +441,22 @@ class _PlannedIncomeSection extends StatelessWidget {
                     .where((c) => c.parentId == mainCat.id)
                     .toList();
 
+                final parentBudgeted = plan.incomes
+                    .where((i) => i.name == mainCat.name)
+                    .fold(0.0, (sum, item) => sum + item.amount);
+
+                final parentActual = allTransactions
+                    .where(
+                      (t) =>
+                          t.categoryId == mainCat.id &&
+                          t.type == TransactionType.income &&
+                          t.date.year == currentMonth.year &&
+                          t.date.month == currentMonth.month,
+                    )
+                    .fold(0.0, (sum, t) => sum + t.amount);
+
+                final showGeneral = parentBudgeted > 0 || parentActual > 0;
+
                 return Column(
                   children: [
                     Padding(
@@ -454,16 +471,28 @@ class _PlannedIncomeSection extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.only(right: 24.w),
                         child: Column(
-                          children: subCategories.map((subCat) {
-                            return Padding(
-                              padding: EdgeInsets.only(bottom: 6.h),
-                              child: _IncomeBudgetTile(
-                                category: subCat,
-                                plan: plan,
-                                isSubCategory: true,
+                          children: [
+                            if (showGeneral)
+                              Padding(
+                                padding: EdgeInsets.only(bottom: 6.h),
+                                child: _IncomeBudgetTile(
+                                  category: mainCat,
+                                  plan: plan,
+                                  isSubCategory: true,
+                                  customName: 'عام',
+                                ),
                               ),
-                            );
-                          }).toList(),
+                            ...subCategories.map((subCat) {
+                              return Padding(
+                                padding: EdgeInsets.only(bottom: 6.h),
+                                child: _IncomeBudgetTile(
+                                  category: subCat,
+                                  plan: plan,
+                                  isSubCategory: true,
+                                ),
+                              );
+                            }),
+                          ],
                         ),
                       ),
                   ],
@@ -471,7 +500,6 @@ class _PlannedIncomeSection extends StatelessWidget {
               }),
             ListTile(
               tileColor: AppColors.primaryColor,
-
               title: Text(
                 'إدارة فئات الدخل...',
                 style: AppTextStyle.style12Bold.copyWith(
@@ -497,10 +525,12 @@ class _IncomeBudgetTile extends StatefulWidget {
     required this.category,
     required this.plan,
     this.isSubCategory = false,
+    this.customName,
   });
   final TransactionCategory category;
   final MonthlyPlan plan;
   final bool isSubCategory;
+  final String? customName;
 
   @override
   State<_IncomeBudgetTile> createState() => _IncomeBudgetTileState();
@@ -594,13 +624,16 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
     final month = currentMonth.month;
 
     final allCategories = transactionState.allCategories;
-    final subCategories = allCategories
-        .where(
-          (c) =>
-              c.parentId == widget.category.id &&
-              c.type == TransactionType.income,
-        )
-        .toList();
+    final subCategories = widget.isSubCategory
+        ? <TransactionCategory>[]
+        : allCategories
+              .where(
+                (c) =>
+                    c.parentId == widget.category.id &&
+                    c.type == TransactionType.income,
+              )
+              .toList();
+
     final hasSubCategories = subCategories.isNotEmpty;
     final subCategoryIds = subCategories.map((c) => c.id).toList();
     final subCategoryNames = subCategories.map((c) => c.name).toList();
@@ -655,7 +688,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                   children: [
                     Expanded(
                       child: Text(
-                        widget.category.name,
+                        widget.customName ?? widget.category.name,
                         style: AppTextStyle.style12Bold.copyWith(
                           fontSize: widget.isSubCategory ? 12.sp : 14.sp,
                         ),
@@ -751,6 +784,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
@@ -945,10 +979,12 @@ class _ExpenseBudgetTile extends StatefulWidget {
     required this.isSubCategory,
     required this.category,
     required this.plan,
+    this.customName,
   });
   final TransactionCategory category;
   final MonthlyPlan plan;
   final bool isSubCategory;
+  final String? customName;
 
   @override
   State<_ExpenseBudgetTile> createState() => _ExpenseBudgetTileState();
@@ -1024,13 +1060,15 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
     final month = currentMonth.month;
 
     final allCategories = transactionState.allCategories;
-    final subCategories = allCategories
-        .where(
-          (c) =>
-              c.parentId == widget.category.id &&
-              c.type == TransactionType.expense,
-        )
-        .toList();
+    final subCategories = widget.isSubCategory
+        ? <TransactionCategory>[]
+        : allCategories
+              .where(
+                (c) =>
+                    c.parentId == widget.category.id &&
+                    c.type == TransactionType.expense,
+              )
+              .toList();
     final hasSubCategories = subCategories.isNotEmpty;
     final subCategoryIds = subCategories.map((c) => c.id).toList();
 
@@ -1059,6 +1097,19 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         ? (actualSpentAmount / budgetedAmount).clamp(0.0, 1.0)
         : 0.0;
 
+    final parentOnlySpentAmount = transactionState.allTransactions
+        .where(
+          (t) =>
+              t.categoryId == widget.category.id &&
+              t.type == TransactionType.expense &&
+              t.date.year == year &&
+              t.date.month == month,
+        )
+        .fold(0.0, (sum, t) => sum + t.amount);
+    final parentOnlyBudgeted =
+        widget.plan.getExpenseForCategory(widget.category.id)?.budgetedAmount ??
+        0.0;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
@@ -1074,7 +1125,9 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
           borderRadius: BorderRadius.circular(12.r),
           onTap: () {
             if (hasSubCategories) {
-              _showSubCategoriesSheet(context, subCategories);
+              final showGeneral =
+                  parentOnlyBudgeted > 0 || parentOnlySpentAmount > 0;
+              _showSubCategoriesSheet(context, subCategories, showGeneral);
             } else {
               _showEditBudgetSheet(context);
             }
@@ -1101,7 +1154,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                     8.horizontalSpace,
                     Expanded(
                       child: Text(
-                        widget.category.name,
+                        widget.customName ?? widget.category.name,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyle.style14Bold.copyWith(
                           color: AppColors.primaryColor,
@@ -1168,16 +1221,10 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                 ),
                 10.verticalSpace,
                 LinearProgressIndicator(
-                  // إذا أردت الشريط يبدأ ممتلئاً وينقص كلما صرفت، نستخدم (1.0 - progressValue)
-                  // أما إذا أردته أن يبدأ فارغاً ويمتلئ بلون الفئة كلما صرفت، استخدم progressValue فقط
                   value: budgetedAmount > 0
                       ? (1.0 - progressValue).clamp(0.0, 1.0)
                       : 0.0,
-
-                  // الخلفية الثابتة (لون رمادي خفيف)
                   backgroundColor: AppColors.secondaryColor.withAlpha(50),
-
-                  // لون الشريط نفسه (يأخذ لون الفئة فقط إذا حددت ميزانية أكبر من 0)
                   color: budgetedAmount > 0
                       ? widget.category.color
                       : AppColors.secondaryColor.withAlpha(100),
@@ -1212,27 +1259,49 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   Wrap(
                     spacing: 6.w,
                     runSpacing: 6.h,
-                    children: subCategories.map((sub) {
-                      return Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8.w,
-                          vertical: 4.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: sub.color.withAlpha(20),
-                          borderRadius: BorderRadius.circular(10.r),
-                          border: Border.all(
-                            color: sub.color.withAlpha(80),
+                    children: [
+                      if (parentOnlyBudgeted > 0 || parentOnlySpentAmount > 0)
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: widget.category.color.withAlpha(20),
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(
+                              color: widget.category.color.withAlpha(80),
+                            ),
+                          ),
+                          child: Text(
+                            'عام',
+                            style: AppTextStyle.style9W400.copyWith(
+                              color: widget.category.color.withAlpha(200),
+                            ),
                           ),
                         ),
-                        child: Text(
-                          sub.name,
-                          style: AppTextStyle.style9W400.copyWith(
-                            color: sub.color.withAlpha(200),
+                      ...subCategories.map((sub) {
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
                           ),
-                        ),
-                      );
-                    }).toList(),
+                          decoration: BoxDecoration(
+                            color: sub.color.withAlpha(20),
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(
+                              color: sub.color.withAlpha(80),
+                            ),
+                          ),
+                          child: Text(
+                            sub.name,
+                            style: AppTextStyle.style9W400.copyWith(
+                              color: sub.color.withAlpha(200),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
                   ),
                 ],
               ],
@@ -1246,13 +1315,13 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
   void _showSubCategoriesSheet(
     BuildContext context,
     List<TransactionCategory> subCategories,
+    bool showGeneral,
   ) {
     showModalBottomSheet<TransactionCategory>(
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
       context: context,
-
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
@@ -1286,10 +1355,22 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   child: ListView.builder(
                     controller: controller,
                     padding: EdgeInsets.symmetric(vertical: 4.h),
-                    itemCount: subCategories.length,
+
+                    itemCount: subCategories.length + (showGeneral ? 1 : 0),
                     itemBuilder: (context, index) {
+                      if (showGeneral && index == 0) {
+                        return _ExpenseBudgetTile(
+                          category: widget.category,
+                          plan: widget.plan,
+                          isSubCategory: true,
+                          customName: 'عام',
+                        );
+                      }
+
+                      final actualIndex = showGeneral ? index - 1 : index;
+
                       return _ExpenseBudgetTile(
-                        category: subCategories[index],
+                        category: subCategories[actualIndex],
                         plan: widget.plan,
                         isSubCategory: true,
                       );
@@ -1308,6 +1389,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
