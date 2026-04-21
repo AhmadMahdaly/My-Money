@@ -502,6 +502,52 @@ class TransactionCubit extends Cubit<TransactionState> {
     await executeRecurringTransaction(category);
   }
 
+  Future<void> approvePendingWithCustomDetails({
+    required TransactionCategory category,
+    required double amount,
+    required DateTime date,
+    required String walletId,
+    String? note,
+  }) async {
+    try {
+      final newTransaction = Transaction(
+        id: const Uuid().v4(),
+        categoryId: category.id,
+        amount: amount,
+        date: date,
+        type: category.type,
+        walletId: walletId,
+        note: note,
+      );
+
+      // 1. حفظ المعاملة في قاعدة البيانات
+      await addTransactionUseCase(newTransaction);
+
+      // 2. تحديث رصيد المحفظة (هذا هو الجزء الذي كان مفقوداً) 🔴
+      final amountWithSign = category.type == TransactionType.income
+          ? amount
+          : -amount;
+      await walletCubit.updateWalletBalance(walletId, amountWithSign);
+
+      // 3. تعليم المعاملة كـ "تم تنفيذها" حتى لا تظهر في الانتظار مرة أخرى 🔴
+      await _markAsExecuted(category, DateTime.now());
+
+      // 4. إزالة المعاملة من قائمة الانتظار في الواجهة
+      final updatedPending = List<TransactionCategory>.from(
+        state.pendingTransactions,
+      )..removeWhere((c) => c.id == category.id);
+
+      emit(
+        state.copyWith(
+          pendingTransactions: updatedPending,
+          allTransactions: [...state.allTransactions, newTransaction],
+        ),
+      );
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
   Future<void> dismissPendingTransaction(TransactionCategory category) async {
     final updatedPending = state.pendingTransactions
         .where((c) => c.id != category.id)

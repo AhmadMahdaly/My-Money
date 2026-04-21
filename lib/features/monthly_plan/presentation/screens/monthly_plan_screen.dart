@@ -48,6 +48,13 @@ class _MonthlyPlanView extends StatelessWidget {
         actions: [
           InkWell(
             onTap: () {
+              context.push(AppRoutes.monthlyAnalyticsScreen);
+            },
+            child: const Icon(Icons.analytics_outlined, color: Colors.white),
+          ),
+          16.horizontalSpace,
+          InkWell(
+            onTap: () {
               _showResetDialog(context);
             },
             child: const Icon(Icons.refresh, color: Colors.white),

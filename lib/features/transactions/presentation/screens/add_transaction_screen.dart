@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
@@ -7,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
@@ -550,9 +549,9 @@ class _TransactionFormState extends State<_TransactionForm> {
                             child: Container(
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: AppColors.primaryColor.withAlpha(33),
+                                color: AppColors.primaryColor.withAlpha(24),
                                 border: Border.all(
-                                  color: AppColors.primaryColor.withAlpha(24),
+                                  color: AppColors.primaryColor.withAlpha(36),
                                 ),
                                 borderRadius: BorderRadius.circular(10.r),
                               ),
@@ -578,7 +577,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                       showMainWallet
                                           ? TextSpan(
                                               text: '${mainWallet.name}: ',
-                                              style: AppTextStyle.style14W500
+                                              style: AppTextStyle.style12W300
                                                   .copyWith(
                                                     color:
                                                         AppColors.primaryColor,
@@ -598,7 +597,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                             )
                                           : TextSpan(
                                               text:
-                                                  '${mainWallet.name}: ****** ج.م',
+                                                  '${mainWallet.name}: ***** ج.م',
                                               style: AppTextStyle.style16W700
                                                   .copyWith(
                                                     color:
@@ -691,37 +690,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                           value == null || value.isEmpty ? 'سجل المبلغ' : null,
                     ),
                     4.verticalSpace,
-                    // Theme(
-                    //   data: Theme.of(
-                    //     context,
-                    //   ).copyWith(dividerColor: Colors.transparent),
-                    //   child: ExpansionTile(
-                    //     childrenPadding: EdgeInsets.zero,
-                    //     tilePadding: EdgeInsets.zero,
-                    //     title: Text(
-                    //       'لو عايز تغير المحفظة',
-                    //       style: AppTextStyle.style14W400.copyWith(
-                    //         color: AppColors.primaryColor,
-                    //       ),
-                    //     ),
-                    //     children: [
-                    //    ],
-                    //   ),
-                    // ),
 
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     Text(
-                    //       widget.type == TransactionType.income
-                    //           ? 'الفلوس دي جاية منين (المخصص الرئيسي)؟'
-                    //           : 'صرفت على ايه (المخصص الرئيسي)؟',
-                    //       style: AppTextStyle.style14W400.copyWith(
-                    //         color: AppColors.primaryColor,
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
                     _buildCategorySelectionField(
                       hint: widget.type == TransactionType.income
                           ? 'الفلوس دي جاية منين (اختار المخصص الرئيسي)؟'
@@ -735,10 +704,6 @@ class _TransactionFormState extends State<_TransactionForm> {
                     ),
 
                     if (_selectedMainCategoryId != null) ...[
-                      // Text(
-                      //   'اختر المخصص الفرعي (اختياري):',
-                      //   style: AppTextStyle.style12W300,
-                      // ),
                       _buildCategorySelectionField(
                         hint: subCategories.isEmpty
                             ? 'لا توجد تفريعات، اضغط لإضافة واحدة'
@@ -790,7 +755,7 @@ class _TransactionFormState extends State<_TransactionForm> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primaryColor.withAlpha(50)),
+          border: Border.all(color: AppColors.primaryColor.withAlpha(36)),
           borderRadius: BorderRadius.circular(10.r),
           color:
               selectedCategory?.color.withAlpha(15) ??
@@ -799,7 +764,6 @@ class _TransactionFormState extends State<_TransactionForm> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // 40.horizontalSpace,
             Row(
               children: [
                 if (selectedCategory != null) ...[
@@ -1082,11 +1046,12 @@ class _TransactionFormState extends State<_TransactionForm> {
   void _showPendingDialog(BuildContext context) {
     showDialog<void>(
       context: context,
+      useSafeArea: false,
       builder: (ctx) {
         return BlocConsumer<TransactionCubit, TransactionState>(
           listener: (context, state) {
             if (state.pendingTransactions.isEmpty) {
-              context.pop();
+              if (context.canPop()) context.pop();
             }
           },
           builder: (context, state) {
@@ -1111,48 +1076,93 @@ class _TransactionFormState extends State<_TransactionForm> {
                   separatorBuilder: (context, index) => const Divider(),
                   itemBuilder: (context, index) {
                     final category = pendingCategories[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: category.color,
-                        radius: 15.r,
-                      ),
-                      title: Text(category.name),
-                      subtitle: Text(
-                        'المبلغ المتوقع: ${category.fixedAmount?.truncate()} ج.م',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              color: AppColors.errorColor,
+                    return Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.r),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: category.color,
+                                  radius: 15.r,
+                                ),
+                                10.horizontalSpace,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        category.name,
+                                        style: AppTextStyle.style16Bold,
+                                      ),
+                                      4.verticalSpace,
+                                      Text(
+                                        'المبلغ المتوقع: ${category.fixedAmount?.truncate() ?? 0} ج.م',
+                                        style: AppTextStyle.style12W300
+                                            .copyWith(fontSize: 10.sp),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            onPressed: () {
-                              context
-                                  .read<TransactionCubit>()
-                                  .dismissPendingTransaction(category);
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.check_circle,
-                              color: AppColors.successColor,
-                            ),
-                            onPressed: () {
-                              context
-                                  .read<TransactionCubit>()
-                                  .approvePendingTransaction(category);
 
-                              showCustomSnackBar(
-                                context,
-                                msgColor:
-                                    AppColors.scaffoldBackgroundLightColor,
-                                message: 'تم تسجيل ${category.name} بنجاح',
-                              );
-                            },
-                          ),
-                        ],
+                            8.verticalSpace,
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.edit_note,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _showEditPendingTransactionSheet(
+                                      context,
+                                      category,
+                                      category.targetWalletId!,
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: AppColors.errorColor,
+                                  ),
+                                  onPressed: () {
+                                    context
+                                        .read<TransactionCubit>()
+                                        .dismissPendingTransaction(category);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.check_circle,
+                                    color: AppColors.successColor,
+                                  ),
+                                  onPressed: () {
+                                    context
+                                        .read<TransactionCubit>()
+                                        .approvePendingTransaction(category);
+
+                                    showCustomSnackBar(
+                                      context,
+                                      msgColor: AppColors
+                                          .scaffoldBackgroundLightColor,
+                                      message:
+                                          'تم تسجيل ${category.name} بنجاح',
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -1172,6 +1182,26 @@ class _TransactionFormState extends State<_TransactionForm> {
   }
 }
 
+void _showEditPendingTransactionSheet(
+  BuildContext context,
+  TransactionCategory category,
+  String walletId,
+) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+    ),
+    builder: (context) {
+      return _EditPendingForm(
+        category: category,
+        walletId: walletId,
+      );
+    },
+  );
+}
+
 void _showAddCategoryModalBottomSheet(
   BuildContext context,
   TransactionType type,
@@ -1187,6 +1217,179 @@ void _showAddCategoryModalBottomSheet(
       context.read<TransactionCubit>().addCategory(newCategory);
     }
   });
+}
+
+class _EditPendingForm extends StatefulWidget {
+  const _EditPendingForm({
+    required this.category,
+    required this.walletId,
+  });
+  final TransactionCategory category;
+  final String walletId;
+
+  @override
+  State<_EditPendingForm> createState() => _EditPendingFormState();
+}
+
+class _EditPendingFormState extends State<_EditPendingForm> {
+  late final TextEditingController _amountController;
+  late final TextEditingController _noteController;
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _amountController = TextEditingController(
+      text: widget.category.fixedAmount?.truncate().toString() ?? '0',
+    );
+    _noteController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 20.w,
+        right: 20.w,
+        top: 20.h,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: widget.category.color,
+                radius: 15.r,
+              ),
+              10.horizontalSpace,
+              Text(
+                'تأكيد وتعديل: ${widget.category.name}',
+                style: AppTextStyle.style16W600,
+              ),
+            ],
+          ),
+          20.verticalSpace,
+
+          Row(
+            children: [
+              Expanded(
+                child: CustomPrimaryTextfield(
+                  controller: _amountController,
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  text: 'المبلغ الفعلي',
+                ),
+              ),
+              10.horizontalSpace,
+              IconButton(
+                onPressed: () async {
+                  final result = await showDialog<double>(
+                    context: context,
+                    builder: (_) => CalculatorDialog(
+                      initialValue:
+                          double.tryParse(_amountController.text) ?? 0,
+                    ),
+                  );
+                  if (result != null) {
+                    _amountController.text = result.truncate().toString();
+                  }
+                },
+                icon: Icon(
+                  Icons.calculate_outlined,
+                  size: 35.r,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ],
+          ),
+
+          15.verticalSpace,
+
+          CustomPrimaryTextfield(
+            controller: _noteController,
+            text: 'ملاحظات (اختياري)',
+          ),
+          15.verticalSpace,
+
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              'تاريخ المعاملة: ${DateFormat('yyyy/MM/dd').format(_selectedDate)}',
+              style: AppTextStyle.style14W500,
+            ),
+            trailing: Icon(
+              Icons.calendar_today,
+              color: AppColors.primaryColor,
+              size: 20.r,
+            ),
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate,
+                firstDate: DateTime(2020),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) {
+                setState(() {
+                  _selectedDate = picked;
+                });
+              }
+            },
+          ),
+          20.verticalSpace,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              onPressed: () {
+                final amount = double.tryParse(_amountController.text) ?? 0.0;
+
+                if (amount <= 0) {
+                  return;
+                }
+
+                context
+                    .read<TransactionCubit>()
+                    .approvePendingWithCustomDetails(
+                      category: widget.category,
+                      amount: amount,
+                      date: _selectedDate,
+                      walletId: widget.walletId,
+                      note: _noteController.text.isEmpty
+                          ? null
+                          : _noteController.text,
+                    );
+
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'حفظ وتأكيد المعاملة',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+          20.verticalSpace,
+        ],
+      ),
+    );
+  }
 }
 
 void playTimerSound() {

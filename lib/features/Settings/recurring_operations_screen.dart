@@ -339,6 +339,7 @@ class RecurringOperationsScreen extends StatelessWidget {
     TransactionType type, [
     TransactionCategory? categoryToEdit,
   ]) {
+    final transactionCubit = context.read<TransactionCubit>();
     showModalBottomSheet<TransactionCategory>(
       isScrollControlled: true,
       useSafeArea: true,
@@ -351,9 +352,9 @@ class RecurringOperationsScreen extends StatelessWidget {
     ).then((result) {
       if (result != null) {
         if (categoryToEdit == null) {
-          context.read<TransactionCubit>().addCategory(result);
+          transactionCubit.addCategory(result);
         } else {
-          context.read<TransactionCubit>().updateCategory(result);
+          transactionCubit.updateCategory(result);
         }
       }
     });

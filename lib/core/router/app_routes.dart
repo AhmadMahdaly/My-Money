@@ -17,4 +17,6 @@ class AppRoutes {
   static const String shoppingListView = '/shoppingListView';
   static const String backupScreen = '/backupScreen';
   static const String recurringOperationsScreen = '/recurringOperationsScreen';
+    static const String monthlyAnalyticsScreen = '/monthlyAnalyticsScreen';
+
 }
