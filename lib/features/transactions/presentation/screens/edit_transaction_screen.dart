@@ -148,7 +148,11 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                       .map(
                         (cat) => DropdownMenuItem(
                           value: cat.id,
-                          child: Text(cat.name),
+                          child: Text(
+                            cat.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       )
                       .toList(),

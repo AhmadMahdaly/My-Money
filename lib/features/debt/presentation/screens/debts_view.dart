@@ -1,13 +1,15 @@
-// ignore_for_file: omit_local_variable_types
+// ignore_for_file: deprecated_member_use, omit_local_variable_types
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/services/format_currency.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
-import 'package:opration/core/shared_widgets/custom_floating_action_buttom.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
@@ -28,64 +30,197 @@ class DebtsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<DebtCubit, DebtState>(
       builder: (context, state) {
-        final debts = state.items;
+        final allDebts = state.items;
 
-        return Scaffold(
-          appBar: const PageHeader(
-            isLeading: true,
-            subTitle: SubTitle(),
-            title: 'الإلتزامات والديون',
-          ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+        final activeDebts = allDebts.where((d) => !d.isFullyPaid).toList();
+        final settledDebts = allDebts.where((d) => d.isFullyPaid).toList();
 
-          floatingActionButton: CustomFloatingActionButton(
-            onPressed: () => _showAddEditDebtDialog(context),
-            tooltip: 'إضافة دين أو قسط',
-          ),
-          body: ListView(
-            padding: EdgeInsets.all(16.r),
-            children: [
-              Text('ديون وأقساط نشطة:', style: AppTextStyle.style16W600),
-              8.verticalSpace,
-              if (debts.isEmpty)
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(16.r),
-                      child: SizedBox(
-                        height: SizeConfig.screenHeight / 1.5,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              CupertinoIcons.check_mark_circled_solid,
-                              size: 40.r,
-                              color: AppColors.textGreyColor.withAlpha(100),
-                            ),
-                            12.verticalSpace,
-                            Center(
-                              child: Text(
-                                'الحمد لله، مفيش ديون أو أقساط متسجلة!',
-                                style: AppTextStyle.style14W400.copyWith(
-                                  color: AppColors.textGreyColor.withAlpha(100),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              else ...[
-                ...debts.map((debt) => _buildDebtCard(context, debt)),
-                60.verticalSpace,
+        final totalRemainingDebts = activeDebts.fold(
+          0.0,
+          (sum, debt) => sum + debt.remainingAmount,
+        );
+
+        return DefaultTabController(
+          length: 2,
+          child: Scaffold(
+            appBar: const PageHeader(
+              isLeading: true,
+              title: 'الإلتزامات والديون',
+            ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.startFloat,
+            floatingActionButton: SpeedDial(
+              backgroundColor: AppColors.primaryColor,
+              iconTheme: const IconThemeData(
+                color: AppColors.scaffoldBackgroundLightColor,
+              ),
+              icon: Icons.add,
+              activeIcon: Icons.close,
+              spacing: 4.h,
+              spaceBetweenChildren: 4.h,
+              overlayOpacity: 0.3,
+              children: [
+                SpeedDialChild(
+                  child: const Icon(Icons.history),
+                  label: 'سجل المدفوعات',
+                  onTap: () {
+                    context.pushNamed(AppRoutes.debtPaymentsLogView);
+                  },
+                ),
+                SpeedDialChild(
+                  child: const Icon(Icons.add),
+                  label: 'إضافة دين أو قسط',
+                  onTap: () => _showAddEditDebtDialog(context),
+                ),
               ],
-            ],
+            ),
+
+            body: Column(
+              children: [
+                _buildTotalDebtsCard(context, totalRemainingDebts),
+
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 16.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withAlpha(20),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: TabBar(
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerHeight: 0,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: AppColors.primaryColor,
+                    indicator: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.r),
+                      color: AppColors.primaryColor,
+                    ),
+                    labelStyle: AppTextStyle.style14W600,
+                    tabs: const [
+                      Tab(text: 'ديون نشطة'),
+                      Tab(text: 'تم السداد'),
+                    ],
+                  ),
+                ),
+                12.verticalSpace,
+
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildDebtsList(
+                        context,
+                        debts: activeDebts,
+                        emptyMessage: 'الحمد لله، مفيش ديون أو أقساط نشطة!',
+                      ),
+
+                      _buildDebtsList(
+                        context,
+                        debts: settledDebts,
+                        emptyMessage: 'لسه مفيش ديون تم سدادها بالكامل.',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDebtsList(
+    BuildContext context, {
+    required List<Debt> debts,
+    required String emptyMessage,
+  }) {
+    if (debts.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            CupertinoIcons.check_mark_circled_solid,
+            size: 50.r,
+            color: AppColors.textGreyColor.withAlpha(100),
+          ),
+          16.verticalSpace,
+          Text(
+            emptyMessage,
+            style: AppTextStyle.style14W400.copyWith(
+              color: AppColors.textGreyColor.withAlpha(150),
+            ),
+          ),
+          80.verticalSpace,
+        ],
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      itemCount: debts.length + 1,
+      itemBuilder: (context, index) {
+        if (index == debts.length) {
+          return 80.verticalSpace;
+        }
+        return Padding(
+          padding: EdgeInsets.only(bottom: 8.h),
+          child: _buildDebtCard(context, debts[index]),
+        );
+      },
+    );
+  }
+
+  Widget _buildTotalDebtsCard(BuildContext context, double totalRemaining) {
+    return Container(
+      margin: EdgeInsets.only(top: 16.h, left: 16.w, right: 16.w, bottom: 16.h),
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: AppColors.errorColor.withAlpha(220),
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.errorColor.withAlpha(77),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'إجمالي الديون المتبقية',
+                style: AppTextStyle.style14W600.copyWith(
+                  color: Colors.white.withAlpha(220),
+                ),
+              ),
+              8.verticalSpace,
+              Text(
+                '${formatCurrency(totalRemaining)} ج.م',
+                style: AppTextStyle.style16W600.copyWith(
+                  color: Colors.white,
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(50),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.receipt_long_rounded,
+              color: Colors.white,
+              size: 32.r,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -104,9 +239,16 @@ class DebtsView extends StatelessWidget {
                 Expanded(
                   child: Row(
                     children: [
-                      Text(debt.name, style: AppTextStyle.style16W600),
+                      Expanded(
+                        child: Text(
+                          debt.name,
+                          style: AppTextStyle.style16W600,
+                          overflow: TextOverflow.fade,
+                          softWrap: true,
+                        ),
+                      ),
                       8.horizontalSpace,
-                      if (debt.autoDeduct)
+                      if (debt.autoDeduct && !debt.isFullyPaid)
                         Icon(
                           Icons.autorenew,
                           color: AppColors.primaryColor,
@@ -115,7 +257,6 @@ class DebtsView extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') {
@@ -142,9 +283,11 @@ class DebtsView extends StatelessWidget {
             ),
             4.verticalSpace,
             Text(
-              'المتبقي: ${debt.remainingAmount.truncate()} ج.م',
+              'المتبقي: ${formatCurrency(debt.remainingAmount)} ج.م',
               style: AppTextStyle.style12W500.copyWith(
-                color: AppColors.errorColor,
+                color: debt.isFullyPaid
+                    ? AppColors.successColor
+                    : AppColors.errorColor,
               ),
             ),
             8.verticalSpace,
@@ -180,7 +323,7 @@ class DebtsView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'المدفوع: ${debt.paidAmount.truncate()} ج.م',
+                  'المدفوع: ${formatCurrency(debt.paidAmount)} ج.م',
                   style: AppTextStyle.style12W400.copyWith(fontSize: 10.sp),
                 ),
                 TextButton(
@@ -188,11 +331,14 @@ class DebtsView extends StatelessWidget {
                       ? null
                       : () => _showManualPaymentDialog(context, debt),
                   child: Text(
-                    debt.isFullyPaid ? 'تم السداد' : 'تسجيل دفعة',
+                    debt.isFullyPaid ? 'اكتمل السداد 🎉' : 'تسجيل دفعة',
                     style: TextStyle(
                       color: debt.isFullyPaid
-                          ? Colors.grey
+                          ? AppColors.successColor
                           : AppColors.primaryColor,
+                      fontWeight: debt.isFullyPaid
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -237,7 +383,7 @@ class DebtsView extends StatelessWidget {
 
   void _showManualPaymentDialog(BuildContext context, Debt debt) {
     final formKey = GlobalKey<FormState>();
-    DateTime selectedPaymentDate = DateTime.now();
+    var selectedPaymentDate = DateTime.now();
     final defaultAmount =
         (debt.installmentAmount > 0 &&
             debt.installmentAmount <= debt.remainingAmount)
@@ -264,7 +410,7 @@ class DebtsView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'المتبقي من الدين: ${debt.remainingAmount.truncate()} ج.م',
+                    'المتبقي من الدين: ${formatCurrency(debt.remainingAmount)} ج.م',
                     style: AppTextStyle.style14W600.copyWith(
                       color: AppColors.errorColor,
                     ),
@@ -374,14 +520,14 @@ class DebtsView extends StatelessWidget {
     );
 
     var selectedRecurrence = existingDebt?.recurrence ?? DebtRecurrence.once;
-    int? recurrenceValue = existingDebt?.recurrenceValue;
+    var recurrenceValue = existingDebt?.recurrenceValue;
     DateTime? selectedDate = existingDebt?.dueDate ?? DateTime.now();
     final List<DateTime> customDatesList = existingDebt?.customDates != null
         ? List.from(existingDebt!.customDates!)
-        : [];
+        : <DateTime>[];
 
     var autoDeduct = existingDebt?.autoDeduct ?? false;
-    String? selectedWalletId = existingDebt?.targetWalletId;
+    var selectedWalletId = existingDebt?.targetWalletId;
 
     String? selectedMainCategoryId;
     String? selectedSubCategoryId;
@@ -437,7 +583,6 @@ class DebtsView extends StatelessWidget {
                         CustomPrimaryTextfield(
                           controller: nameController,
                           text: 'لمن هذا الدين؟ (مثال: قسط العربية)',
-
                           validator: (v) =>
                               (v == null || v.isEmpty) ? 'مطلوب' : null,
                         ),
@@ -500,7 +645,6 @@ class DebtsView extends StatelessWidget {
                             controller: installmentController,
                             text: 'قيمة القسط الواحد',
                             keyboardType: TextInputType.number,
-
                             validator: (v) => (v == null || v.isEmpty)
                                 ? 'أدخل قيمة القسط'
                                 : null,
@@ -512,7 +656,6 @@ class DebtsView extends StatelessWidget {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             title: const Text('تاريخ الاستحقاق'),
-
                             subtitle: Text(
                               selectedDate != null
                                   ? DateFormat.yMMMd('ar').format(selectedDate!)
@@ -631,15 +774,18 @@ class DebtsView extends StatelessWidget {
                           ),
 
                         const Divider(),
-
                         CustomDropdownButtonFormField<String>(
-                          hintText: 'صنف هذا الدين تحت فئة:',
+                          hintText: 'صنف هذا الدين تحت فئة (اختياري):',
                           value: selectedMainCategoryId,
                           items: mainCategories
                               .map(
                                 (c) => DropdownMenuItem(
                                   value: c.id,
-                                  child: Text(c.name),
+                                  child: Text(
+                                    c.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -649,8 +795,9 @@ class DebtsView extends StatelessWidget {
                               selectedSubCategoryId = null;
                             });
                           },
-                          validator: (v) => v == null ? 'اختر الفئة' : null,
+                          validator: (v) => null,
                         ),
+
                         ...(() {
                           final subCategories = selectedMainCategoryId != null
                               ? allExpenseCategories
@@ -677,7 +824,11 @@ class DebtsView extends StatelessWidget {
                                     .map(
                                       (c) => DropdownMenuItem(
                                         value: c.id,
-                                        child: Text(c.name),
+                                        child: Text(
+                                          c.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
                                     )
                                     .toList(),
@@ -709,7 +860,11 @@ class DebtsView extends StatelessWidget {
                                 .map(
                                   (w) => DropdownMenuItem(
                                     value: w.id,
-                                    child: Text(w.name),
+                                    child: Text(
+                                      w.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -751,8 +906,24 @@ class DebtsView extends StatelessWidget {
                                       ) ??
                                       0.0);
 
-                            final finalCategoryId =
-                                selectedSubCategoryId ?? selectedMainCategoryId;
+                            var finalCategoryId =
+                                selectedSubCategoryId ??
+                                selectedMainCategoryId ??
+                                '';
+
+                            if (finalCategoryId.isEmpty) {
+                              finalCategoryId = const Uuid().v4();
+                              final newCategory = TransactionCategory(
+                                id: finalCategoryId,
+                                name: nameController.text,
+                                type: TransactionType.expense,
+                                colorValue: AppColors.errorColor.value,
+                              );
+
+                              context.read<TransactionCubit>().addCategory(
+                                newCategory,
+                              );
+                            }
 
                             final newDebt = Debt(
                               id: existingDebt?.id ?? const Uuid().v4(),

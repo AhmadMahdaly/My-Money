@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
+import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
@@ -239,11 +240,15 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                                   setState(() => _isSubCategory = v),
                             ),
                             if (_isSubCategory) ...[
-                              DropdownButtonFormField<String>(
-                                initialValue: _selectedParentId,
-                                decoration: const InputDecoration(
-                                  labelText: 'يندرج تحت مخصص:',
-                                ),
+                              Text(
+                                'يندرج تحت مخصص:',
+                                style: AppTextStyle.style12W300,
+                              ),
+                              8.verticalSpace,
+                              CustomDropdownButtonFormField<String>(
+                                value: _selectedParentId,
+                                hintText: 'المخصصات:',
+
                                 items: mainCategories
                                     .where(
                                       (c) => c.id != widget.categoryToEdit?.id,
@@ -251,7 +256,11 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                                     .map(
                                       (c) => DropdownMenuItem(
                                         value: c.id,
-                                        child: Text(c.name),
+                                        child: Text(
+                                          c.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
                                     )
                                     .toList(),

@@ -1,7 +1,7 @@
 name: opration
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.35+35
+version: 1.0.36+36
 
 environment:
   sdk: ^3.8.1

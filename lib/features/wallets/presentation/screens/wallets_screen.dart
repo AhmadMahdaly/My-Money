@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/services/format_currency.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
@@ -139,7 +140,7 @@ class WalletsScreen extends StatelessWidget {
                                       ],
                                     ),
                                     subtitle: Text(
-                                      'الرصيد: ${wallet.balance.truncate()} ج.م',
+                                      'الرصيد: ${formatCurrency(wallet.balance)} ج.م',
                                       style: AppTextStyle.style14W500.copyWith(
                                         color: Colors.grey.shade600,
                                       ),
@@ -354,7 +355,7 @@ class WalletsScreen extends StatelessWidget {
               ),
               8.verticalSpace,
               Text(
-                '${totalBalance.truncate()} ج.م',
+                '${formatCurrency(totalBalance)} ج.م',
                 style: AppTextStyle.style18W800.copyWith(
                   color: Colors.white,
                   fontSize: 24.sp,
@@ -515,7 +516,9 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                           (w) => DropdownMenuItem(
                             value: w.id,
                             child: Text(
-                              '${w.name} (${w.balance.truncate()} ج.م)',
+                              '${w.name} (${formatCurrency(w.balance)}) ج.م',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: AppTextStyle.style12W500,
                             ),
                           ),
@@ -531,7 +534,11 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                         .map(
                           (w) => DropdownMenuItem(
                             value: w.id,
-                            child: Text(w.name),
+                            child: Text(
+                              w.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         )
                         .toList(),

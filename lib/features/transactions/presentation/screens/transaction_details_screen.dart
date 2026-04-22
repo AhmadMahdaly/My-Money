@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/services/format_currency.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
@@ -274,7 +275,7 @@ class _CategoryTransactionList extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: sortedMainCategoryIds.length,
-          // separatorBuilder: (context, index) => 4.verticalSpace,
+
           itemBuilder: (context, index) {
             final mainCategoryId = sortedMainCategoryIds[index];
             final categoryTransactions = groupedTransactions[mainCategoryId]!;
@@ -344,7 +345,7 @@ class _CategoryTransactionList extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '${categoryTotal.truncate()} ج.م',
+                        '${formatCurrency(categoryTotal)} ج.م',
                         style: AppTextStyle.style14W700.copyWith(
                           color: type == TransactionType.income
                               ? AppColors.greenLightColor
@@ -452,7 +453,7 @@ class _CategoryDetailsSheetState extends State<_CategoryDetailsSheet> {
                               ),
                             ),
                             Text(
-                              'الإجمالي: ${totalMainAmount.truncate()} ج.م',
+                              'الإجمالي: ${formatCurrency(totalMainAmount)} ج.م',
                               style: AppTextStyle.style14W700.copyWith(
                                 color: widget.type == TransactionType.income
                                     ? AppColors.greenLightColor
@@ -588,7 +589,7 @@ class _CategoryDetailsSheetState extends State<_CategoryDetailsSheet> {
             ),
             6.horizontalSpace,
             Text(
-              '${amount.truncate()}',
+              formatCurrency(amount),
               style: AppTextStyle.style12W700.copyWith(
                 color: isSelected
                     ? color
@@ -672,38 +673,32 @@ class _TransactionListItem extends StatelessWidget {
             size: 16.r,
             color: color,
           ),
-          title: Row(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${transaction.amount.truncate()} ج.م',
+                '${formatCurrency(transaction.amount)} ج.م',
                 style: AppTextStyle.style16Bold.copyWith(
                   color: color,
                 ),
               ),
-              8.horizontalSpace,
-              Expanded(
-                child: Row(
-                  children: [
-                    Text(
-                      specificCategory.name,
-                      style: AppTextStyle.style12W300.copyWith(
-                        color: AppColors.primaryTextColor,
-                      ),
-                    ),
-                    6.horizontalSpace,
-                    Expanded(
-                      child: Text(
-                        transaction.note != null && transaction.note!.isNotEmpty
-                            ? '(${transaction.note})'
-                            : '',
-                        style: AppTextStyle.style12W300.copyWith(
-                          color: AppColors.forthColor,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+              Text(
+                specificCategory.name,
+                style: AppTextStyle.style12W300.copyWith(
+                  color: AppColors.primaryTextColor,
+                  overflow: TextOverflow.fade,
                 ),
+                softWrap: true,
+              ),
+
+              Text(
+                transaction.note != null && transaction.note!.isNotEmpty
+                    ? '(${transaction.note})'
+                    : '',
+                style: AppTextStyle.style12W300.copyWith(
+                  color: AppColors.forthColor,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -791,10 +786,10 @@ class _SingleSummaryCard extends StatelessWidget {
                     8.verticalSpace,
                     Text.rich(
                       TextSpan(
-                        text: totalAmount.truncate().toString(),
+                        text: formatCurrency(totalAmount),
                         style: AppTextStyle.style20W700.copyWith(
                           color: AppColors.primaryColor,
-                          fontSize: 32.sp,
+                          fontSize: 24.sp,
                         ),
                         children: [
                           TextSpan(
@@ -1123,7 +1118,6 @@ class _PieChartCardState extends State<_PieChartCard> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. تجميع البيانات
     final expenseByMainCategory = <String, double>{};
 
     for (final t in widget.transactions) {
@@ -1146,11 +1140,9 @@ class _PieChartCardState extends State<_PieChartCard> {
       );
     }
 
-    // 2. ترتيب البيانات من الأكبر للأصغر
     final sortedEntries = expenseByMainCategory.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    // 3. استخراج بيانات الفئة التي تم لمسها لعرضها في المنتصف
     TransactionCategory? touchedCategory;
     double? touchedAmount;
     double? touchedPercentage;
@@ -1189,9 +1181,8 @@ class _PieChartCardState extends State<_PieChartCard> {
             ),
             20.verticalSpace,
 
-            // الشارت التفاعلي داخل Stack لعرض البيانات في المنتصف
             SizedBox(
-              height: 220.h, // كبرنا الارتفاع قليلاً ليعطي مساحة للشارت
+              height: 220.h,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -1213,7 +1204,7 @@ class _PieChartCardState extends State<_PieChartCard> {
                         },
                       ),
                       sectionsSpace: 2,
-                      // كبرنا الفراغ الداخلي ليحتوي النص المكتوب
+
                       centerSpaceRadius: 60.r,
                       sections: sortedEntries.asMap().entries.map((mapEntry) {
                         final index = mapEntry.key;
@@ -1238,7 +1229,7 @@ class _PieChartCardState extends State<_PieChartCard> {
                         return PieChartSectionData(
                           color: mainCategory.color,
                           value: entry.value,
-                          // نخفي النسبة من هنا إذا كان الجزء ملموساً لأننا سنعرضها في المنتصف
+
                           title: (!isTouched && percentage > 5)
                               ? '${percentage.truncate()}%'
                               : '',
@@ -1251,7 +1242,6 @@ class _PieChartCardState extends State<_PieChartCard> {
                     ),
                   ),
 
-                  // النصوص التي تظهر في منتصف الدائرة عند اللمس
                   if (touchedCategory != null && touchedAmount != null)
                     Column(
                       mainAxisSize: MainAxisSize.min,
@@ -1265,7 +1255,7 @@ class _PieChartCardState extends State<_PieChartCard> {
                         ),
                         4.verticalSpace,
                         Text(
-                          '${touchedAmount.truncate()} ج.م',
+                          '${formatCurrency(touchedAmount)} ج.م',
                           style: AppTextStyle.style12W500.copyWith(
                             color: AppColors.primaryTextColor,
                           ),
@@ -1279,7 +1269,6 @@ class _PieChartCardState extends State<_PieChartCard> {
                       ],
                     )
                   else
-                    // نص افتراضي في المنتصف في حال عدم لمس أي جزء
                     Text(
                       'اضغط للتفاصيل',
                       style: AppTextStyle.style12W300.copyWith(
@@ -1294,7 +1283,6 @@ class _PieChartCardState extends State<_PieChartCard> {
             const Divider(height: 1),
             16.verticalSpace,
 
-            // المفتاح التفصيلي (Legend)
             Column(
               children: sortedEntries.map((entry) {
                 final mainCategory = widget.categories.firstWhere(
@@ -1311,7 +1299,6 @@ class _PieChartCardState extends State<_PieChartCard> {
                     ? (entry.value / widget.totalExpense) * 100
                     : 0;
 
-                // تمييز الفئة في الـ Legend إذا تم لمسها في الشارت
                 final isTouched = sortedEntries.indexOf(entry) == touchedIndex;
 
                 return AnimatedContainer(
@@ -1347,7 +1334,7 @@ class _PieChartCardState extends State<_PieChartCard> {
                         ),
                       ),
                       Text(
-                        '${entry.value.truncate()} ج.م',
+                        '${formatCurrency(entry.value)} ج.م',
                         style: AppTextStyle.style12W700.copyWith(
                           color: AppColors.errorColor.withAlpha(100),
                         ),

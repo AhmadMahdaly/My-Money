@@ -644,7 +644,11 @@ class RecurringOperationsScreen extends StatelessWidget {
                                     .map(
                                       (c) => DropdownMenuItem(
                                         value: c.id,
-                                        child: Text(c.name),
+                                        child: Text(
+                                          c.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
                                     )
                                     .toList(),
@@ -676,7 +680,11 @@ class RecurringOperationsScreen extends StatelessWidget {
                                 .map(
                                   (w) => DropdownMenuItem(
                                     value: w.id,
-                                    child: Text(w.name),
+                                    child: Text(
+                                      w.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 )
                                 .toList(),
