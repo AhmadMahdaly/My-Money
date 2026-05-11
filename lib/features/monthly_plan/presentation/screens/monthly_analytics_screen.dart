@@ -11,6 +11,8 @@ import 'package:opration/features/transactions/domain/entities/transaction.dart'
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 
+/// Legacy analytics screen (kept for reference).
+/// The active analytics screen lives under monthly_plan feature.
 class MonthlyAnalyticsScreen extends StatelessWidget {
   const MonthlyAnalyticsScreen({super.key});
 

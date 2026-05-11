@@ -1182,7 +1182,8 @@ class _PieChartCardState extends State<_PieChartCard> {
             20.verticalSpace,
 
             SizedBox(
-              height: 220.h,
+              height: 200.h,
+              width: 200.w,
               child: Stack(
                 alignment: Alignment.center,
                 children: [

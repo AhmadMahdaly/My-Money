@@ -10,6 +10,7 @@ import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
+import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 
 class EditTransactionScreen extends StatefulWidget {
@@ -28,6 +29,17 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
   late DateTime _selectedDate;
 
   final _formKey = GlobalKey<FormState>();
+
+  String _categoryDisplayName({
+    required Map<String, TransactionCategory> byId,
+    required TransactionCategory category,
+  }) {
+    final parentId = category.parentId;
+    if (parentId == null) return category.name;
+    final parent = byId[parentId];
+    if (parent == null) return category.name;
+    return '${parent.name} > ${category.name}';
+  }
 
   @override
   void initState() {
@@ -127,6 +139,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
           final categories = state.allCategories
               .where((c) => c.type == widget.transaction.type)
               .toList();
+          final byId = {for (final c in categories) c.id: c};
           return Form(
             key: _formKey,
             child: ListView(
@@ -149,7 +162,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                         (cat) => DropdownMenuItem(
                           value: cat.id,
                           child: Text(
-                            cat.name,
+                            _categoryDisplayName(byId: byId, category: cat),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

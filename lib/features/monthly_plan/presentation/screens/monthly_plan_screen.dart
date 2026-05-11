@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/di.dart';
@@ -11,9 +12,12 @@ import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/monthly_plan/domain/entities/monthly_plan.dart';
 import 'package:opration/features/monthly_plan/presentation/controllers/monthly_plan_cubit/monthly_plan_cubit.dart';
+import 'package:opration/features/monthly_plan/presentation/screens/widgets/analytics/monthly_analytics_data.dart';
+import 'package:opration/features/monthly_plan/presentation/screens/widgets/analytics/overview_analytics_card.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/transactions/presentation/screens/widgets/add_category_widget.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/calculator_dialog.dart';
 import 'package:uuid/uuid.dart';
 
@@ -89,7 +93,13 @@ class _MonthlyPlanView extends StatelessWidget {
               if (planState.plan == null) {
                 return const Center(child: Text('مفيش أي خطط متسجلة.'));
               }
-
+              final month = planState.currentMonth;
+              final data = MonthlyAnalyticsData.from(
+                month: month,
+                plan: planState.plan!,
+                allTransactions: transactionState.allTransactions,
+                allCategories: transactionState.allCategories,
+              );
               return Column(
                 children: [
                   _MonthSelector(),
@@ -97,10 +107,7 @@ class _MonthlyPlanView extends StatelessWidget {
                     child: ListView(
                       padding: EdgeInsets.all(8.r),
                       children: [
-                        _PlannedSummarySection(plan: planState.plan!),
-
-                        _SummarySection(plan: planState.plan!),
-
+                        OverviewAnalyticsCard(data: data),
                         _PlannedIncomeSection(plan: planState.plan!),
                         8.verticalSpace,
                         _PlannedExpensesSection(plan: planState.plan!),
@@ -189,207 +196,6 @@ class _MonthSelector extends StatelessWidget {
             },
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SummarySection extends StatelessWidget {
-  const _SummarySection({required this.plan});
-  final MonthlyPlan plan;
-
-  @override
-  Widget build(BuildContext context) {
-    final transactionState = context.watch<TransactionCubit>().state;
-    final planState = context.watch<MonthlyPlanCubit>().state;
-
-    final currentMonth = planState.currentMonth;
-    final year = currentMonth.year;
-    final month = currentMonth.month;
-
-    final startOfCurrentMonth = DateTime(year, month, 1);
-
-    final previousTransactions = transactionState.allTransactions.where(
-      (t) => t.date.isBefore(startOfCurrentMonth),
-    );
-
-    final previousIncome = previousTransactions
-        .where((t) => t.type == TransactionType.income)
-        .fold(0.0, (sum, t) => sum + t.amount);
-
-    final previousExpense = previousTransactions
-        .where((t) => t.type == TransactionType.expense)
-        .fold(0.0, (sum, t) => sum + t.amount);
-
-    final previousMonthBalance = previousIncome - previousExpense;
-
-    final currentMonthIncome = transactionState.allTransactions
-        .where(
-          (t) =>
-              t.type == TransactionType.income &&
-              t.date.year == year &&
-              t.date.month == month,
-        )
-        .fold(0.0, (sum, t) => sum + t.amount);
-
-    final totalActualAvailable = previousMonthBalance + currentMonthIncome;
-
-    final actualTotalExpense = transactionState.allTransactions
-        .where(
-          (t) =>
-              t.type == TransactionType.expense &&
-              t.date.year == year &&
-              t.date.month == month,
-        )
-        .fold(0.0, (sum, t) => sum + t.amount);
-
-    final actualSavings = totalActualAvailable - actualTotalExpense;
-
-    return Theme(
-      data: Theme.of(
-        context,
-      ).copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        initiallyExpanded: true,
-        title: Text(
-          'ملخص عملياتك الفعلية',
-          style: AppTextStyle.style14W500.copyWith(
-            color: AppColors.primaryColor,
-          ),
-        ),
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4.w),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _SummaryItem(
-                      title: 'الرصيد المرحل',
-                      amount: previousMonthBalance,
-                      color: previousMonthBalance >= 0
-                          ? AppColors.primaryColor.withAlpha(200)
-                          : AppColors.orangeColor.withAlpha(200),
-                    ),
-                    _SummaryItem(
-                      title: 'دخل الشهر',
-                      amount: currentMonthIncome,
-                      color: AppColors.successColor.withAlpha(150),
-                    ),
-                  ],
-                ),
-                4.verticalSpace,
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _SummaryItem(
-                      title: 'إجمالي المتاح',
-                      amount: totalActualAvailable,
-                      color: AppColors.successColor.withAlpha(200),
-                    ),
-                    _SummaryItem(
-                      title: 'المصروف الفعلي',
-                      amount: actualTotalExpense,
-                      color: AppColors.errorColor.withAlpha(200),
-                    ),
-                    _SummaryItem(
-                      title: 'الباقي الفعلي',
-                      amount: actualSavings,
-                      color: actualSavings >= 0
-                          ? AppColors.primaryColor.withAlpha(200)
-                          : AppColors.orangeColor.withAlpha(200),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlannedSummarySection extends StatelessWidget {
-  const _PlannedSummarySection({required this.plan});
-  final MonthlyPlan plan;
-
-  @override
-  Widget build(BuildContext context) {
-    final plannedIncome = plan.totalPlannedIncome;
-    final plannedExpense = plan.totalBudgetedExpense;
-    final expectedSavings = plan.projectedSavings;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _SummaryItem(
-          title: 'دخل متوقع',
-          amount: plannedIncome,
-          color: AppColors.successColor.withAlpha(200),
-        ),
-        _SummaryItem(
-          title: 'الميزانية',
-          amount: plannedExpense,
-          color: AppColors.errorColor.withAlpha(200),
-        ),
-        _SummaryItem(
-          title: 'توفير متوقع',
-          amount: expectedSavings,
-          color: expectedSavings >= 0
-              ? AppColors.primaryColor.withAlpha(200)
-              : AppColors.orangeColor.withAlpha(200),
-        ),
-      ],
-    );
-  }
-}
-
-class _SummaryItem extends StatelessWidget {
-  const _SummaryItem({
-    required this.title,
-    required this.amount,
-    required this.color,
-  });
-  final String title;
-  final double amount;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: SizedBox(
-        height: 100.h,
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(16.r),
-            child: Column(
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    title,
-                    style: AppTextStyle.style16W300.copyWith(
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ),
-                4.verticalSpace,
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    '${amount.truncate()}',
-                    style: AppTextStyle.style20Bold.copyWith(
-                      color: color,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -682,10 +488,46 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
             ),
             4.horizontalSpace,
           ],
-          CircleAvatar(
-            backgroundColor: widget.category.color,
-            radius: widget.isSubCategory ? 12.r : 15.r,
-          ),
+          if (!widget.isSubCategory) ...[
+            SpeedDial(
+              direction: SpeedDialDirection.down,
+              buttonSize: const Size(30, 30),
+              backgroundColor: widget.category.color,
+              iconTheme: const IconThemeData(
+                color: AppColors.scaffoldBackgroundLightColor,
+              ),
+              icon: Icons.add,
+              activeIcon: Icons.close,
+              elevation: 0,
+              spacing: 4.h,
+              spaceBetweenChildren: 4.h,
+              overlayOpacity: 0.8,
+              children: [
+                SpeedDialChild(
+                  child: Icon(
+                    Icons.add_circle_outline,
+                    size: 20.r,
+                    color: widget.category.color,
+                  ),
+                  label: 'إضافة فئة',
+                  onTap: () => _showAddSubCategoryBottomSheet(
+                    context: context,
+                    parentCategory: widget.category,
+                  ),
+                ),
+
+                SpeedDialChild(
+                  child: Icon(
+                    Icons.settings,
+                    size: 20.r,
+                    color: AppColors.primaryColor,
+                  ),
+                  label: 'إدارة المخصصات',
+                  onTap: () => context.push(AppRoutes.manageCategoriesScreen),
+                ),
+              ],
+            ),
+          ],
           8.horizontalSpace,
           Expanded(
             child: Column(
@@ -1154,10 +996,47 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                       ),
                       4.horizontalSpace,
                     ],
-                    CircleAvatar(
-                      backgroundColor: widget.category.color,
-                      radius: widget.isSubCategory ? 10.r : 15.r,
-                    ),
+                    if (!widget.isSubCategory) ...[
+                      SpeedDial(
+                        direction: SpeedDialDirection.down,
+                        buttonSize: const Size(30, 30),
+                        backgroundColor: widget.category.color,
+                        iconTheme: const IconThemeData(
+                          color: AppColors.scaffoldBackgroundLightColor,
+                        ),
+                        icon: Icons.add,
+                        activeIcon: Icons.close,
+                        elevation: 0,
+                        spacing: 4.h,
+                        spaceBetweenChildren: 4.h,
+                        overlayOpacity: 0.8,
+                        children: [
+                          SpeedDialChild(
+                            child: Icon(
+                              Icons.add_circle_outline,
+                              size: 20.r,
+                              color: widget.category.color,
+                            ),
+                            label: 'إضافة فئة',
+                            onTap: () => _showAddSubCategoryBottomSheet(
+                              context: context,
+                              parentCategory: widget.category,
+                            ),
+                          ),
+
+                          SpeedDialChild(
+                            child: Icon(
+                              Icons.settings,
+                              size: 20.r,
+                              color: AppColors.primaryColor,
+                            ),
+                            label: 'إدارة المخصصات',
+                            onTap: () =>
+                                context.push(AppRoutes.manageCategoriesScreen),
+                          ),
+                        ],
+                      ),
+                    ],
                     8.horizontalSpace,
                     Expanded(
                       child: Text(
@@ -1477,4 +1356,33 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
       },
     );
   }
+}
+
+void _showAddSubCategoryBottomSheet({
+  required BuildContext context,
+  required TransactionCategory parentCategory,
+}) {
+  final dummy = TransactionCategory(
+    id: '',
+    name: '',
+    colorValue: parentCategory.colorValue,
+    type: parentCategory.type,
+    parentId: parentCategory.id,
+  );
+
+  showModalBottomSheet<TransactionCategory>(
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    context: context,
+    builder: (_) => AddCategoryWidget(
+      type: parentCategory.type,
+      categoryToEdit: dummy,
+    ),
+  ).then((result) {
+    if (result != null) {
+      final newSub = result.copyWith(id: getIt<Uuid>().v4());
+      context.read<TransactionCubit>().addCategory(newSub);
+    }
+  });
 }

@@ -47,6 +47,27 @@ class TransactionCubit extends Cubit<TransactionState> {
   final SaveFilterSettingsUseCase saveFilterSettingsUseCase;
   final WalletCubit walletCubit;
   final Uuid uuid;
+
+  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  DateTime? _readLastRecurringCheckDate() {
+    final raw = CacheHelper.getData('last_recurring_check') as String?;
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      // Stored as yyyy-MM-dd
+      return DateFormat('yyyy-MM-dd').parseStrict(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _writeLastRecurringCheckDate(DateTime date) async {
+    await CacheHelper.saveData(
+      key: 'last_recurring_check',
+      value: DateFormat('yyyy-MM-dd').format(_dateOnly(date)),
+    );
+  }
+
   Future<void> loadInitialData() async {
     emit(state.copyWith(isLoading: true));
     try {
@@ -77,6 +98,9 @@ class TransactionCubit extends Cubit<TransactionState> {
           allCategories: categories,
         ),
       );
+      // 1) Catch up auto-deduct recurring transactions for missed days.
+      // 2) Then compute today's pending list (non-auto).
+      await catchUpAutoRecurringTransactions();
       await checkScheduledTransactions();
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
@@ -93,15 +117,16 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   Future<void> _markAsExecuted(
     TransactionCategory category,
-    DateTime now,
+    DateTime executionDate,
   ) async {
-    final periodKey = _getPeriodKey(category, now);
+    final periodKey = _getPeriodKey(category, executionDate);
     await CacheHelper.saveData(key: periodKey, value: true);
   }
 
   Future<void> checkScheduledTransactions() async {
     final now = DateTime.now();
     final pending = <TransactionCategory>[];
+    var didAutoExecuteAny = false;
 
     for (final category in state.allCategories.where((c) => c.isRecurring)) {
       var isDue = false;
@@ -124,6 +149,7 @@ class TransactionCubit extends Cubit<TransactionState> {
         if (!alreadyExecuted) {
           if (category.autoDeduct) {
             await executeRecurringTransaction(category);
+            didAutoExecuteAny = true;
           } else {
             pending.add(category);
           }
@@ -134,6 +160,12 @@ class TransactionCubit extends Cubit<TransactionState> {
     if (pending.isNotEmpty || state.pendingTransactions.isNotEmpty) {
       emit(state.copyWith(pendingTransactions: pending));
     }
+
+    // Ensure UI reflects newly created auto transactions immediately.
+    if (didAutoExecuteAny) {
+      final transactions = await getTransactionsUseCase();
+      emit(state.copyWith(allTransactions: transactions));
+    }
   }
 
   bool _checkIfAlreadyExecuted(TransactionCategory category, DateTime now) {
@@ -141,7 +173,62 @@ class TransactionCubit extends Cubit<TransactionState> {
     return CacheHelper.getData(periodKey) as bool? ?? false;
   }
 
-  Future<void> executeRecurringTransaction(TransactionCategory category) async {
+  bool _isDueOnDate(TransactionCategory category, DateTime date) {
+    if (!category.isRecurring) return false;
+
+    if (category.recurrenceType == RecurrenceType.monthly &&
+        category.dayOfMonth != null) {
+      return date.day == category.dayOfMonth;
+    }
+
+    if (category.recurrenceType == RecurrenceType.weekly &&
+        category.daysOfWeek != null &&
+        category.daysOfWeek!.isNotEmpty) {
+      return category.daysOfWeek!.contains(date.weekday);
+    }
+
+    return false;
+  }
+
+  Future<void> catchUpAutoRecurringTransactions() async {
+    final today = _dateOnly(DateTime.now());
+
+    final last = _readLastRecurringCheckDate();
+    // First run: don't backfill the past to avoid surprises.
+    if (last == null) {
+      await _writeLastRecurringCheckDate(today);
+      return;
+    }
+
+    final lastDay = _dateOnly(last);
+    if (!lastDay.isBefore(today)) return;
+
+    var didCreateAny = false;
+    var cursor = lastDay.add(const Duration(days: 1));
+    while (!cursor.isAfter(today)) {
+      for (final category
+          in state.allCategories.where((c) => c.isRecurring && c.autoDeduct)) {
+        if (!_isDueOnDate(category, cursor)) continue;
+        if (_checkIfAlreadyExecuted(category, cursor)) continue;
+        await executeRecurringTransaction(category, executionDate: cursor);
+        didCreateAny = true;
+      }
+      cursor = cursor.add(const Duration(days: 1));
+    }
+
+    await _writeLastRecurringCheckDate(today);
+
+    if (didCreateAny) {
+      final transactions = await getTransactionsUseCase();
+      emit(state.copyWith(allTransactions: transactions));
+    }
+  }
+
+  Future<void> executeRecurringTransaction(
+    TransactionCategory category, {
+    DateTime? executionDate,
+  }) async {
+    final date = _dateOnly(executionDate ?? DateTime.now());
     var finalWalletId = category.targetWalletId ?? '';
 
     if (finalWalletId.isEmpty) {
@@ -164,7 +251,7 @@ class TransactionCubit extends Cubit<TransactionState> {
       id: const Uuid().v4(),
       amount: amount,
       categoryId: category.id,
-      date: DateTime.now(),
+      date: date,
       type: category.type,
       walletId: finalWalletId,
       note: 'عملية تسجيل تلقائي',
@@ -177,10 +264,7 @@ class TransactionCubit extends Cubit<TransactionState> {
         : -amount;
     await walletCubit.updateWalletBalance(finalWalletId, amountWithSign);
 
-    await _markAsExecuted(category, DateTime.now());
-
-    final transactions = await getTransactionsUseCase();
-    emit(state.copyWith(allTransactions: transactions));
+    await _markAsExecuted(category, date);
   }
 
   Future<void> executeScheduledTransaction(TransactionCategory category) async {
@@ -194,70 +278,6 @@ class TransactionCubit extends Cubit<TransactionState> {
       note: 'معاملة دورية تلقائية',
     );
     await addTransaction(transaction);
-  }
-
-  Future<void> processRecurringTransactions() async {
-    final now = DateTime.now();
-    final lastCheck = CacheHelper.getData('last_recurring_check') as String?;
-
-    if (lastCheck == DateFormat('yyyy-MM-dd').format(now)) return;
-
-    for (final category in state.allCategories.where((c) => c.isRecurring)) {
-      var shouldProcess = false;
-
-      if (category.recurrenceType == RecurrenceType.monthly &&
-          now.day == category.dayOfMonth) {
-        shouldProcess = true;
-      } else if (category.recurrenceType == RecurrenceType.weekly &&
-          category.daysOfWeek!.contains(now.weekday)) {
-        shouldProcess = true;
-      }
-
-      if (shouldProcess) {
-        if (category.autoDeduct) {
-          await executeRecurring(category);
-        } else {
-          emit(
-            state.copyWith(
-              pendingTransactions: [...state.pendingTransactions, category],
-            ),
-          );
-        }
-      }
-    }
-    await CacheHelper.saveData(
-      key: 'last_recurring_check',
-      value: DateFormat('yyyy-MM-dd').format(now),
-    );
-  }
-
-  Future<void> executeRecurring(TransactionCategory category) async {
-    var finalWalletId = category.targetWalletId ?? '';
-
-    if (finalWalletId.isEmpty) {
-      final walletState = walletCubit.state;
-      if (walletState is WalletLoaded) {
-        finalWalletId = walletState.wallets.firstWhere((w) => w.isMain).id;
-      }
-    }
-
-    final newTx = Transaction(
-      id: const Uuid().v4(),
-      amount: category.fixedAmount ?? 0,
-      categoryId: category.id,
-      date: DateTime.now(),
-      type: category.type,
-      walletId: finalWalletId,
-      note: 'تلقائي: ${category.name}',
-    );
-
-    await addTransaction(newTx);
-
-    final amountWithSign = category.type == TransactionType.income
-        ? category.fixedAmount!
-        : -category.fixedAmount!;
-
-    await walletCubit.updateWalletBalance(finalWalletId, amountWithSign);
   }
 
   Future<void> setSingleDayFilter(DateTime date) async {
