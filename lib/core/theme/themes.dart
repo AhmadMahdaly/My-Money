@@ -36,7 +36,7 @@ class Appthemes {
         shadowColor: Colors.transparent,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: AppColors.secondaryColor.withAlpha(100)),
+          side: BorderSide(color: AppColors.secondaryColor.withAlpha(77)),
           borderRadius: BorderRadius.circular(15.r),
         ),
       ),

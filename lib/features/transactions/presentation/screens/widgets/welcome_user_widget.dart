@@ -6,14 +6,22 @@ import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/auth/presentation/cubit/login_cubit.dart';
 
 class WelcomeUserWidget extends StatelessWidget {
-  const WelcomeUserWidget({required this.isLeading, super.key, this.title});
+  const WelcomeUserWidget({
+    required this.isLeading,
+    super.key,
+    this.title,
+    this.leading,
+  });
   final bool isLeading;
   final String? title;
+  final Widget? leading;
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if (isLeading)
+        if (leading != null)
+          leading!
+        else if (isLeading)
           IconButton(
             onPressed: () => context.pop(),
             icon: const Icon(

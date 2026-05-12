@@ -15,11 +15,14 @@ class OverviewAnalyticsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final surface = Theme.of(context).cardColor;
-    return Card(
-      color: surface,
-      elevation: 4,
-      shadowColor: Colors.black.withAlpha(10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+    return Container(
+      margin: EdgeInsets.all(4.r),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.greenLightColor.withAlpha(33)),
+      ),
+
       child: Padding(
         padding: EdgeInsets.all(16.r),
         child: Column(
@@ -218,7 +221,7 @@ class _StatTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: accent.withAlpha(35)),
+        border: Border.all(color: accent.withAlpha(15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

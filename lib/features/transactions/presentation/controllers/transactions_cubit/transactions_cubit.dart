@@ -54,7 +54,6 @@ class TransactionCubit extends Cubit<TransactionState> {
     final raw = CacheHelper.getData('last_recurring_check') as String?;
     if (raw == null || raw.trim().isEmpty) return null;
     try {
-      // Stored as yyyy-MM-dd
       return DateFormat('yyyy-MM-dd').parseStrict(raw);
     } catch (_) {
       return null;
@@ -98,8 +97,7 @@ class TransactionCubit extends Cubit<TransactionState> {
           allCategories: categories,
         ),
       );
-      // 1) Catch up auto-deduct recurring transactions for missed days.
-      // 2) Then compute today's pending list (non-auto).
+
       await catchUpAutoRecurringTransactions();
       await checkScheduledTransactions();
     } catch (e) {
@@ -161,7 +159,6 @@ class TransactionCubit extends Cubit<TransactionState> {
       emit(state.copyWith(pendingTransactions: pending));
     }
 
-    // Ensure UI reflects newly created auto transactions immediately.
     if (didAutoExecuteAny) {
       final transactions = await getTransactionsUseCase();
       emit(state.copyWith(allTransactions: transactions));
@@ -194,7 +191,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     final today = _dateOnly(DateTime.now());
 
     final last = _readLastRecurringCheckDate();
-    // First run: don't backfill the past to avoid surprises.
+
     if (last == null) {
       await _writeLastRecurringCheckDate(today);
       return;
@@ -206,8 +203,9 @@ class TransactionCubit extends Cubit<TransactionState> {
     var didCreateAny = false;
     var cursor = lastDay.add(const Duration(days: 1));
     while (!cursor.isAfter(today)) {
-      for (final category
-          in state.allCategories.where((c) => c.isRecurring && c.autoDeduct)) {
+      for (final category in state.allCategories.where(
+        (c) => c.isRecurring && c.autoDeduct,
+      )) {
         if (!_isDueOnDate(category, cursor)) continue;
         if (_checkIfAlreadyExecuted(category, cursor)) continue;
         await executeRecurringTransaction(category, executionDate: cursor);
@@ -540,19 +538,15 @@ class TransactionCubit extends Cubit<TransactionState> {
         note: note,
       );
 
-      // 1. حفظ المعاملة في قاعدة البيانات
       await addTransactionUseCase(newTransaction);
 
-      // 2. تحديث رصيد المحفظة (هذا هو الجزء الذي كان مفقوداً) 🔴
       final amountWithSign = category.type == TransactionType.income
           ? amount
           : -amount;
       await walletCubit.updateWalletBalance(walletId, amountWithSign);
 
-      // 3. تعليم المعاملة كـ "تم تنفيذها" حتى لا تظهر في الانتظار مرة أخرى 🔴
       await _markAsExecuted(category, DateTime.now());
 
-      // 4. إزالة المعاملة من قائمة الانتظار في الواجهة
       final updatedPending = List<TransactionCategory>.from(
         state.pendingTransactions,
       )..removeWhere((c) => c.id == category.id);

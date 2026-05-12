@@ -12,6 +12,8 @@ import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
 import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_cubit.dart';
+import 'package:opration/features/transactions/domain/entities/transaction.dart';
+import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
@@ -445,24 +447,63 @@ class WalletsScreen extends StatelessWidget {
               child: Text('إلغاء', style: AppTextStyle.style14W500),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final newWallet = Wallet(
-                    id: wallet?.id ?? getIt<Uuid>().v4(),
-                    name: nameController.text,
+                  final newWalletId = wallet?.id ?? getIt<Uuid>().v4();
 
-                    balance: isEditing
-                        ? wallet.balance
-                        : double.parse(balanceController.text),
+                  final balance = isEditing
+                      ? wallet.balance
+                      : double.parse(balanceController.text);
+
+                  final newWallet = Wallet(
+                    id: newWalletId,
+                    name: nameController.text,
+                    balance: balance,
                     isMain: wallet?.isMain ?? false,
                   );
 
                   if (isEditing) {
-                    context.read<WalletCubit>().updateWallet(newWallet);
+                    await context.read<WalletCubit>().updateWallet(newWallet);
                   } else {
-                    context.read<WalletCubit>().addWallet(newWallet);
+                    await context.read<WalletCubit>().addWallet(newWallet);
+
+                    if (balance > 0) {
+                      final txCubit = context.read<TransactionCubit>();
+
+                      TransactionCategory? initialCategory;
+
+                      try {
+                        initialCategory = txCubit.state.allCategories
+                            .firstWhere(
+                              (c) => c.name == 'رصيد افتتاحي',
+                            );
+                      } catch (_) {
+                        initialCategory = TransactionCategory(
+                          id: getIt<Uuid>().v4(),
+                          name: 'رصيد افتتاحي',
+                          colorValue: Colors.teal.toARGB32(),
+                          type: TransactionType.income,
+                        );
+                        await txCubit.addCategory(initialCategory);
+                      }
+
+                      final initialTx = Transaction(
+                        id: getIt<Uuid>().v4(),
+                        amount: balance,
+                        categoryId: initialCategory.id,
+                        date: DateTime.now(),
+                        type: TransactionType.income,
+                        walletId: newWalletId,
+                        note: 'رصيد افتتاحي للمحفظة',
+                      );
+
+                      await txCubit.addTransaction(initialTx);
+                    }
                   }
-                  Navigator.of(ctx).pop();
+
+                  if (context.mounted) {
+                    Navigator.of(ctx).pop();
+                  }
                 }
               },
               child: Text(

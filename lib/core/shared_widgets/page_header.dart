@@ -15,6 +15,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
     this.bottom,
     this.subTitle,
     super.key,
+    this.leading,
   });
   final double? heightBar;
   final double? height;
@@ -23,6 +24,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool isLeading;
   final Widget? bottom;
   final Widget? subTitle;
+  final Widget? leading;
   @override
   Size get preferredSize => Size.fromHeight(heightBar ?? 130.h);
 
@@ -51,6 +53,7 @@ class PageHeader extends StatelessWidget implements PreferredSizeWidget {
             children: [
               Expanded(
                 child: WelcomeUserWidget(
+                  leading: leading,
                   isLeading: isLeading,
                   title: title,
                 ),

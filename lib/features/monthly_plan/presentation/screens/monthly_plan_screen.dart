@@ -19,6 +19,7 @@ import 'package:opration/features/transactions/domain/entities/transaction_categ
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/add_category_widget.dart';
 import 'package:opration/features/transactions/presentation/screens/widgets/calculator_dialog.dart';
+import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
 
 class MonthlyPlanScreen extends StatelessWidget {
@@ -30,12 +31,21 @@ class MonthlyPlanScreen extends StatelessWidget {
   }
 }
 
-class _MonthlyPlanView extends StatelessWidget {
+class _MonthlyPlanView extends StatefulWidget {
   const _MonthlyPlanView();
+
+  @override
+  State<_MonthlyPlanView> createState() => _MonthlyPlanViewState();
+}
+
+class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
+  String? selectedWalletId;
 
   @override
   Widget build(BuildContext context) {
     final transactionCubit = context.watch<TransactionCubit>();
+    final walletState = context.watch<WalletCubit>().state;
+
     if (transactionCubit.state.allCategories.isEmpty &&
         !transactionCubit.state.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -44,9 +54,36 @@ class _MonthlyPlanView extends StatelessWidget {
         }
       });
     }
+
     return Scaffold(
       appBar: PageHeader(
-        isLeading: false,
+        leading: InkWell(
+          onTap: () {
+            if (walletState is WalletLoaded && walletState.wallets.isNotEmpty) {
+              _showWalletFilterSheet(context, walletState);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('لا توجد محافظ لعرضها')),
+              );
+            }
+          },
+          child: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              const Icon(Icons.filter_alt_outlined, color: Colors.white),
+              if (selectedWalletId != null) // نقطة حمراء توضح إن فيه فلتر مفعل
+                Container(
+                  width: 8.r,
+                  height: 8.r,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        isLeading: false, // نجعلها false لكي نتحكم بالـ leading الخاص بنا
         height: 16.h,
         title: 'الخطة الشهرية',
         actions: [
@@ -94,24 +131,39 @@ class _MonthlyPlanView extends StatelessWidget {
                 return const Center(child: Text('مفيش أي خطط متسجلة.'));
               }
               final month = planState.currentMonth;
+
+              final filteredTransactions = selectedWalletId == null
+                  ? transactionState.allTransactions
+                  : transactionState.allTransactions
+                        .where((t) => t.walletId == selectedWalletId)
+                        .toList();
+
               final data = MonthlyAnalyticsData.from(
                 month: month,
                 plan: planState.plan!,
-                allTransactions: transactionState.allTransactions,
+                allTransactions: filteredTransactions,
                 allCategories: transactionState.allCategories,
               );
+
               return Column(
                 children: [
                   _MonthSelector(),
+
                   Expanded(
                     child: ListView(
-                      padding: EdgeInsets.all(8.r),
+                      padding: EdgeInsets.symmetric(horizontal: 8.w),
                       children: [
                         OverviewAnalyticsCard(data: data),
-                        _PlannedIncomeSection(plan: planState.plan!),
                         8.verticalSpace,
-                        _PlannedExpensesSection(plan: planState.plan!),
-
+                        _PlannedIncomeSection(
+                          plan: planState.plan!,
+                          transactions: filteredTransactions,
+                        ),
+                        8.verticalSpace,
+                        _PlannedExpensesSection(
+                          plan: planState.plan!,
+                          transactions: filteredTransactions,
+                        ),
                         30.verticalSpace,
                       ],
                     ),
@@ -122,6 +174,62 @@ class _MonthlyPlanView extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showWalletFilterSheet(BuildContext context, WalletLoaded walletState) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 20.h),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'تصفية بالمحفظة',
+                style: AppTextStyle.style16W600.copyWith(
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              16.verticalSpace,
+              ListTile(
+                leading: const Icon(Icons.account_balance_wallet_outlined),
+                title: Text(
+                  'الكل',
+                  style: AppTextStyle.style14W500,
+                ),
+                trailing: selectedWalletId == null
+                    ? const Icon(Icons.check, color: AppColors.primaryColor)
+                    : null,
+                onTap: () {
+                  setState(() => selectedWalletId = null);
+                  Navigator.pop(ctx);
+                },
+              ),
+              ...walletState.wallets.map((wallet) {
+                return ListTile(
+                  leading: const Icon(Icons.account_balance_wallet_rounded),
+                  title: Text(
+                    wallet.name,
+                    style: AppTextStyle.style14W500,
+                  ),
+                  trailing: selectedWalletId == wallet.id
+                      ? const Icon(Icons.check, color: AppColors.primaryColor)
+                      : null,
+                  onTap: () {
+                    setState(() => selectedWalletId = wallet.id);
+                    Navigator.pop(ctx);
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -202,13 +310,13 @@ class _MonthSelector extends StatelessWidget {
 }
 
 class _PlannedIncomeSection extends StatelessWidget {
-  const _PlannedIncomeSection({required this.plan});
+  const _PlannedIncomeSection({required this.plan, required this.transactions});
   final MonthlyPlan plan;
+  final List<Transaction> transactions;
 
   @override
   Widget build(BuildContext context) {
     final transactionCubit = context.watch<TransactionCubit>();
-    final allTransactions = transactionCubit.state.allTransactions;
     final currentMonth = context.watch<MonthlyPlanCubit>().state.currentMonth;
 
     final allIncomeCategories = transactionCubit.state.allCategories
@@ -258,7 +366,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                     .where((i) => i.name == mainCat.name)
                     .fold(0.0, (sum, item) => sum + item.amount);
 
-                final parentActual = allTransactions
+                final parentActual = transactions
                     .where(
                       (t) =>
                           t.categoryId == mainCat.id &&
@@ -277,6 +385,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                       child: _IncomeBudgetTile(
                         category: mainCat,
                         plan: plan,
+                        transactions: transactions,
                         isSubCategory: false,
                       ),
                     ),
@@ -291,6 +400,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                                 child: _IncomeBudgetTile(
                                   category: mainCat,
                                   plan: plan,
+                                  transactions: transactions,
                                   isSubCategory: true,
                                   customName: 'عام',
                                 ),
@@ -301,6 +411,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                                 child: _IncomeBudgetTile(
                                   category: subCat,
                                   plan: plan,
+                                  transactions: transactions,
                                   isSubCategory: true,
                                 ),
                               );
@@ -337,11 +448,13 @@ class _IncomeBudgetTile extends StatefulWidget {
   const _IncomeBudgetTile({
     required this.category,
     required this.plan,
+    required this.transactions,
     this.isSubCategory = false,
     this.customName,
   });
   final TransactionCategory category;
   final MonthlyPlan plan;
+  final List<Transaction> transactions;
   final bool isSubCategory;
   final String? customName;
 
@@ -461,7 +574,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
           .fold(0.0, (sum, item) => sum + item.amount);
     }
 
-    final actualReceivedAmount = transactionState.allTransactions
+    final actualReceivedAmount = widget.transactions
         .where(
           (t) =>
               (t.categoryId == widget.category.id ||
@@ -515,7 +628,6 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                     parentCategory: widget.category,
                   ),
                 ),
-
                 SpeedDialChild(
                   child: Icon(
                     Icons.settings,
@@ -701,9 +813,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                     final amount = double.tryParse(_controller.text) ?? 0.0;
                     if (isIn) {
                       _updateIncomeInCubit(amount);
-                    } else {
-                      _updateExpenseInCubit(amount);
-                    }
+                    } else {}
 
                     Navigator.pop(context);
                     setState(
@@ -723,30 +833,15 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
       },
     );
   }
-
-  void _updateExpenseInCubit(double amount) {
-    final newExpense = PlannedExpense(
-      categoryId: widget.category.id,
-      budgetedAmount: amount,
-    );
-    final otherExpenses = widget.plan.expenses
-        .where((e) => e.categoryId != widget.category.id)
-        .toList();
-
-    final updatedExpenses = [...otherExpenses];
-    if (amount > 0) {
-      updatedExpenses.add(newExpense);
-    }
-
-    context.read<MonthlyPlanCubit>().updatePlan(
-      widget.plan.copyWith(expenses: updatedExpenses),
-    );
-  }
 }
 
 class _PlannedExpensesSection extends StatelessWidget {
-  const _PlannedExpensesSection({required this.plan});
+  const _PlannedExpensesSection({
+    required this.plan,
+    required this.transactions,
+  });
   final MonthlyPlan plan;
+  final List<Transaction> transactions;
 
   @override
   Widget build(BuildContext context) {
@@ -798,6 +893,7 @@ class _PlannedExpensesSection extends StatelessWidget {
                 child: _ExpenseBudgetTile(
                   category: mainCat,
                   plan: plan,
+                  transactions: transactions,
                   isSubCategory: false,
                 ),
               );
@@ -828,10 +924,12 @@ class _ExpenseBudgetTile extends StatefulWidget {
     required this.isSubCategory,
     required this.category,
     required this.plan,
+    required this.transactions,
     this.customName,
   });
   final TransactionCategory category;
   final MonthlyPlan plan;
+  final List<Transaction> transactions;
   final bool isSubCategory;
   final String? customName;
 
@@ -929,7 +1027,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
           widget.plan.getExpenseForCategory(subId)?.budgetedAmount ?? 0.0;
     }
 
-    final actualSpentAmount = transactionState.allTransactions
+    final actualSpentAmount = widget.transactions
         .where(
           (t) =>
               (t.categoryId == widget.category.id ||
@@ -946,7 +1044,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         ? (actualSpentAmount / budgetedAmount).clamp(0.0, 1.0)
         : 0.0;
 
-    final parentOnlySpentAmount = transactionState.allTransactions
+    final parentOnlySpentAmount = widget.transactions
         .where(
           (t) =>
               t.categoryId == widget.category.id &&
@@ -962,10 +1060,10 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).cardColor.withAlpha(100),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: widget.category.color.withAlpha(50),
+          color: widget.category.color.withAlpha(30),
         ),
       ),
       child: Material(
@@ -1023,7 +1121,6 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                               parentCategory: widget.category,
                             ),
                           ),
-
                           SpeedDialChild(
                             child: Icon(
                               Icons.settings,
@@ -1114,7 +1211,6 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   color: budgetedAmount > 0
                       ? widget.category.color
                       : AppColors.secondaryColor.withAlpha(100),
-
                   minHeight: 8.h,
                 ),
                 8.verticalSpace,
@@ -1241,13 +1337,13 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   child: ListView.builder(
                     controller: controller,
                     padding: EdgeInsets.symmetric(vertical: 4.h),
-
                     itemCount: subCategories.length + (showGeneral ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (showGeneral && index == 0) {
                         return _ExpenseBudgetTile(
                           category: widget.category,
                           plan: widget.plan,
+                          transactions: widget.transactions,
                           isSubCategory: true,
                           customName: 'عام',
                         );
@@ -1258,6 +1354,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                       return _ExpenseBudgetTile(
                         category: subCategories[actualIndex],
                         plan: widget.plan,
+                        transactions: widget.transactions,
                         isSubCategory: true,
                       );
                     },
