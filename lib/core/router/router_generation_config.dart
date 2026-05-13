@@ -1,7 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/features/Settings/backup_screen.dart';
-import 'package:opration/features/monthly_plan/presentation/screens/monthly_analytics_screen.dart';
 import 'package:opration/features/Settings/more_page.dart';
 import 'package:opration/features/Settings/recurring_operations_screen.dart';
 import 'package:opration/features/auth/presentation/views/login_view.dart';
@@ -10,6 +9,7 @@ import 'package:opration/features/debt/presentation/screens/debts_view.dart';
 import 'package:opration/features/goals/presentation/screens/financial_goals_screen.dart';
 import 'package:opration/features/intro/splash/views/splash_view.dart';
 import 'package:opration/features/main_layout/views/main_layout.dart';
+import 'package:opration/features/monthly_plan/presentation/screens/monthly_analytics_screen.dart';
 import 'package:opration/features/monthly_plan/presentation/screens/monthly_plan_screen.dart';
 import 'package:opration/features/notifications/notifications_screen.dart';
 import 'package:opration/features/shopping/presentation/screens/shopping_list_view.dart';

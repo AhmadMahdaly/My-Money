@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/core/services/format_currency.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
@@ -15,6 +18,7 @@ import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
+import 'package:opration/features/wallets/data/models/transfer_record_model.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
@@ -220,6 +224,140 @@ class WalletsScreen extends StatelessWidget {
         spaceBetweenChildren: 4.h,
         overlayOpacity: 0.4,
         children: [
+          SpeedDialChild(
+            child: const Icon(Icons.build_circle, color: Colors.white),
+            backgroundColor: Colors.orange,
+            label: 'معالجة التحويلات القديمة (مرة واحدة)',
+            onTap: () async {
+              final txCubit = context.read<TransactionCubit>();
+              final walletState = context.read<WalletCubit>().state;
+
+              if (walletState is! WalletLoaded) return;
+              final wallets = walletState.wallets;
+
+              final jsonString =
+                  CacheHelper.getData('transfer_history') as String?;
+              if (jsonString == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('مفيش سجل تحويلات قديم!')),
+                );
+                return;
+              }
+
+              final jsonList = json.decode(jsonString) as List<dynamic>;
+              final oldTransfers = jsonList
+                  .map(
+                    (j) =>
+                        TransferRecordModel.fromJson(j as Map<String, dynamic>),
+                  )
+                  .toList();
+
+              TransactionCategory? transferInCategory;
+              TransactionCategory? transferOutCategory;
+
+              try {
+                transferInCategory = txCubit.state.allCategories.firstWhere(
+                  (c) =>
+                      c.name == 'تحويل وارد' &&
+                      c.type == TransactionType.income,
+                );
+              } catch (_) {
+                transferInCategory = TransactionCategory(
+                  id: getIt<Uuid>().v4(),
+                  name: 'تحويل وارد',
+                  colorValue: Colors.blueGrey.toARGB32(),
+                  type: TransactionType.income,
+                );
+                await txCubit.addCategory(transferInCategory);
+              }
+
+              try {
+                transferOutCategory = txCubit.state.allCategories.firstWhere(
+                  (c) =>
+                      c.name == 'تحويل صادر' &&
+                      c.type == TransactionType.expense,
+                );
+              } catch (_) {
+                transferOutCategory = TransactionCategory(
+                  id: getIt<Uuid>().v4(),
+                  name: 'تحويل صادر',
+                  colorValue: Colors.blueGrey.toARGB32(),
+                  type: TransactionType.expense,
+                );
+                await txCubit.addCategory(transferOutCategory);
+              }
+
+              var processedCount = 0;
+
+              for (final record in oldTransfers) {
+                Wallet? fromWallet;
+                Wallet? toWallet;
+
+                try {
+                  fromWallet = wallets.firstWhere(
+                    (w) => w.name == record.fromWalletName,
+                  );
+                } catch (_) {}
+                try {
+                  toWallet = wallets.firstWhere(
+                    (w) => w.name == record.toWalletName,
+                  );
+                } catch (_) {}
+
+                if (fromWallet == null || toWallet == null) continue;
+
+                final alreadyExists = txCubit.state.allTransactions.any(
+                  (t) =>
+                      t.amount == record.amount &&
+                      t.date.year == record.date.year &&
+                      t.date.month == record.date.month &&
+                      t.date.day == record.date.day &&
+                      (t.categoryId == transferInCategory!.id ||
+                          t.categoryId == transferOutCategory!.id),
+                );
+
+                if (alreadyExists) continue;
+
+                await txCubit.addTransaction(
+                  Transaction(
+                    id: getIt<Uuid>().v4(),
+                    amount: record.amount,
+                    categoryId: transferInCategory.id,
+                    date: record.date,
+                    type: TransactionType.income,
+                    walletId: toWallet.id,
+                    note: 'تحويل قديم من ${record.fromWalletName}',
+                  ),
+                );
+
+                await txCubit.addTransaction(
+                  Transaction(
+                    id: getIt<Uuid>().v4(),
+                    amount: record.amount,
+                    categoryId: transferOutCategory.id,
+                    date: record.date,
+                    type: TransactionType.expense,
+                    walletId: fromWallet.id,
+                    note: 'تحويل قديم إلى ${record.toWalletName}',
+                  ),
+                );
+
+                processedCount++;
+              }
+
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'تمت معالجة وتسجيل $processedCount تحويل قديم بنجاح!',
+                    ),
+                    backgroundColor: AppColors.successColor,
+                  ),
+                );
+              }
+            },
+          ),
+
           SpeedDialChild(
             child: const Icon(Icons.history),
             label: 'سجل عمليات المحافظ',
@@ -623,7 +761,7 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                 ),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (formKey.currentState!.validate()) {
                         if (fromWalletId == toWalletId) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -637,12 +775,89 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                           return;
                         }
 
-                        context.read<WalletCubit>().transferBalance(
+                        final amount = double.parse(amountController.text);
+
+                        await context.read<WalletCubit>().transferBalance(
                           fromWalletId!,
                           toWalletId!,
-                          double.parse(amountController.text),
+                          amount,
                         );
-                        Navigator.pop(ctx);
+
+                        final txCubit = context.read<TransactionCubit>();
+
+                        TransactionCategory? transferInCategory;
+                        try {
+                          transferInCategory = txCubit.state.allCategories
+                              .firstWhere(
+                                (c) =>
+                                    c.name == 'تحويل وارد' &&
+                                    c.type == TransactionType.income,
+                              );
+                        } catch (_) {
+                          transferInCategory = TransactionCategory(
+                            id: getIt<Uuid>().v4(),
+                            name: 'تحويل وارد',
+                            colorValue: Colors.blueGrey.toARGB32(),
+                            type: TransactionType.income,
+                          );
+
+                          await txCubit.addCategory(transferInCategory);
+                        }
+
+                        TransactionCategory? transferOutCategory;
+                        try {
+                          transferOutCategory = txCubit.state.allCategories
+                              .firstWhere(
+                                (c) =>
+                                    c.name == 'تحويل صادر' &&
+                                    c.type == TransactionType.expense,
+                              );
+                        } catch (_) {
+                          transferOutCategory = TransactionCategory(
+                            id: getIt<Uuid>().v4(),
+                            name: 'تحويل صادر',
+                            colorValue: Colors.blueGrey.toARGB32(),
+                            type: TransactionType.expense,
+                          );
+
+                          await txCubit.addCategory(transferOutCategory);
+                        }
+
+                        final fromWalletName = wallets
+                            .firstWhere((w) => w.id == fromWalletId)
+                            .name;
+                        final toWalletName = wallets
+                            .firstWhere((w) => w.id == toWalletId)
+                            .name;
+                        final now = DateTime.now();
+
+                        await txCubit.addTransaction(
+                          Transaction(
+                            id: getIt<Uuid>().v4(),
+                            amount: amount,
+                            categoryId: transferInCategory.id,
+                            date: now,
+                            type: TransactionType.income,
+                            walletId: toWalletId!,
+                            note: 'تحويل من محفظة $fromWalletName',
+                          ),
+                        );
+
+                        await txCubit.addTransaction(
+                          Transaction(
+                            id: getIt<Uuid>().v4(),
+                            amount: amount,
+                            categoryId: transferOutCategory.id,
+                            date: now,
+                            type: TransactionType.expense,
+                            walletId: fromWalletId!,
+                            note: 'تحويل إلى محفظة $toWalletName',
+                          ),
+                        );
+
+                        if (context.mounted) {
+                          Navigator.pop(ctx);
+                        }
                       }
                     },
                     child: Text(

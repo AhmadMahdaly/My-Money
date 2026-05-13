@@ -59,31 +59,11 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
       appBar: PageHeader(
         leading: InkWell(
           onTap: () {
-            if (walletState is WalletLoaded && walletState.wallets.isNotEmpty) {
-              _showWalletFilterSheet(context, walletState);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('لا توجد محافظ لعرضها')),
-              );
-            }
+            _showResetDialog(context);
           },
-          child: Stack(
-            alignment: Alignment.topRight,
-            children: [
-              const Icon(Icons.filter_alt_outlined, color: Colors.white),
-              if (selectedWalletId != null) // نقطة حمراء توضح إن فيه فلتر مفعل
-                Container(
-                  width: 8.r,
-                  height: 8.r,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-            ],
-          ),
+          child: const Icon(Icons.refresh, color: Colors.white),
         ),
-        isLeading: false, // نجعلها false لكي نتحكم بالـ leading الخاص بنا
+        isLeading: false,
         height: 16.h,
         title: 'الخطة الشهرية',
         actions: [
@@ -94,11 +74,33 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
             child: const Icon(Icons.analytics_outlined, color: Colors.white),
           ),
           16.horizontalSpace,
+
           InkWell(
             onTap: () {
-              _showResetDialog(context);
+              if (walletState is WalletLoaded &&
+                  walletState.wallets.isNotEmpty) {
+                _showWalletFilterSheet(context, walletState);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('لا توجد محافظ لعرضها')),
+                );
+              }
             },
-            child: const Icon(Icons.refresh, color: Colors.white),
+            child: Stack(
+              alignment: Alignment.topRight,
+              children: [
+                const Icon(Icons.filter_alt_outlined, color: Colors.white),
+                if (selectedWalletId != null)
+                  Container(
+                    width: 8.r,
+                    height: 8.r,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),

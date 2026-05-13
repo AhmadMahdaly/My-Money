@@ -168,9 +168,28 @@ class _TransactionDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final transactionsForType = state.filteredTransactions
-        .where((t) => t.type == type)
-        .toList();
+    final transactionsForType = state.filteredTransactions.where((t) {
+      if (t.type != type) return false;
+
+      if (type == TransactionType.expense) {
+        final category = state.allCategories.firstWhere(
+          (c) => c.id == t.categoryId,
+          orElse: () => TransactionCategory(
+            id: '',
+            name: 'غير معروف',
+            colorValue: 0,
+            type: type,
+          ),
+        );
+
+        if (category.name == 'تحويل صادر') {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList();
+
     final totalAmount = transactionsForType.fold(
       0.0,
       (sum, item) => sum + item.amount,
@@ -196,7 +215,6 @@ class _TransactionDetailsPage extends StatelessWidget {
           type: type,
         ),
         4.verticalSpace,
-
         _CategoryTransactionList(
           transactions: transactionsForType,
           categories: state.allCategories,
