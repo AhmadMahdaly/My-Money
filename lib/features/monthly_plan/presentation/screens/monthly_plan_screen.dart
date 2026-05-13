@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
@@ -40,6 +41,29 @@ class _MonthlyPlanView extends StatefulWidget {
 
 class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
   String? selectedWalletId;
+  DateTime? _cycleStart;
+  DateTime? _cycleEnd;
+
+  @override
+  void initState() {
+    super.initState();
+    final startStr = CacheHelper.getData('budget_cycle_start') as String?;
+    final endStr = CacheHelper.getData('budget_cycle_end') as String?;
+    if (startStr != null && endStr != null) {
+      _cycleStart = DateTime.parse(startStr);
+      _cycleEnd = DateTime.parse(endStr);
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final activeStart = _cycleStart ?? DateTime.now();
+        final activeEnd = _cycleEnd ?? DateTime.now();
+        final dominantMonth = _getDominantMonth(activeStart, activeEnd);
+
+        context.read<MonthlyPlanCubit>().loadPlanForMonth(dominantMonth);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +98,6 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
             child: const Icon(Icons.analytics_outlined, color: Colors.white),
           ),
           16.horizontalSpace,
-
           InkWell(
             onTap: () {
               if (walletState is WalletLoaded &&
@@ -132,25 +155,52 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
               if (planState.plan == null) {
                 return const Center(child: Text('مفيش أي خطط متسجلة.'));
               }
+
               final month = planState.currentMonth;
 
-              final filteredTransactions = selectedWalletId == null
+              final activeStart =
+                  _cycleStart ?? DateTime(month.year, month.month, 1);
+              final activeEnd =
+                  _cycleEnd ??
+                  DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+
+              final filteredTransactions = transactionState.allTransactions
+                  .where((t) {
+                    final matchWallet =
+                        selectedWalletId == null ||
+                        t.walletId == selectedWalletId;
+                    final matchDate =
+                        t.date.isAfter(
+                          activeStart.subtract(const Duration(seconds: 1)),
+                        ) &&
+                        t.date.isBefore(
+                          activeEnd.add(const Duration(seconds: 1)),
+                        );
+                    return matchWallet && matchDate;
+                  })
+                  .toList();
+
+              final walletAllTransactions = selectedWalletId == null
                   ? transactionState.allTransactions
                   : transactionState.allTransactions
                         .where((t) => t.walletId == selectedWalletId)
                         .toList();
 
               final data = MonthlyAnalyticsData.from(
-                month: month,
+                cycleStart: activeStart,
+                cycleEnd: activeEnd,
                 plan: planState.plan!,
-                allTransactions: filteredTransactions,
+                allTransactions: walletAllTransactions,
                 allCategories: transactionState.allCategories,
               );
 
               return Column(
                 children: [
-                  _MonthSelector(),
-
+                  _CycleSelector(
+                    cycleStart: activeStart,
+                    cycleEnd: activeEnd,
+                    onEditCycle: _pickCycleDateRange,
+                  ),
                   Expanded(
                     child: ListView(
                       padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -177,6 +227,97 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
         },
       ),
     );
+  }
+
+  DateTime _getDominantMonth(DateTime start, DateTime end) {
+    if (start.year == end.year && start.month == end.month) {
+      return start;
+    }
+
+    final monthCounts = <DateTime, int>{};
+    var current = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day);
+
+    while (!current.isAfter(endDate)) {
+      final monthKey = DateTime(current.year, current.month, 1);
+      monthCounts[monthKey] = (monthCounts[monthKey] ?? 0) + 1;
+      current = current.add(const Duration(days: 1));
+    }
+
+    var dominantMonth = DateTime(start.year, start.month, 1);
+    var maxDays = monthCounts[dominantMonth] ?? 0;
+
+    monthCounts.forEach((key, count) {
+      if (count > maxDays) {
+        maxDays = count;
+        dominantMonth = key;
+      } else if (count == maxDays) {
+        if (key.year == start.year && key.month == start.month) {
+          dominantMonth = key;
+        }
+      }
+    });
+
+    return dominantMonth;
+  }
+
+  Future<void> _pickCycleDateRange() async {
+    final month = context.read<MonthlyPlanCubit>().state.currentMonth;
+    final initialStart = _cycleStart ?? DateTime(month.year, month.month, 1);
+    final initialEnd = _cycleEnd ?? DateTime(month.year, month.month + 1, 0);
+
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2035),
+      initialDateRange: DateTimeRange(start: initialStart, end: initialEnd),
+      saveText: 'تأكيد',
+      helpText: 'اختر فترة الميزانية (من - إلى)',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryColor,
+              onPrimary: Colors.white,
+              onSurface: AppColors.primaryTextColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final start = picked.start;
+      final end = DateTime(
+        picked.end.year,
+        picked.end.month,
+        picked.end.day,
+        23,
+        59,
+        59,
+      );
+
+      setState(() {
+        _cycleStart = start;
+        _cycleEnd = end;
+      });
+
+      await CacheHelper.saveData(
+        key: 'budget_cycle_start',
+        value: start.toIso8601String(),
+      );
+      await CacheHelper.saveData(
+        key: 'budget_cycle_end',
+        value: end.toIso8601String(),
+      );
+
+      final dominantMonth = _getDominantMonth(start, end);
+
+      if (context.mounted) {
+        await context.read<MonthlyPlanCubit>().loadPlanForMonth(dominantMonth);
+      }
+    }
   }
 
   void _showWalletFilterSheet(BuildContext context, WalletLoaded walletState) {
@@ -262,50 +403,85 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
   }
 }
 
-class _MonthSelector extends StatelessWidget {
+class _CycleSelector extends StatelessWidget {
+  const _CycleSelector({
+    required this.cycleStart,
+    required this.cycleEnd,
+    required this.onEditCycle,
+  });
+
+  final DateTime cycleStart;
+  final DateTime cycleEnd;
+  final VoidCallback onEditCycle;
+
   @override
   Widget build(BuildContext context) {
-    final cubit = context.watch<MonthlyPlanCubit>();
-    final currentMonth = cubit.state.currentMonth;
-
+    final format = DateFormat('dd MMM', 'ar');
     return Padding(
-      padding: EdgeInsets.all(8.r),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(
-              Icons.chevron_left,
-              color: AppColors.primaryColor,
-            ),
-            onPressed: () {
-              final prevMonth = DateTime(
-                currentMonth.year,
-                currentMonth.month - 1,
-              );
-              cubit.loadPlanForMonth(prevMonth);
-            },
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      child: InkWell(
+        onTap: onEditCycle,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          decoration: BoxDecoration(
+            color: AppColors.secondaryColor.withAlpha(25),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: AppColors.primaryColor.withAlpha(40)),
           ),
-          Text(
-            DateFormat.yMMMM('ar').format(currentMonth),
-            style: AppTextStyle.style16W400.copyWith(
-              color: AppColors.primaryColor,
-            ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.calendar_month_outlined,
+                color: AppColors.primaryColor,
+                size: 22.r,
+              ),
+              12.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'دورة الميزانية الحالية',
+                      style: AppTextStyle.style9W500.copyWith(
+                        color: AppColors.primaryTextColor.withAlpha(150),
+                      ),
+                    ),
+                    4.verticalSpace,
+                    Row(
+                      children: [
+                        Text(
+                          'من ${format.format(cycleStart)}  إلى  ${format.format(cycleEnd)}',
+                          style: AppTextStyle.style14W600.copyWith(
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        8.horizontalSpace,
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 2.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withAlpha(20),
+                            borderRadius: BorderRadius.circular(6.r),
+                          ),
+                          child: Text(
+                            '(تغطي ${DateTime(cycleEnd.year, cycleEnd.month, cycleEnd.day).difference(DateTime(cycleStart.year, cycleStart.month, cycleStart.day)).inDays + 1} يوم)',
+                            style: AppTextStyle.style9W500.copyWith(
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.edit, color: AppColors.primaryColor, size: 20.r),
+            ],
           ),
-          IconButton(
-            icon: const Icon(
-              Icons.chevron_right,
-              color: AppColors.primaryColor,
-            ),
-            onPressed: () {
-              final nextMonth = DateTime(
-                currentMonth.year,
-                currentMonth.month + 1,
-              );
-              cubit.loadPlanForMonth(nextMonth);
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -319,10 +495,11 @@ class _PlannedIncomeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final transactionCubit = context.watch<TransactionCubit>();
-    final currentMonth = context.watch<MonthlyPlanCubit>().state.currentMonth;
 
     final allIncomeCategories = transactionCubit.state.allCategories
-        .where((c) => c.type == TransactionType.income)
+        .where(
+          (c) => c.type == TransactionType.income && c.name != 'تحويل وارد',
+        )
         .toList();
 
     final mainCategories = allIncomeCategories
@@ -372,9 +549,7 @@ class _PlannedIncomeSection extends StatelessWidget {
                     .where(
                       (t) =>
                           t.categoryId == mainCat.id &&
-                          t.type == TransactionType.income &&
-                          t.date.year == currentMonth.year &&
-                          t.date.month == currentMonth.month,
+                          t.type == TransactionType.income,
                     )
                     .fold(0.0, (sum, t) => sum + t.amount);
 
@@ -545,11 +720,6 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
   @override
   Widget build(BuildContext context) {
     final transactionState = context.watch<TransactionCubit>().state;
-    final planState = context.watch<MonthlyPlanCubit>().state;
-
-    final currentMonth = planState.currentMonth;
-    final year = currentMonth.year;
-    final month = currentMonth.month;
 
     final allCategories = transactionState.allCategories;
     final subCategories = widget.isSubCategory
@@ -576,16 +746,19 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
           .fold(0.0, (sum, item) => sum + item.amount);
     }
 
-    final actualReceivedAmount = widget.transactions
+    final categoryTransactions = widget.transactions
         .where(
           (t) =>
               (t.categoryId == widget.category.id ||
                   subCategoryIds.contains(t.categoryId)) &&
-              t.type == TransactionType.income &&
-              t.date.year == year &&
-              t.date.month == month,
+              t.type == TransactionType.income,
         )
-        .fold(0.0, (sum, t) => sum + t.amount);
+        .toList();
+
+    final actualReceivedAmount = categoryTransactions.fold(
+      0.0,
+      (sum, t) => sum + t.amount,
+    );
 
     final progressValue = (budgetedAmount > 0)
         ? (actualReceivedAmount / budgetedAmount).clamp(0.0, 1.0)
@@ -650,12 +823,19 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        widget.customName ?? widget.category.name,
-                        style: AppTextStyle.style12Bold.copyWith(
-                          fontSize: widget.isSubCategory ? 12.sp : 14.sp,
+                      child: InkWell(
+                        onTap: () => _showTransactionsSheet(
+                          context,
+                          categoryTransactions,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        child: Text(
+                          widget.customName ?? widget.category.name,
+                          style: AppTextStyle.style12Bold.copyWith(
+                            fontSize: widget.isSubCategory ? 12.sp : 14.sp,
+                            color: AppColors.primaryColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                     if (hasSubCategories)
@@ -815,7 +995,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                     final amount = double.tryParse(_controller.text) ?? 0.0;
                     if (isIn) {
                       _updateIncomeInCubit(amount);
-                    } else {}
+                    }
 
                     Navigator.pop(context);
                     setState(
@@ -831,6 +1011,97 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
               20.verticalSpace,
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showTransactionsSheet(
+    BuildContext context,
+    List<Transaction> transactions,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.5,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, controller) {
+            return Column(
+              children: [
+                Text(
+                  'معاملات ${widget.customName ?? widget.category.name}',
+                  style: AppTextStyle.style16W600.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                10.verticalSpace,
+                const Divider(height: 1),
+                Expanded(
+                  child: transactions.isEmpty
+                      ? Center(
+                          child: Text(
+                            'مفيش عمليات مسجلة هنا',
+                            style: AppTextStyle.style14W500.copyWith(
+                              color: AppColors.primaryTextColor.withAlpha(150),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          controller: controller,
+                          padding: EdgeInsets.all(16.r),
+                          itemCount: transactions.length,
+                          separatorBuilder: (context, index) =>
+                              const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final t = transactions[index];
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                '${t.amount.truncate()} ج.م',
+                                style: AppTextStyle.style14Bold.copyWith(
+                                  color: t.type == TransactionType.income
+                                      ? AppColors.successColor
+                                      : AppColors.errorColor,
+                                ),
+                              ),
+                              subtitle: Text(
+                                DateFormat(
+                                  'd MMM yyyy - hh:mm a',
+                                  'ar',
+                                ).format(t.date),
+                                style: AppTextStyle.style9W500.copyWith(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              trailing: t.note != null && t.note!.isNotEmpty
+                                  ? SizedBox(
+                                      width: 120.w,
+                                      child: Text(
+                                        t.note!,
+                                        style: AppTextStyle.style9W500.copyWith(
+                                          color: AppColors.primaryTextColor,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.end,
+                                      ),
+                                    )
+                                  : null,
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -851,7 +1122,9 @@ class _PlannedExpensesSection extends StatelessWidget {
         .watch<TransactionCubit>()
         .state
         .allCategories
-        .where((c) => c.type == TransactionType.expense)
+        .where(
+          (c) => c.type == TransactionType.expense && c.name != 'تحويل صادر',
+        )
         .toList();
 
     final mainCategories = allExpenseCategories
@@ -1002,11 +1275,6 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
   @override
   Widget build(BuildContext context) {
     final transactionState = context.watch<TransactionCubit>().state;
-    final planState = context.watch<MonthlyPlanCubit>().state;
-
-    final currentMonth = planState.currentMonth;
-    final year = currentMonth.year;
-    final month = currentMonth.month;
 
     final allCategories = transactionState.allCategories;
     final subCategories = widget.isSubCategory
@@ -1029,16 +1297,19 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
           widget.plan.getExpenseForCategory(subId)?.budgetedAmount ?? 0.0;
     }
 
-    final actualSpentAmount = widget.transactions
+    final categoryTransactions = widget.transactions
         .where(
           (t) =>
               (t.categoryId == widget.category.id ||
                   subCategoryIds.contains(t.categoryId)) &&
-              t.type == TransactionType.expense &&
-              t.date.year == year &&
-              t.date.month == month,
+              t.type == TransactionType.expense,
         )
-        .fold(0.0, (sum, t) => sum + t.amount);
+        .toList();
+
+    final actualSpentAmount = categoryTransactions.fold(
+      0.0,
+      (sum, t) => sum + t.amount,
+    );
 
     final remainingAmount = budgetedAmount - actualSpentAmount;
 
@@ -1050,9 +1321,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         .where(
           (t) =>
               t.categoryId == widget.category.id &&
-              t.type == TransactionType.expense &&
-              t.date.year == year &&
-              t.date.month == month,
+              t.type == TransactionType.expense,
         )
         .fold(0.0, (sum, t) => sum + t.amount);
     final parentOnlyBudgeted =
@@ -1138,11 +1407,17 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                     ],
                     8.horizontalSpace,
                     Expanded(
-                      child: Text(
-                        widget.customName ?? widget.category.name,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyle.style14Bold.copyWith(
-                          color: AppColors.primaryColor,
+                      child: InkWell(
+                        onTap: () => _showTransactionsSheet(
+                          context,
+                          categoryTransactions,
+                        ),
+                        child: Text(
+                          widget.customName ?? widget.category.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyle.style14Bold.copyWith(
+                            color: AppColors.primaryColor,
+                          ),
                         ),
                       ),
                     ),
@@ -1451,6 +1726,97 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
               20.verticalSpace,
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showTransactionsSheet(
+    BuildContext context,
+    List<Transaction> transactions,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.5,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, controller) {
+            return Column(
+              children: [
+                Text(
+                  'معاملات ${widget.customName ?? widget.category.name}',
+                  style: AppTextStyle.style16W600.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                10.verticalSpace,
+                const Divider(height: 1),
+                Expanded(
+                  child: transactions.isEmpty
+                      ? Center(
+                          child: Text(
+                            'مفيش عمليات مسجلة هنا',
+                            style: AppTextStyle.style14W500.copyWith(
+                              color: AppColors.primaryTextColor.withAlpha(150),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          controller: controller,
+                          padding: EdgeInsets.all(16.r),
+                          itemCount: transactions.length,
+                          separatorBuilder: (context, index) =>
+                              const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final t = transactions[index];
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                '${t.amount.truncate()} ج.م',
+                                style: AppTextStyle.style14Bold.copyWith(
+                                  color: t.type == TransactionType.income
+                                      ? AppColors.successColor
+                                      : AppColors.errorColor,
+                                ),
+                              ),
+                              subtitle: Text(
+                                DateFormat(
+                                  'd MMM yyyy - hh:mm a',
+                                  'ar',
+                                ).format(t.date),
+                                style: AppTextStyle.style9W500.copyWith(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              trailing: t.note != null && t.note!.isNotEmpty
+                                  ? SizedBox(
+                                      width: 120.w,
+                                      child: Text(
+                                        t.note!,
+                                        style: AppTextStyle.style9W500.copyWith(
+                                          color: AppColors.primaryTextColor,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.end,
+                                      ),
+                                    )
+                                  : null,
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          },
         );
       },
     );

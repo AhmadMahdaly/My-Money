@@ -5,7 +5,8 @@ import 'package:opration/features/transactions/domain/entities/transaction_categ
 
 class MonthlyAnalyticsData extends Equatable {
   const MonthlyAnalyticsData({
-    required this.month,
+    required this.cycleStart,
+    required this.cycleEnd,
     required this.previousBalance,
     required this.currentMonthIncome,
     required this.totalAvailable,
@@ -23,15 +24,14 @@ class MonthlyAnalyticsData extends Equatable {
   });
 
   factory MonthlyAnalyticsData.from({
-    required DateTime month,
+    required DateTime cycleStart,
+    required DateTime cycleEnd,
     required MonthlyPlan plan,
     required List<Transaction> allTransactions,
     required List<TransactionCategory> allCategories,
   }) {
-    final startOfMonth = DateTime(month.year, month.month, 1);
-
     final previousTransactions = allTransactions.where(
-      (t) => t.date.isBefore(startOfMonth),
+      (t) => t.date.isBefore(cycleStart),
     );
 
     final previousIncome = previousTransactions
@@ -44,11 +44,10 @@ class MonthlyAnalyticsData extends Equatable {
 
     final previousBalance = previousIncome - previousExpense;
 
-    final currentMonthTransactions = allTransactions
-        .where(
-          (t) => t.date.year == month.year && t.date.month == month.month,
-        )
-        .toList();
+    final currentMonthTransactions = allTransactions.where((t) {
+      return t.date.isAfter(cycleStart.subtract(const Duration(seconds: 1))) &&
+          t.date.isBefore(cycleEnd.add(const Duration(seconds: 1)));
+    }).toList();
 
     final currentMonthIncome = currentMonthTransactions
         .where((t) => t.type == TransactionType.income)
@@ -107,13 +106,13 @@ class MonthlyAnalyticsData extends Equatable {
     final sortedSub = subSpending.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    // تم التحديث هنا ليتطابق مع الـ Getters الموجودة في كلاس MonthlyPlan الخاص بك
     final expectedIncome = plan.totalPlannedIncome;
     final plannedBudget = plan.totalBudgetedExpense;
     final expectedSavings = plan.projectedSavings;
 
     return MonthlyAnalyticsData(
-      month: month,
+      cycleStart: cycleStart,
+      cycleEnd: cycleEnd,
       previousBalance: previousBalance,
       currentMonthIncome: currentMonthIncome,
       totalAvailable: totalAvailable,
@@ -131,7 +130,8 @@ class MonthlyAnalyticsData extends Equatable {
     );
   }
 
-  final DateTime month;
+  final DateTime cycleStart;
+  final DateTime cycleEnd;
   final double previousBalance;
   final double currentMonthIncome;
   final double totalAvailable;
@@ -139,7 +139,6 @@ class MonthlyAnalyticsData extends Equatable {
   final double actualSavings;
   final double spendingPercentage;
 
-  // الخصائص الخاصة بالتخطيط
   final double expectedIncome;
   final double plannedBudget;
   final double expectedSavings;
@@ -153,7 +152,8 @@ class MonthlyAnalyticsData extends Equatable {
 
   @override
   List<Object?> get props => [
-    month,
+    cycleStart,
+    cycleEnd,
     previousBalance,
     currentMonthIncome,
     totalAvailable,
