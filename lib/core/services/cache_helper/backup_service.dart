@@ -5,29 +5,21 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class BackupService {
-  /// 🔹 Backup
   static Future<void> shareBackup() async {
     final data = await CacheHelper.getAllData();
-
     final jsonString = jsonEncode(data);
-
     final bytes = Uint8List.fromList(utf8.encode(jsonString));
-
     final tempDir = await getTemporaryDirectory();
     final file = File('${tempDir.path}/backup.json');
-
     await file.writeAsBytes(bytes);
-
     await Share.shareXFiles([XFile(file.path)]);
   }
 
-  /// 🔹 Restore
   static Future<void> restoreFromJson() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -35,21 +27,15 @@ class BackupService {
     );
 
     if (result == null) throw Exception('No file selected');
-
     final file = File(result.files.single.path!);
     final jsonString = await file.readAsString();
-
     final decoded = jsonDecode(jsonString);
-
-    /// ✅ مهم جدًا
     final data = decoded is Map && decoded.containsKey('data')
         ? Map<String, dynamic>.from(decoded['data'] as Map<String, dynamic>)
         : Map<String, dynamic>.from(decoded as Map<String, dynamic>);
-
     for (final entry in data.entries) {
       final key = entry.key;
       final value = entry.value;
-
       try {
         if (value is String) {
           await CacheHelper.saveData(key: key, value: value);
@@ -62,11 +48,7 @@ class BackupService {
         } else if (value is List) {
           await CacheHelper.saveData(key: key, value: List<String>.from(value));
         }
-
-        debugPrint('✅ Restored: $key = $value');
-      } catch (e) {
-        debugPrint('❌ Error restoring $key: $e');
-      }
+      } catch (_) {}
     }
   }
 }

@@ -106,9 +106,7 @@ class NotificationsScreen extends StatelessWidget {
                                   .read<TransactionCubit>()
                                   .dismissPendingTransaction(category);
                               showCustomSnackBar(
-                                context,
                                 message: 'تم التجاهل',
-                                backgroundColor: AppColors.textGreyColor,
                               );
                             },
                             child: Text(
@@ -133,7 +131,6 @@ class NotificationsScreen extends StatelessWidget {
                                   .read<TransactionCubit>()
                                   .approvePendingTransaction(category);
                               showCustomSnackBar(
-                                context,
                                 message: 'تم تسجيل "${category.name}" بنجاح',
                               );
                             },

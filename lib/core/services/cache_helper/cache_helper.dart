@@ -39,52 +39,12 @@ class CacheHelper {
     return sharedPreferences.clear();
   }
 
-  // static Future saveSecuredString({
-  //   required String key,
-  //   required dynamic value,
-  // }) async {
-  //   const flutterSecureStorage = FlutterSecureStorage();
-  //   debugPrint(
-  //     'FlutterSecureStorage : setSecuredString with key : $key and value : $value',
-  //   );
-  //   await flutterSecureStorage.write(key: key, value: value.toString());
-  // }
-
-  // static Future getSecuredString({required String key}) async {
-  //   const flutterSecureStorage = FlutterSecureStorage();
-  //   debugPrint('FlutterSecureStorage : getSecuredString with key :');
-  //   try {
-  //     return await flutterSecureStorage.read(key: key);
-  //   } catch (e) {
-  //     return null;
-  //   }
-  // }
-
-  // static Future clearAllSecuredData() async {
-  //   debugPrint('FlutterSecureStorage : all data has been cleared');
-  //   const flutterSecureStorage = FlutterSecureStorage();
-  //   await flutterSecureStorage.deleteAll();
-  // }
-
   static Future<Map<String, dynamic>> getAllData() async {
     final data = <String, dynamic>{};
 
     for (final key in sharedPreferences.getKeys()) {
       data[key] = sharedPreferences.get(key);
     }
-
-    // Secure storage (اختياري)
-    // const secureStorage = FlutterSecureStorage();
-
-    // final secureKeys = <String>[CacheKeys.userToken, CacheKeys.userPassword];
-
-    // for (final key in secureKeys) {
-    //   final value = await secureStorage.read(key: key);
-    //   if (value != null) {
-    //     data[key] = value;
-    //   }
-    // }
-
     return data;
   }
 

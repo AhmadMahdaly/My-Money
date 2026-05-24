@@ -7,7 +7,6 @@ import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
-import 'package:opration/core/theme/colors.dart';
 import 'package:opration/features/auth/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/auth/presentation/views/widgets/welcome_user_widget.dart';
 
@@ -47,10 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
             context.go(AppRoutes.mainLayoutScreen);
           } else if (state is AuthFailure) {
             showCustomSnackBar(
-              context,
               message: state.message,
-              msgColor: AppColors.scaffoldBackgroundLightColor,
-              backgroundColor: AppColors.errorColor,
+              isError: true,
             );
           }
         },

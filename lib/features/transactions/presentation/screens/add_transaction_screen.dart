@@ -360,13 +360,9 @@ class _TransactionFormState extends State<_TransactionForm> {
 
       if (finalCategoryId == null) {
         showCustomSnackBar(
-          context,
-          msgColor: AppColors.scaffoldBackgroundLightColor,
-
           message: widget.type == TransactionType.expense
               ? 'متنساش تسجل صرفت على ايه'
               : 'متنساش تسجل الفلوس جاية منين',
-          backgroundColor: AppColors.orangeColor,
         );
         return;
       }
@@ -374,9 +370,7 @@ class _TransactionFormState extends State<_TransactionForm> {
       final walletState = context.read<WalletCubit>().state;
       if (walletState is! WalletLoaded || walletState.wallets.isEmpty) {
         showCustomSnackBar(
-          context,
-          msgColor: AppColors.scaffoldBackgroundLightColor,
-
+          isError: true,
           message: 'لا توجد محافظ. الرجاء إضافة محفظة أولاً.',
         );
         return;
@@ -1153,9 +1147,6 @@ class _TransactionFormState extends State<_TransactionForm> {
                                         .approvePendingTransaction(category);
 
                                     showCustomSnackBar(
-                                      context,
-                                      msgColor: AppColors
-                                          .scaffoldBackgroundLightColor,
                                       message:
                                           'تم تسجيل ${category.name} بنجاح',
                                     );

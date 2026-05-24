@@ -1,22 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:opration/core/theme/colors.dart';
-import 'package:opration/core/theme/text_style.dart';
+import 'package:opration/features/intro/my_app.dart';
 
-void showCustomSnackBar(
-  BuildContext context, {
+void showCustomSnackBar({
   String? message,
-  Color? msgColor,
-  Color? backgroundColor,
+  bool? isError,
 }) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        message ?? '',
-        style: AppTextStyle.style16W600.copyWith(
-          color: msgColor ?? AppColors.scaffoldBackgroundLightColor,
-        ),
-      ),
-      backgroundColor: backgroundColor ?? AppColors.primaryTextColor,
-    ),
-  );
+  GlobalVariable.showMessage(message ?? '', isError: isError ?? false);
 }

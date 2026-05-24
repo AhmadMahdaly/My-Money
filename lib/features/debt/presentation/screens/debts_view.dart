@@ -372,7 +372,7 @@ class DebtsView extends StatelessWidget {
             onPressed: () {
               context.read<DebtCubit>().deleteDebt(debt.id);
               Navigator.pop(ctx);
-              showCustomSnackBar(context, message: 'تم مسح الدين بنجاح');
+              showCustomSnackBar(message: 'تم مسح الدين بنجاح');
             },
             child: const Text('مسح', style: TextStyle(color: Colors.white)),
           ),
@@ -950,13 +950,11 @@ class DebtsView extends StatelessWidget {
                             if (isEditing) {
                               context.read<DebtCubit>().updateDebt(newDebt);
                               showCustomSnackBar(
-                                context,
                                 message: 'تم تعديل الدين بنجاح!',
                               );
                             } else {
                               context.read<DebtCubit>().addDebt(newDebt);
                               showCustomSnackBar(
-                                context,
                                 message: 'تم إضافة الدين بنجاح!',
                               );
                             }

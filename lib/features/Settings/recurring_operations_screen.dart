@@ -104,9 +104,6 @@ class RecurringOperationsScreen extends StatelessWidget {
     );
   }
 
-  // ---------------------------------------------------------
-  // ديالوجات تحديد نوع الإضافة (جديد أم موجود)
-  // ---------------------------------------------------------
   void _showAddChoiceDialog(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -198,7 +195,7 @@ class RecurringOperationsScreen extends StatelessWidget {
             OutlinedButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                _showAddDebtDialog(context); // جديد
+                _showAddDebtDialog(context);
               },
               child: const Text('إضافة التزام جديد تماماً'),
             ),
@@ -208,12 +205,9 @@ class RecurringOperationsScreen extends StatelessWidget {
     );
   }
 
-  // ---------------------------------------------------------
-  // Bottom Sheets لاختيار عناصر موجودة
-  // ---------------------------------------------------------
   void _showExistingCategoriesSheet(BuildContext context) {
     final allCategories = context.read<TransactionCubit>().state.allCategories;
-    // جلب الفئات العادية فقط (التي ليست متكررة بعد)
+
     final normalCategories = allCategories
         .where((c) => !c.isRecurring)
         .toList();
@@ -251,7 +245,7 @@ class RecurringOperationsScreen extends StatelessWidget {
 
   void _showExistingDebtsSheet(BuildContext context) {
     final allDebts = context.read<DebtCubit>().state.items;
-    // جلب الديون المخصصة لمرة واحدة فقط لتفعيل التكرار عليها
+
     final onceDebts = allDebts
         .where((d) => d.recurrence == DebtRecurrence.once)
         .toList();
@@ -289,9 +283,6 @@ class RecurringOperationsScreen extends StatelessWidget {
     );
   }
 
-  // ---------------------------------------------------------
-  // منطق الإنشاء والتعديل
-  // ---------------------------------------------------------
   void _showCategoryTypeSelection(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -370,10 +361,8 @@ class RecurringOperationsScreen extends StatelessWidget {
       text: debtToEdit?.installmentAmount.truncate().toString() ?? '',
     );
 
-    // جلب التواريخ المخصصة القديمة إذا كان تعديلاً، أو تهيئة قائمة فارغة
     final customDatesList = List<DateTime>.from(debtToEdit?.customDates ?? []);
 
-    // اجعل الافتراضي شهرياً إذا كان جديداً أو لمرة واحدة، وإلا استخدم تكرار الدين
     var selectedRecurrence = debtToEdit?.recurrence == DebtRecurrence.once
         ? DebtRecurrence.monthly
         : (debtToEdit?.recurrence ?? DebtRecurrence.monthly);
@@ -536,7 +525,6 @@ class RecurringOperationsScreen extends StatelessWidget {
                                   );
                                   if (picked != null) {
                                     setState(() {
-                                      // التأكد من عدم تكرار نفس اليوم
                                       if (!customDatesList.any(
                                         (d) =>
                                             d.year == picked.year &&
@@ -715,11 +703,9 @@ class RecurringOperationsScreen extends StatelessWidget {
                         ),
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
-                            // تحقق إضافي: إذا كان التكرار "مخصص"، يجب أن يختار تاريخاً واحداً على الأقل
                             if (selectedRecurrence == DebtRecurrence.custom &&
                                 customDatesList.isEmpty) {
                               showCustomSnackBar(
-                                context,
                                 message:
                                     'برجاء إضافة تاريخ واحد على الأقل للاستحقاق.',
                               );
@@ -755,7 +741,7 @@ class RecurringOperationsScreen extends StatelessWidget {
                               dueDate: selectedRecurrence == DebtRecurrence.once
                                   ? selectedDate
                                   : null,
-                              // نحافظ على ما تم دفعه في حال كان تعديلاً
+
                               paidAmount: debtToEdit?.paidAmount ?? 0.0,
                             );
 
@@ -767,7 +753,6 @@ class RecurringOperationsScreen extends StatelessWidget {
 
                             Navigator.pop(ctx);
                             showCustomSnackBar(
-                              context,
                               message: debtToEdit == null
                                   ? 'تم إضافة الدين بنجاح!'
                                   : 'تم تحديث الالتزام بنجاح!',
@@ -983,7 +968,7 @@ class _RecurringDebtCard extends StatelessWidget {
             onPressed: () {
               context.read<DebtCubit>().deleteDebt(debt.id);
               Navigator.pop(ctx);
-              showCustomSnackBar(context, message: 'تم مسح الالتزام بنجاح');
+              showCustomSnackBar(message: 'تم مسح الالتزام بنجاح');
             },
             child: const Text('مسح', style: TextStyle(color: Colors.white)),
           ),
@@ -1086,7 +1071,6 @@ class _RecurringDebtCard extends StatelessWidget {
 
                     Navigator.pop(ctx);
                     showCustomSnackBar(
-                      context,
                       message: 'تم تسجيل الدفعة وخصمها من المحفظة بنجاح!',
                     );
                   }

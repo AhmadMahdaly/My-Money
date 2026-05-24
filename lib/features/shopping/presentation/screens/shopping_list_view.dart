@@ -421,9 +421,8 @@ class ShoppingListView extends StatelessWidget {
                                   if (selectedWalletId == null ||
                                       finalCategoryId == null) {
                                     showCustomSnackBar(
-                                      context,
                                       message: 'لازم تختار المحفظة والفئة',
-                                      backgroundColor: Colors.red,
+                                      isError: true,
                                     );
                                     return;
                                   }
@@ -461,7 +460,6 @@ class ShoppingListView extends StatelessWidget {
 
                                   Navigator.pop(ctx);
                                   showCustomSnackBar(
-                                    context,
                                     message: 'تم الشراء وتسجيل المصروف بنجاح!',
                                   );
                                 },

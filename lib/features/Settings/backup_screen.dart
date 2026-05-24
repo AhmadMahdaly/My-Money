@@ -178,13 +178,10 @@ class _BackupScreenState extends State<BackupScreen> {
                                   context.go(AppRoutes.loginScreen);
                                 }
                               } catch (e) {
-                                if (context.mounted) {
-                                  showCustomSnackBar(
-                                    context,
-                                    message: 'حدث خطأ أثناء تسجيل الخروج',
-                                    backgroundColor: AppColors.errorColor,
-                                  );
-                                }
+                                showCustomSnackBar(
+                                  message: 'حدث خطأ أثناء تسجيل الخروج',
+                                  isError: true,
+                                );
                               }
                             },
                             child: const Text('تأكيد'),
