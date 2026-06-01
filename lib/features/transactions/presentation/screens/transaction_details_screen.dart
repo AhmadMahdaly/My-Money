@@ -363,7 +363,7 @@ class _CategoryTransactionList extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '${formatCurrency(categoryTotal)} ج.م',
+                        '${formatCurrency(categoryTotal)} $appCurrencySymbol',
                         style: AppTextStyle.style14W700.copyWith(
                           color: type == TransactionType.income
                               ? AppColors.greenLightColor
@@ -471,7 +471,7 @@ class _CategoryDetailsSheetState extends State<_CategoryDetailsSheet> {
                               ),
                             ),
                             Text(
-                              'الإجمالي: ${formatCurrency(totalMainAmount)} ج.م',
+                              'الإجمالي: ${formatCurrency(totalMainAmount)} $appCurrencySymbol',
                               style: AppTextStyle.style14W700.copyWith(
                                 color: widget.type == TransactionType.income
                                     ? AppColors.greenLightColor
@@ -695,7 +695,7 @@ class _TransactionListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${formatCurrency(transaction.amount)} ج.م',
+                '${formatCurrency(transaction.amount)} $appCurrencySymbol',
                 style: AppTextStyle.style16Bold.copyWith(
                   color: color,
                 ),
@@ -811,7 +811,7 @@ class _SingleSummaryCard extends StatelessWidget {
                         ),
                         children: [
                           TextSpan(
-                            text: ' ج.م',
+                            text: ' $appCurrencySymbol',
                             style: AppTextStyle.style16W700.copyWith(
                               color: AppColors.primaryColor,
                             ),
@@ -1301,7 +1301,7 @@ class _PieChartCardState extends State<_PieChartCard> {
                         ),
                         4.verticalSpace,
                         Text(
-                          '${formatCurrency(touchedAmount)} ج.م',
+                          '${formatCurrency(touchedAmount)} $appCurrencySymbol',
                           style: AppTextStyle.style12W500.copyWith(
                             color: AppColors.primaryTextColor,
                           ),
@@ -1380,7 +1380,7 @@ class _PieChartCardState extends State<_PieChartCard> {
                         ),
                       ),
                       Text(
-                        '${formatCurrency(entry.value)} ج.م',
+                        '${formatCurrency(entry.value)} $appCurrencySymbol',
                         style: AppTextStyle.style12W700.copyWith(
                           color: AppColors.errorColor.withAlpha(100),
                         ),

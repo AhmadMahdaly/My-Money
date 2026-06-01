@@ -170,7 +170,7 @@ void _showChangeMainWalletDialog(
                         final wallet = wallets[index];
                         return RadioListTile<String>(
                           title: Text(wallet.name),
-                          subtitle: Text('${wallet.balance.truncate()} ج.م'),
+                          subtitle: Text('${wallet.balance.truncate()} $appCurrencySymbol'),
                           value: wallet.id,
                           groupValue: selectedWalletId,
                           onChanged: (value) {
@@ -594,7 +594,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                               children: [
                                                 TextSpan(
                                                   text:
-                                                      '${mainWallet.balance.truncate()} ج.م',
+                                                      '${mainWallet.balance.truncate()} $appCurrencySymbol',
                                                   style: AppTextStyle
                                                       .style16W700
                                                       .copyWith(
@@ -606,7 +606,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                             )
                                           : TextSpan(
                                               text:
-                                                  '${mainWallet.name}: ***** ج.م',
+                                                  '${mainWallet.name}: ***** $appCurrencySymbol',
                                               style: AppTextStyle.style16W700
                                                   .copyWith(
                                                     color:
@@ -941,15 +941,15 @@ class _TransactionFormState extends State<_TransactionForm> {
                               trailing: budgeted > 0
                                   ? Text(
                                       widget.type == TransactionType.expense
-                                          ? 'صرفت ${spent.truncate()} وباقي ${remaining.truncate()} ج.م'
-                                          : 'مخطط ${budgeted.truncate()} ج.م | فعلي: ${spent.truncate()} ج.م',
+                                          ? 'صرفت ${spent.truncate()} وباقي ${remaining.truncate()} $appCurrencySymbol'
+                                          : 'مخطط ${budgeted.truncate()} $appCurrencySymbol | فعلي: ${spent.truncate()} $appCurrencySymbol',
                                       style: AppTextStyle.style9W400.copyWith(
                                         color: category.color,
                                       ),
                                     )
                                   : Text(
                                       spent > 0
-                                          ? 'صرفت ${spent.truncate()} ج.م'
+                                          ? 'صرفت ${spent.truncate()} $appCurrencySymbol'
                                           : '',
                                       style: AppTextStyle.style9W400.copyWith(
                                         color: Colors.grey,
@@ -1109,7 +1109,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                                       ),
                                       4.verticalSpace,
                                       Text(
-                                        'المبلغ المتوقع: ${category.fixedAmount?.truncate() ?? 0} ج.م',
+                                        'المبلغ المتوقع: ${category.fixedAmount?.truncate() ?? 0} $appCurrencySymbol',
                                         style: AppTextStyle.style12W300
                                             .copyWith(fontSize: 10.sp),
                                       ),

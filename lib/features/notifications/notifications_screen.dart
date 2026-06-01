@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
@@ -86,7 +87,7 @@ class NotificationsScreen extends StatelessWidget {
                                 ),
                                 4.verticalSpace,
                                 Text(
-                                  'المبلغ المتوقع: ${category.fixedAmount?.truncate() ?? 0} ج.م',
+                                  'المبلغ المتوقع: ${category.fixedAmount?.truncate() ?? 0} $appCurrencySymbol',
                                   style: AppTextStyle.style12W400.copyWith(
                                     color: AppColors.primaryTextColor,
                                   ),

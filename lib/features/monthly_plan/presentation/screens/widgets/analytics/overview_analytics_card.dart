@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element_parameter
 
 import 'package:flutter/material.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
@@ -240,7 +241,7 @@ class _StatTile extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerRight,
             child: Text(
-              '${value.truncate()} ج.م',
+              '${value.truncate()} $appCurrencySymbol',
               style:
                   (isLargeValue
                           ? AppTextStyle.style20Bold

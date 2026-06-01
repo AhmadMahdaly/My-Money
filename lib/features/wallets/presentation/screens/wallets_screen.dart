@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/di.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/services/cache_helper/cache_helper.dart';
@@ -146,7 +147,7 @@ class WalletsScreen extends StatelessWidget {
                                       ],
                                     ),
                                     subtitle: Text(
-                                      'الرصيد: ${formatCurrency(wallet.balance)} ج.م',
+                                      'الرصيد: ${formatCurrency(wallet.balance)} $appCurrencySymbol',
                                       style: AppTextStyle.style14W500.copyWith(
                                         color: Colors.grey.shade600,
                                       ),
@@ -495,7 +496,7 @@ class WalletsScreen extends StatelessWidget {
               ),
               8.verticalSpace,
               Text(
-                '${formatCurrency(totalBalance)} ج.م',
+                '${formatCurrency(totalBalance)} $appCurrencySymbol',
                 style: AppTextStyle.style18W800.copyWith(
                   color: Colors.white,
                   fontSize: 24.sp,
@@ -695,7 +696,7 @@ void _showTransferDialog(BuildContext context, List<Wallet> wallets) {
                           (w) => DropdownMenuItem(
                             value: w.id,
                             child: Text(
-                              '${w.name} (${formatCurrency(w.balance)}) ج.م',
+                              '${w.name} (${formatCurrency(w.balance)}) $appCurrencySymbol',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTextStyle.style12W500,

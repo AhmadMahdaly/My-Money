@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:opration/features/goals/domain/entities/saving_entry.dart';
 
 enum GoalType { goal, saving }
 
@@ -10,6 +11,7 @@ class FinancialGoal extends Equatable {
     required this.savedAmount,
     required this.targetDate,
     required this.type,
+    this.history = const [],
   });
 
   final String id;
@@ -18,8 +20,25 @@ class FinancialGoal extends Equatable {
   final double savedAmount;
   final DateTime targetDate;
   final GoalType type;
+  final List<SavingEntry> history;
 
-  double get progress => (savedAmount / targetAmount).clamp(0.0, 1.0);
+  bool get isSaving => type == GoalType.saving;
+
+  /// الرصيد الحالي للمدخرات (نفس savedAmount).
+  double get balance => savedAmount;
+
+  double get progress {
+    if (isSaving || targetAmount <= 0) return 0;
+    return (savedAmount / targetAmount).clamp(0.0, 1.0);
+  }
+
+  bool get isGoalCompleted => !isSaving && progress >= 1.0;
+
+  List<SavingEntry> get sortedHistory {
+    final entries = List<SavingEntry>.from(history);
+    entries.sort((a, b) => b.date.compareTo(a.date));
+    return entries;
+  }
 
   FinancialGoal copyWith({
     String? id,
@@ -28,6 +47,7 @@ class FinancialGoal extends Equatable {
     double? savedAmount,
     DateTime? targetDate,
     GoalType? type,
+    List<SavingEntry>? history,
   }) {
     return FinancialGoal(
       id: id ?? this.id,
@@ -36,6 +56,7 @@ class FinancialGoal extends Equatable {
       savedAmount: savedAmount ?? this.savedAmount,
       targetDate: targetDate ?? this.targetDate,
       type: type ?? this.type,
+      history: history ?? this.history,
     );
   }
 
@@ -47,5 +68,6 @@ class FinancialGoal extends Equatable {
     savedAmount,
     targetDate,
     type,
+    history,
   ];
 }

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/services/format_currency.dart';
@@ -198,7 +199,7 @@ class DebtsView extends StatelessWidget {
               ),
               8.verticalSpace,
               Text(
-                '${formatCurrency(totalRemaining)} ج.م',
+                '${formatCurrency(totalRemaining)} $appCurrencySymbol',
                 style: AppTextStyle.style16W600.copyWith(
                   color: Colors.white,
                   fontSize: 24.sp,
@@ -283,7 +284,7 @@ class DebtsView extends StatelessWidget {
             ),
             4.verticalSpace,
             Text(
-              'المتبقي: ${formatCurrency(debt.remainingAmount)} ج.م',
+              'المتبقي: ${formatCurrency(debt.remainingAmount)} $appCurrencySymbol',
               style: AppTextStyle.style12W500.copyWith(
                 color: debt.isFullyPaid
                     ? AppColors.successColor
@@ -323,7 +324,7 @@ class DebtsView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'المدفوع: ${formatCurrency(debt.paidAmount)} ج.م',
+                  'المدفوع: ${formatCurrency(debt.paidAmount)} $appCurrencySymbol',
                   style: AppTextStyle.style12W400.copyWith(fontSize: 10.sp),
                 ),
                 TextButton(
@@ -410,7 +411,7 @@ class DebtsView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'المتبقي من الدين: ${formatCurrency(debt.remainingAmount)} ج.م',
+                    'المتبقي من الدين: ${formatCurrency(debt.remainingAmount)} $appCurrencySymbol',
                     style: AppTextStyle.style14W600.copyWith(
                       color: AppColors.errorColor,
                     ),

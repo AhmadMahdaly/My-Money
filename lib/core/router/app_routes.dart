@@ -19,4 +19,5 @@ class AppRoutes {
   static const String recurringOperationsScreen = '/recurringOperationsScreen';
   static const String monthlyAnalyticsScreen = '/monthlyAnalyticsScreen';
   static const String debtPaymentsLogView = '/debtPaymentsLogView';
+  static const String appSettingsScreen = '/appSettingsScreen';
 }

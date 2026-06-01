@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opration/core/di.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
@@ -173,7 +174,7 @@ class ShoppingListView extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          'المتوقع: ${item.expectedPrice.truncate()} ج.م',
+          'المتوقع: ${item.expectedPrice.truncate()} $appCurrencySymbol',
           style: TextStyle(
             decoration: item.isBought ? TextDecoration.lineThrough : null,
           ),

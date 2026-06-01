@@ -25,6 +25,15 @@ class MoreView extends StatelessWidget {
         children: [
           8.verticalSpace,
           CustomMorePageCard(
+            icon: Icon(
+              Icons.settings_outlined,
+              size: 24.r,
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+            text: 'إعدادات التطبيق',
+            onTap: () => context.pushNamed(AppRoutes.appSettingsScreen),
+          ),
+          CustomMorePageCard(
             icon: Image.asset(
               'assets/image/png/categories.png',
               height: 24.r,

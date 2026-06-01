@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/features/Settings/backup_screen.dart';
 import 'package:opration/features/Settings/more_page.dart';
+import 'package:opration/features/Settings/app_settings_screen.dart';
 import 'package:opration/features/Settings/recurring_operations_screen.dart';
 import 'package:opration/features/auth/presentation/views/login_view.dart';
 import 'package:opration/features/debt/presentation/screens/debt_payments_log_view.dart';
@@ -127,6 +128,11 @@ class RouterGenerationConfig {
         path: AppRoutes.debtPaymentsLogView,
         name: AppRoutes.debtPaymentsLogView,
         builder: (context, state) => const DebtPaymentsLogView(),
+      ),
+      GoRoute(
+        path: AppRoutes.appSettingsScreen,
+        name: AppRoutes.appSettingsScreen,
+        builder: (context, state) => const AppSettingsScreen(),
       ),
     ],
   );

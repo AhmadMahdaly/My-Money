@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
+import 'package:opration/core/services/app_settings_service.dart';
+import 'package:opration/core/shared_widgets/currency_picker_field.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
@@ -19,6 +21,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final usernameController = TextEditingController();
+  late String _selectedCurrencyCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCurrencyCode = AppSettingsService.savedCurrencyCode;
+  }
+
   @override
   void dispose() {
     usernameController.dispose();
@@ -59,20 +69,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    30.verticalSpace,
                     SvgImage(
                       imagePath: 'assets/image/logo.svg',
                       height: 150.h,
                     ),
                     24.verticalSpace,
                     const LoginWelcomeUserWidget(),
-                    30.verticalSpace,
+                    24.verticalSpace,
 
                     CustomPrimaryTextfield(
                       controller: usernameController,
                       text: 'سجل اسمك',
                     ),
-                    20.verticalSpace,
+                    16.verticalSpace,
+                    CurrencyPickerField(
+                      selectedCode: _selectedCurrencyCode,
+                      onChanged: (code) {
+                        setState(() => _selectedCurrencyCode = code);
+                      },
+                    ),
+                    36.verticalSpace,
                     if (state is AuthLoading)
                       const Center(child: CircularProgressIndicator())
                     else
@@ -80,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           context.read<AuthCubit>().login(
                             usernameController.text.trim(),
+                            currencyCode: _selectedCurrencyCode,
                           );
                         },
                         width: double.infinity,

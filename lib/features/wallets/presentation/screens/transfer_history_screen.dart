@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opration/core/di.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
@@ -72,7 +73,7 @@ class TransferHistoryScreen extends StatelessWidget {
                     style: AppTextStyle.style14W500,
                   ),
                   trailing: Text(
-                    '+${item.amount.truncate()} ج.م',
+                    '+${item.amount.truncate()} $appCurrencySymbol',
                     style: AppTextStyle.style14Bold.copyWith(
                       color: Colors.green,
                     ),

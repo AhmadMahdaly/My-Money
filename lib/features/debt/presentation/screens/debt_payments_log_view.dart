@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/services/format_currency.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
@@ -157,7 +158,7 @@ class DebtPaymentsLogView extends StatelessWidget {
                     ],
                   ),
                   trailing: Text(
-                    '${formatCurrency(transaction.amount)} ج.م',
+                    '${formatCurrency(transaction.amount)} $appCurrencySymbol',
                     style: AppTextStyle.style16W600.copyWith(
                       color: AppColors.errorColor,
                     ),

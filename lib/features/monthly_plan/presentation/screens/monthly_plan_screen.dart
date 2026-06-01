@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
@@ -843,7 +844,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                         width: 80.w,
                         child: Center(
                           child: Text(
-                            '${budgetedAmount.truncate()} ج.م',
+                            '${budgetedAmount.truncate()} $appCurrencySymbol',
                             style: AppTextStyle.style14W700.copyWith(
                               color: widget.category.color,
                             ),
@@ -871,7 +872,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                               Text(
                                 _controller.text.isEmpty
                                     ? '0'
-                                    : '${_controller.text}  ج.م',
+                                    : '${_controller.text}  $appCurrencySymbol',
                                 style: AppTextStyle.style14W500.copyWith(
                                   color: AppColors.primaryColor,
                                 ),
@@ -902,13 +903,13 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'الإفتراضي: ${budgetedAmount.truncate()} ج.م',
+                      'الإفتراضي: ${budgetedAmount.truncate()} $appCurrencySymbol',
                       style: AppTextStyle.style9W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
                     ),
                     Text(
-                      'الفعلي: ${actualReceivedAmount.truncate()} ج.م',
+                      'الفعلي: ${actualReceivedAmount.truncate()} $appCurrencySymbol',
                       style: AppTextStyle.style9W400.copyWith(
                         color: AppColors.primaryColor,
                       ),
@@ -1066,7 +1067,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(
-                                '${t.amount.truncate()} ج.م',
+                                '${t.amount.truncate()} $appCurrencySymbol',
                                 style: AppTextStyle.style14Bold.copyWith(
                                   color: t.type == TransactionType.income
                                       ? AppColors.successColor
@@ -1435,7 +1436,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                           ),
                         ),
                         child: Text(
-                          '${budgetedAmount.truncate()} ج.م',
+                          '${budgetedAmount.truncate()} $appCurrencySymbol',
                           style: AppTextStyle.style12W500.copyWith(
                             color: AppColors.forthColor.withAlpha(200),
                           ),
@@ -1462,7 +1463,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                               Text(
                                 _controller.text.isEmpty
                                     ? '0'
-                                    : '${_controller.text} ج.م',
+                                    : '${_controller.text} $appCurrencySymbol',
                                 style: AppTextStyle.style12W500.copyWith(
                                   color: AppColors.primaryTextColor,
                                 ),
@@ -1496,7 +1497,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                   children: [
                     Expanded(
                       child: Text(
-                        'صرفت: ${actualSpentAmount.truncate()} ج.م',
+                        'صرفت: ${actualSpentAmount.truncate()} $appCurrencySymbol',
                         style: AppTextStyle.style9W400.copyWith(
                           color: AppColors.primaryColor,
                         ),
@@ -1505,7 +1506,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                     Expanded(
                       child: Text(
                         textAlign: TextAlign.end,
-                        'باقي: ${remainingAmount.truncate()} ج.م',
+                        'باقي: ${remainingAmount.truncate()} $appCurrencySymbol',
                         style: AppTextStyle.style9W400.copyWith(
                           color: AppColors.primaryColor,
                         ),
@@ -1781,7 +1782,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(
-                                '${t.amount.truncate()} ج.م',
+                                '${t.amount.truncate()} $appCurrencySymbol',
                                 style: AppTextStyle.style14Bold.copyWith(
                                   color: t.type == TransactionType.income
                                       ? AppColors.successColor

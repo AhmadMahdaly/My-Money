@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/services/format_currency.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
@@ -222,7 +223,7 @@ class _CategoryListSection extends StatelessWidget {
                       ),
                       subtitle: subCat.isRecurring
                           ? Text(
-                              'مكرر: ${formatCurrency(subCat.fixedAmount != null ? subCat.fixedAmount! : 0)} ج.م',
+                              'مكرر: ${formatCurrency(subCat.fixedAmount != null ? subCat.fixedAmount! : 0)} $appCurrencySymbol',
                               style: AppTextStyle.style9W400,
                             )
                           : null,

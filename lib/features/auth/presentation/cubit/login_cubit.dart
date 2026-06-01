@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
+import 'package:opration/core/models/app_currency.dart';
+import 'package:opration/core/services/app_settings_service.dart';
 import 'package:opration/features/auth/data/datasources/login_local_data_source.dart';
 
 part 'login_state.dart';
@@ -22,7 +24,10 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> login(String username) async {
+  Future<void> login(
+    String username, {
+    String currencyCode = kDefaultCurrencyCode,
+  }) async {
     if (username.isEmpty) {
       emit(const AuthFailure(message: 'متنساش تسجل اسمك'));
       emit(Unauthenticated());
@@ -31,8 +36,24 @@ class AuthCubit extends Cubit<AuthState> {
 
     emit(AuthLoading());
     try {
+      await AppSettingsService.saveCurrencyCode(currencyCode);
       await localDataSource.saveUsername(username);
       emit(Authenticated(username: username));
+    } catch (e) {
+      emit(AuthFailure(message: 'فيه غلطة: $e'));
+    }
+  }
+
+  Future<void> updateUsername(String username) async {
+    final trimmed = username.trim();
+    if (trimmed.isEmpty) {
+      emit(const AuthFailure(message: 'متنساش تسجل اسمك'));
+      return;
+    }
+
+    try {
+      await localDataSource.saveUsername(trimmed);
+      emit(Authenticated(username: trimmed));
     } catch (e) {
       emit(AuthFailure(message: 'فيه غلطة: $e'));
     }

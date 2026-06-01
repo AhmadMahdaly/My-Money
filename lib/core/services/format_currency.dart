@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:opration/core/constants.dart';
 
 String formatCurrency(double amount) {
   String stripZeros(String str) {
@@ -15,3 +16,9 @@ String formatCurrency(double amount) {
     return NumberFormat('#,##0.##').format(amount);
   }
 }
+
+String formatAmountWithCurrency(double amount) =>
+    '${formatCurrency(amount)} $appCurrencySymbol';
+
+String formatTruncatedWithCurrency(num amount) =>
+    '${amount.truncate()} $appCurrencySymbol';

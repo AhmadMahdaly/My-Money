@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/shared_widgets/custom_dropdown_button.dart';
@@ -271,7 +272,7 @@ class RecurringOperationsScreen extends StatelessWidget {
                   ),
                   title: Text(debt.name),
                   subtitle: Text(
-                    'المتبقي: ${debt.remainingAmount.truncate()} ج.م',
+                    'المتبقي: ${debt.remainingAmount.truncate()} $appCurrencySymbol',
                   ),
                   onTap: () {
                     Navigator.pop(ctx);
@@ -808,7 +809,7 @@ class _RecurringCategoryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              '${category.fixedAmount?.truncate() ?? 0} ج.م',
+              '${category.fixedAmount?.truncate() ?? 0} $appCurrencySymbol',
               style: AppTextStyle.style14Bold.copyWith(
                 color: isIncome ? AppColors.successColor : AppColors.errorColor,
               ),
@@ -896,14 +897,14 @@ class _RecurringDebtCard extends StatelessWidget {
             4.verticalSpace,
 
             Text(
-              '$recurrenceText: ${debt.installmentAmount.truncate()} ج.م',
+              '$recurrenceText: ${debt.installmentAmount.truncate()} $appCurrencySymbol',
               style: AppTextStyle.style12W500.copyWith(
                 color: AppColors.primaryColor,
               ),
             ),
             8.verticalSpace,
             Text(
-              'المتبقي: ${debt.remainingAmount.truncate()} ج.م',
+              'المتبقي: ${debt.remainingAmount.truncate()} $appCurrencySymbol',
               style: AppTextStyle.style14W700.copyWith(
                 color: AppColors.errorColor,
               ),
@@ -922,7 +923,7 @@ class _RecurringDebtCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'المدفوع: ${debt.paidAmount.truncate()} ج.م',
+                  'المدفوع: ${debt.paidAmount.truncate()} $appCurrencySymbol',
                   style: AppTextStyle.style12W400,
                 ),
                 TextButton(
@@ -1006,7 +1007,7 @@ class _RecurringDebtCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'المتبقي من الدين: ${debt.remainingAmount.truncate()} ج.م',
+                    'المتبقي من الدين: ${debt.remainingAmount.truncate()} $appCurrencySymbol',
                     style: AppTextStyle.style14W600.copyWith(
                       color: AppColors.errorColor,
                     ),
