@@ -219,7 +219,6 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     };
   }
 
-  // String _getPlanCacheKey(String yearMonth) => 'monthly_plan_$yearMonth';
 
   @override
   Future<MonthlyPlan> getMonthlyPlan(String yearMonth) async {
@@ -231,7 +230,6 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
       );
     }
 
-    /// 🔥 هنا بننشئ ونحفظ فورًا
     final newPlan = MonthlyPlan(id: yearMonth);
 
     plans[yearMonth] = newPlan.toJson();

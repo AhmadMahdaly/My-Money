@@ -327,6 +327,11 @@ class TransactionCubit extends Cubit<TransactionState> {
           start: state.filterStartDate ?? now,
           end: state.filterEndDate ?? now,
         );
+      case PredefinedFilter.singleMonth:
+        return DateTimeRange(
+          start: state.filterStartDate ?? DateTime(now.year, now.month, 1),
+          end: state.filterEndDate ?? DateTime(now.year, now.month + 1, 0),
+        );
     }
   }
 
@@ -569,5 +574,27 @@ class TransactionCubit extends Cubit<TransactionState> {
     emit(state.copyWith(pendingTransactions: updatedPending));
 
     await _markAsExecuted(category, DateTime.now());
+  }
+
+  Future<void> setSingleMonthFilter(DateTime date) async {
+    emit(state.copyWith(isLoading: true));
+
+    final start = DateTime(date.year, date.month, 1, 0, 0, 0);
+    final end = DateTime(date.year, date.month + 1, 0, 23, 59, 59);
+
+    await saveFilterSettingsUseCase(
+      startDate: start,
+      endDate: end,
+      activeFilter: PredefinedFilter.singleMonth,
+    );
+
+    emit(
+      state.copyWith(
+        isLoading: false,
+        filterStartDate: start,
+        filterEndDate: end,
+        activeFilter: PredefinedFilter.singleMonth,
+      ),
+    );
   }
 }

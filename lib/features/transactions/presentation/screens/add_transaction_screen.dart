@@ -448,9 +448,21 @@ class _TransactionFormState extends State<_TransactionForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionCubit, TransactionState>(
       builder: (context, state) {
+        final excludedCategoryNames = [
+          'الرصيد الافتتاحي',
+          'تحويل صادر',
+          'تحويل وارد',
+          // يمكنك إضافة أي مسميات أخرى تستخدمها لعمليات التحويل هنا
+        ];
+
         final allCategories = state.allCategories
-            .where((c) => c.type == widget.type)
+            .where(
+              (c) =>
+                  c.type == widget.type &&
+                  !excludedCategoryNames.contains(c.name),
+            )
             .toList();
+
         final mainCategories = allCategories
             .where((c) => c.parentId == null)
             .toList();
@@ -464,6 +476,7 @@ class _TransactionFormState extends State<_TransactionForm> {
         final selectedMainCategory = mainCategories
             .where((c) => c.id == _selectedMainCategoryId)
             .firstOrNull;
+
         final selectedSubCategory = subCategories
             .where((c) => c.id == _selectedSubCategoryId)
             .firstOrNull;

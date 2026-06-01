@@ -61,7 +61,7 @@ class MoreView extends StatelessWidget {
 
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'الأهداف المالية',
+            text: 'مدخراتك وأهدافك المالية',
             onTap: () => context.pushNamed(AppRoutes.financialGoalsScreen),
           ),
           CustomMorePageCard(

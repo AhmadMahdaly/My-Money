@@ -7,6 +7,7 @@ class FinancialGoalModel extends FinancialGoal {
     required super.targetAmount,
     required super.savedAmount,
     required super.targetDate,
+    required super.type,
   });
 
   factory FinancialGoalModel.fromEntity(FinancialGoal goal) {
@@ -16,6 +17,7 @@ class FinancialGoalModel extends FinancialGoal {
       targetAmount: goal.targetAmount,
       savedAmount: goal.savedAmount,
       targetDate: goal.targetDate,
+      type: goal.type,
     );
   }
 
@@ -26,6 +28,12 @@ class FinancialGoalModel extends FinancialGoal {
       targetAmount: (json['targetAmount'] as num).toDouble(),
       savedAmount: (json['savedAmount'] as num).toDouble(),
       targetDate: DateTime.parse(json['targetDate'].toString()),
+      type: json['type'] != null
+          ? GoalType.values.firstWhere(
+              (e) => e.name == json['type'].toString(),
+              orElse: () => GoalType.goal,
+            )
+          : GoalType.goal,
     );
   }
 
@@ -36,6 +44,7 @@ class FinancialGoalModel extends FinancialGoal {
       'targetAmount': targetAmount,
       'savedAmount': savedAmount,
       'targetDate': targetDate.toIso8601String(),
+      'type': type.name,
     };
   }
 }

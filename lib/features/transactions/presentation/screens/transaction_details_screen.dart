@@ -965,6 +965,10 @@ class _FilterControlBar extends StatelessWidget {
         return 'السنادي كلها';
       case PredefinedFilter.singleDay:
         return start != null ? 'يوم ${format.format(start)}' : 'يوم محدد';
+      case PredefinedFilter.singleMonth:
+        return start != null
+            ? DateFormat('MMMM yyyy', 'ar').format(start)
+            : 'شهر محدد';
       case PredefinedFilter.since:
         return start != null ? 'من ${format.format(start)}' : 'من تاريخ معين';
       case PredefinedFilter.custom:
@@ -1057,6 +1061,29 @@ class _FilterControlBar extends StatelessWidget {
                   );
                   if (picked != null && context.mounted) {
                     await context.read<TransactionCubit>().setSingleDayFilter(
+                      picked,
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.calendar_view_month),
+                title: const Text('شهر واحد محدد'),
+                onTap: () async {
+                  sheetContext.pop();
+                  if (!context.mounted) return;
+                  final now = DateTime.now();
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: now,
+                    firstDate: DateTime(now.year - 5),
+                    lastDate: now,
+                    // يفتح التقويم على عرض السنوات والشهور لتسهيل الاختيار
+                    initialDatePickerMode: DatePickerMode.year,
+                    helpText: 'اختار أي يوم في الشهر المطلوب',
+                  );
+                  if (picked != null && context.mounted) {
+                    await context.read<TransactionCubit>().setSingleMonthFilter(
                       picked,
                     );
                   }

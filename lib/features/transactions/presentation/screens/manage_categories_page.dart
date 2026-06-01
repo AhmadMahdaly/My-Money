@@ -24,11 +24,26 @@ class ManageCategoriesDrawer extends StatelessWidget {
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {
+          final excludedCategories = [
+            'رصيد افتتاحي',
+            'تحويل وارد',
+            'تحويل صادر',
+          ];
+
           final incomeCategories = state.allCategories
-              .where((c) => c.type == TransactionType.income)
+              .where(
+                (c) =>
+                    c.type == TransactionType.income &&
+                    !excludedCategories.contains(c.name),
+              )
               .toList();
+
           final expenseCategories = state.allCategories
-              .where((c) => c.type == TransactionType.expense)
+              .where(
+                (c) =>
+                    c.type == TransactionType.expense &&
+                    !excludedCategories.contains(c.name),
+              )
               .toList();
 
           return ListView(
