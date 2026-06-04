@@ -38,7 +38,7 @@ class CloudSyncService {
         await pushAllData(uid: uid);
       }
     } catch (e) {
-      print('Smart Sync Error: $e');
+      // Handle errors if necessary, e.g., log them.
     }
   }
 

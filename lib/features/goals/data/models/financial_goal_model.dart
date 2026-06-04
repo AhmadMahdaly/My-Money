@@ -43,7 +43,7 @@ class FinancialGoalModel extends FinancialGoal {
     if (type == GoalType.saving && history.isEmpty && savedAmount > 0) {
       history = [
         SavingEntryModel(
-          id: Uuid().v4(),
+          id: const Uuid().v4(),
           amount: savedAmount,
           date: DateTime.tryParse(json['targetDate'].toString()) ??
               DateTime.now(),

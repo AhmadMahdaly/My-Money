@@ -35,8 +35,8 @@ class FinancialGoal extends Equatable {
   bool get isGoalCompleted => !isSaving && progress >= 1.0;
 
   List<SavingEntry> get sortedHistory {
-    final entries = List<SavingEntry>.from(history);
-    entries.sort((a, b) => b.date.compareTo(a.date));
+    final entries = List<SavingEntry>.from(history)
+      ..sort((a, b) => b.date.compareTo(a.date));
     return entries;
   }
 
