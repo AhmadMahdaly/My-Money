@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheHelper {
   static late SharedPreferences sharedPreferences;
+  static final List<void Function(String key)> _changeListeners = [];
+  static bool _suppressChangeNotifications = false;
 
   static Future<void> init() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -17,13 +19,31 @@ class CacheHelper {
     required String key,
     required dynamic value,
   }) async {
-    if (value is String) return sharedPreferences.setString(key, value);
-    if (value is int) return sharedPreferences.setInt(key, value);
-    if (value is bool) return sharedPreferences.setBool(key, value);
-    if (value is double) return sharedPreferences.setDouble(key, value);
+    if (value is String) {
+      final result = await sharedPreferences.setString(key, value);
+      _notifyChange(key);
+      return result;
+    }
+    if (value is int) {
+      final result = await sharedPreferences.setInt(key, value);
+      _notifyChange(key);
+      return result;
+    }
+    if (value is bool) {
+      final result = await sharedPreferences.setBool(key, value);
+      _notifyChange(key);
+      return result;
+    }
+    if (value is double) {
+      final result = await sharedPreferences.setDouble(key, value);
+      _notifyChange(key);
+      return result;
+    }
 
     if (value is List<String>) {
-      return sharedPreferences.setStringList(key, value);
+      final result = await sharedPreferences.setStringList(key, value);
+      _notifyChange(key);
+      return result;
     }
 
     throw Exception(
@@ -32,11 +52,15 @@ class CacheHelper {
   }
 
   static Future<bool> removeData(String key) async {
-    return sharedPreferences.remove(key);
+    final result = await sharedPreferences.remove(key);
+    _notifyChange(key);
+    return result;
   }
 
   static Future<bool> clearAllData() async {
-    return sharedPreferences.clear();
+    final result = await sharedPreferences.clear();
+    _notifyChange('*');
+    return result;
   }
 
   static Future<Map<String, dynamic>> getAllData() async {
@@ -78,6 +102,28 @@ class CacheHelper {
           'Type ${value.runtimeType} is not supported by CacheHelper',
         );
       }
+    }
+  }
+
+  static void addOnDataChangedListener(void Function(String key) listener) {
+    _changeListeners.add(listener);
+  }
+
+  static Future<T> runWithSuppressedNotifications<T>(
+    Future<T> Function() action,
+  ) async {
+    _suppressChangeNotifications = true;
+    try {
+      return await action();
+    } finally {
+      _suppressChangeNotifications = false;
+    }
+  }
+
+  static void _notifyChange(String key) {
+    if (_suppressChangeNotifications) return;
+    for (final listener in _changeListeners) {
+      listener(key);
     }
   }
 }

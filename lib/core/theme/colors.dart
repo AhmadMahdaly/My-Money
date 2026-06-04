@@ -21,4 +21,5 @@ class AppColors {
   ///
   static Color successColor = Colors.green;
   static const errorColor = Color(0xFFFF6565);
+  static Color transparent = Colors.transparent;
 }

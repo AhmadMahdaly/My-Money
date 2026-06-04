@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/domain/usecases/add_wallet.dart';
 import 'package:opration/features/wallets/domain/usecases/delete_wallet.dart';
@@ -23,6 +24,7 @@ class WalletCubit extends Cubit<WalletState> {
     required this.getShowMainWalletPrefUseCase,
     required this.saveShowMainWalletPrefUseCase,
   }) : super(WalletInitial());
+
   final GetWalletsUseCase getWalletsUseCase;
   final AddWalletUseCase addWalletUseCase;
   final UpdateWalletUseCase updateWalletUseCase;
@@ -31,9 +33,13 @@ class WalletCubit extends Cubit<WalletState> {
   final GetShowMainWalletPrefUseCase getShowMainWalletPrefUseCase;
   final SaveShowMainWalletPrefUseCase saveShowMainWalletPrefUseCase;
   final TransferBalanceUseCase transferBalanceUseCase;
-  Future<void> loadWallets() async {
+
+  Future<void> loadWallets({bool isSilentRefresh = false}) async {
     try {
-      emit(WalletLoading());
+      if (!isSilentRefresh) {
+        emit(WalletLoading());
+      }
+
       final wallets = await getWalletsUseCase();
       final showMain = await getShowMainWalletPrefUseCase();
       emit(WalletLoaded(wallets, showMainWallet: showMain));
@@ -47,7 +53,10 @@ class WalletCubit extends Cubit<WalletState> {
     final originalWallets = (state as WalletLoaded).wallets;
     try {
       await operation();
-      await loadWallets();
+
+      await CloudSyncService.touchLocalUpdate();
+
+      await loadWallets(isSilentRefresh: true);
     } catch (e) {
       emit(WalletError(e.toString()));
       emit(WalletLoaded(originalWallets));
@@ -75,6 +84,7 @@ class WalletCubit extends Cubit<WalletState> {
     final currentState = state as WalletLoaded;
     final wallets = List<Wallet>.from(currentState.wallets);
     final walletIndex = wallets.indexWhere((w) => w.id == walletId);
+
     if (walletIndex != -1) {
       final oldWallet = wallets[walletIndex];
       final newWallet = oldWallet.copyWith(
@@ -88,7 +98,11 @@ class WalletCubit extends Cubit<WalletState> {
     if (state is! WalletLoaded) return;
     final currentState = state as WalletLoaded;
     final newPref = !currentState.showMainWallet;
+
     await saveShowMainWalletPrefUseCase(newPref);
+
+    await CloudSyncService.touchLocalUpdate();
+
     emit(WalletLoaded(currentState.wallets, showMainWallet: newPref));
   }
 

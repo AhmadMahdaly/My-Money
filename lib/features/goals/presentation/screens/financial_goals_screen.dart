@@ -400,7 +400,7 @@ class _SavingCardState extends State<_SavingCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(saving.name, style: AppTextStyle.style16Bold),
+                      Text(saving.name, style: AppTextStyle.style14Bold),
                       4.verticalSpace,
                       Text(
                         'الرصيد الحالي',
@@ -411,7 +411,7 @@ class _SavingCardState extends State<_SavingCard> {
                       ),
                       Text(
                         '${saving.balance.truncate()} $appCurrencySymbol',
-                        style: AppTextStyle.style18W700.copyWith(
+                        style: AppTextStyle.style16W700.copyWith(
                           color: AppColors.primaryColor,
                         ),
                       ),
@@ -480,20 +480,11 @@ class _SavingCardState extends State<_SavingCard> {
               InkWell(
                 onTap: () =>
                     setState(() => _historyExpanded = !_historyExpanded),
-                child: Row(
-                  children: [
-                    Icon(
-                      _historyExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: AppColors.primaryColor,
-                    ),
-                    4.horizontalSpace,
-                    Text(
-                      'سجل الحركات (${history.length})',
-                      style: AppTextStyle.style14W600.copyWith(
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'سجل الحركات (${history.length})',
+                  style: AppTextStyle.style14W600.copyWith(
+                    color: AppColors.primaryColor,
+                  ),
                 ),
               ),
               8.verticalSpace,
@@ -548,7 +539,7 @@ class _SavingHistoryTile extends StatelessWidget {
               children: [
                 Text(
                   isDeposit ? 'إيداع' : 'سحب',
-                  style: AppTextStyle.style14W600,
+                  style: AppTextStyle.style12W600,
                 ),
                 if (entry.note != null)
                   Text(

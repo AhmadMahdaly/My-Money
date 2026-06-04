@@ -13,6 +13,7 @@ import 'package:opration/features/goals/domain/usecases/delete_financial_goal.da
 import 'package:opration/features/goals/domain/usecases/get_financial_goals.dart';
 import 'package:opration/features/goals/domain/usecases/update_financial_goal.dart';
 import 'package:opration/features/goals/presentation/controllers/financial_goal_cubit/financial_goal_cubit.dart';
+import 'package:opration/features/monthly_plan/domain/usecases/get_all_monthly_plans.dart';
 import 'package:opration/features/monthly_plan/domain/usecases/get_monthly_plan.dart';
 import 'package:opration/features/monthly_plan/domain/usecases/save_monthly_plan.dart';
 import 'package:opration/features/shopping/presentation/controllers/shopping_cubit/shopping_cubit.dart';
@@ -94,6 +95,9 @@ Future<void> setupGetIt() async {
     ..registerFactory(() => TransferBalanceUseCase(repository: getIt()))
     ..registerLazySingleton<FinancialGoalLocalDataSource>(
       FinancialGoalLocalDataSourceImpl.new,
+    )
+    ..registerLazySingleton<GetAllMonthlyPlansUseCase>(
+      () => GetAllMonthlyPlansUseCase(repository: getIt()),
     )
     ..registerLazySingleton<FinancialGoalRepository>(
       () => FinancialGoalRepositoryImpl(localDataSource: getIt()),

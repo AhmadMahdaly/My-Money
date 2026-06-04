@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:opration/core/services/cache_helper/cache_helper.dart';
+import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/features/shopping/domain/entities/shopping_item.dart';
 
 part 'shopping_state.dart';
@@ -28,6 +29,7 @@ class ShoppingCubit extends Cubit<ShoppingState> {
   Future<void> _saveItems(List<ShoppingItem> items) async {
     final jsonList = items.map((i) => i.toJson()).toList();
     await CacheHelper.saveData(key: _cacheKey, value: json.encode(jsonList));
+    await CloudSyncService.touchLocalUpdate();
     emit(state.copyWith(items: items));
   }
 

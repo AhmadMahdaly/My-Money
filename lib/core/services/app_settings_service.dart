@@ -2,6 +2,7 @@ import 'package:opration/core/constants.dart';
 import 'package:opration/core/models/app_currency.dart';
 import 'package:opration/core/services/cache_helper/cache_helper.dart';
 import 'package:opration/core/services/cache_helper/cache_values.dart';
+import 'package:opration/core/services/cloud_sync_service.dart';
 
 class AppSettingsService {
   static Future<void> loadCurrency() async {
@@ -14,6 +15,7 @@ class AppSettingsService {
   static Future<void> saveCurrencyCode(String code) async {
     await CacheHelper.saveData(key: CacheKeys.appCurrencyCode, value: code);
     appCurrencySymbol = currencyByCode(code).symbol;
+    await CloudSyncService.touchLocalUpdate();
   }
 
   static String get savedCurrencyCode {

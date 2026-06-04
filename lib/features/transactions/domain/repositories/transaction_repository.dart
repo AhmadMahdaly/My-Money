@@ -19,6 +19,7 @@ abstract class TransactionRepository {
     DateTime endDate,
     PredefinedFilter activeFilter,
   );
+  Future<List<MonthlyPlan>> getAllMonthlyPlans();
   Future<Map<String, dynamic>> getFilterSettings();
   Future<MonthlyPlan> getMonthlyPlan(String yearMonth);
   Future<void> saveMonthlyPlan(MonthlyPlan plan);

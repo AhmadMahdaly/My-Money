@@ -25,15 +25,6 @@ class MoreView extends StatelessWidget {
         children: [
           8.verticalSpace,
           CustomMorePageCard(
-            icon: Icon(
-              Icons.settings_outlined,
-              size: 24.r,
-              color: AppColors.scaffoldBackgroundLightColor,
-            ),
-            text: 'إعدادات التطبيق',
-            onTap: () => context.pushNamed(AppRoutes.appSettingsScreen),
-          ),
-          CustomMorePageCard(
             icon: Image.asset(
               'assets/image/png/categories.png',
               height: 24.r,
@@ -84,14 +75,13 @@ class MoreView extends StatelessWidget {
             onTap: () => context.pushNamed(AppRoutes.debtsView),
           ),
           CustomMorePageCard(
-            icon: Image.asset(
-              'assets/image/png/reset.png',
-              height: 24.r,
-
+            icon: Icon(
+              Icons.settings_outlined,
+              size: 24.r,
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'نسخ البيانات احتياطياً أو استعادتها',
-            onTap: () => context.pushNamed(AppRoutes.backupScreen, extra: true),
+            text: 'إعدادات التطبيق',
+            onTap: () => context.pushNamed(AppRoutes.appSettingsScreen),
           ),
         ],
       ),

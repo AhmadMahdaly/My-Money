@@ -1,7 +1,7 @@
 name: opration
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.42+42
+version: 1.1.0+44
 
 environment:
   sdk: ^3.8.1
@@ -24,6 +24,10 @@ dependencies:
   flutter_speed_dial: ^7.0.0
   file_picker: ^11.0.2
   share_plus: ^12.0.2
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.6.3
+  google_sign_in: ^6.3.0
+  cloud_firestore: ^5.6.12
 dev_dependencies:
   flutter_test:
     sdk: flutter

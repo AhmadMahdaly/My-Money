@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:opration/core/di.dart';
+import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/features/goals/domain/entities/financial_goal.dart';
 import 'package:opration/features/goals/domain/entities/saving_entry.dart';
 import 'package:opration/features/goals/domain/usecases/add_financial_goal.dart';
@@ -45,14 +46,17 @@ class FinancialGoalCubit extends Cubit<FinancialGoalState> {
 
   Future<void> addGoal(FinancialGoal goal) async {
     await _performOperation(() => addFinancialGoalUseCase(goal));
+    await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> updateGoal(FinancialGoal goal) async {
     await _performOperation(() => updateFinancialGoalUseCase(goal));
+    await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> deleteGoal(String goalId) async {
     await _performOperation(() => deleteFinancialGoalUseCase(goalId));
+    await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> addFundsToGoal(String goalId, double amountToAdd) async {

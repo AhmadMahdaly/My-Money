@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/features/monthly_plan/domain/entities/monthly_plan.dart';
+import 'package:opration/features/monthly_plan/domain/usecases/get_all_monthly_plans.dart';
 import 'package:opration/features/monthly_plan/domain/usecases/get_monthly_plan.dart';
 import 'package:opration/features/monthly_plan/domain/usecases/save_monthly_plan.dart';
 
@@ -11,9 +13,11 @@ class MonthlyPlanCubit extends Cubit<MonthlyPlanState> {
   MonthlyPlanCubit({
     required this.getMonthlyPlanUseCase,
     required this.saveMonthlyPlanUseCase,
+    required this.getAllMonthlyPlansUseCase,
   }) : super(MonthlyPlanState.initial());
   final GetMonthlyPlanUseCase getMonthlyPlanUseCase;
   final SaveMonthlyPlanUseCase saveMonthlyPlanUseCase;
+  final GetAllMonthlyPlansUseCase getAllMonthlyPlansUseCase;
 
   // String _getYearMonth(DateTime date) {
   //   return DateFormat('yyyy-MM').format(date);
@@ -30,6 +34,27 @@ class MonthlyPlanCubit extends Cubit<MonthlyPlanState> {
 
   //   updatePlan(clearedPlan);
   // }
+  Future<void> loadAllPlans() async {
+    emit(state.copyWith(status: MonthlyPlanStatus.loading));
+
+    try {
+      final allPlans = await getAllMonthlyPlansUseCase();
+
+      emit(
+        state.copyWith(
+          status: MonthlyPlanStatus.loaded,
+          allPlans: allPlans,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: MonthlyPlanStatus.error,
+          error: e.toString(),
+        ),
+      );
+    }
+  }
 
   Future<void> saveCurrentPlan() async {
     if (isClosed ||
@@ -40,7 +65,7 @@ class MonthlyPlanCubit extends Cubit<MonthlyPlanState> {
     emit(state.copyWith(status: MonthlyPlanStatus.saving));
     try {
       await saveMonthlyPlanUseCase(state.plan!);
-
+      await CloudSyncService.touchLocalUpdate();
       if (!isClosed) {
         emit(state.copyWith(status: MonthlyPlanStatus.loaded));
       }
@@ -102,7 +127,7 @@ class MonthlyPlanCubit extends Cubit<MonthlyPlanState> {
 
     try {
       await saveMonthlyPlanUseCase(updatedPlan);
-
+      await CloudSyncService.touchLocalUpdate();
       emit(
         state.copyWith(
           status: MonthlyPlanStatus.loaded,

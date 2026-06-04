@@ -9,6 +9,7 @@ class MonthlyPlanState extends Equatable {
     required this.currentMonth,
     this.plan,
     this.error,
+    this.allPlans = const [],
   });
 
   factory MonthlyPlanState.initial() {
@@ -21,22 +22,30 @@ class MonthlyPlanState extends Equatable {
   final MonthlyPlan? plan;
   final DateTime currentMonth;
   final String? error;
-
+  final List<MonthlyPlan> allPlans;
   MonthlyPlanState copyWith({
     MonthlyPlanStatus? status,
     MonthlyPlan? plan,
     DateTime? currentMonth,
     String? error,
     bool clearError = false,
+    List<MonthlyPlan>? allPlans,
   }) {
     return MonthlyPlanState(
       status: status ?? this.status,
       plan: plan ?? this.plan,
       currentMonth: currentMonth ?? this.currentMonth,
       error: clearError ? null : error ?? this.error,
+      allPlans: allPlans ?? this.allPlans,
     );
   }
 
   @override
-  List<Object?> get props => [status, plan, currentMonth, error];
+  List<Object?> get props => [
+    status,
+    plan,
+    currentMonth,
+    error,
+    allPlans,
+  ];
 }

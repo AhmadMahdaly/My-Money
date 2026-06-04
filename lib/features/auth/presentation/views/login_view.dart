@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/services/app_settings_service.dart';
@@ -56,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
             context.go(AppRoutes.mainLayoutScreen);
           } else if (state is AuthFailure) {
             showCustomSnackBar(
-              message: state.message,
+              message: 'فشل تسجيل الدخول: حاول مرة أخرى',
               isError: true,
             );
           }
@@ -92,15 +93,35 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (state is AuthLoading)
                       const Center(child: CircularProgressIndicator())
                     else
-                      CustomPrimaryButton(
-                        onPressed: () {
-                          context.read<AuthCubit>().login(
-                            usernameController.text.trim(),
-                            currencyCode: _selectedCurrencyCode,
-                          );
-                        },
-                        width: double.infinity,
-                        text: 'ابدأ',
+                      Column(
+                        children: [
+                          CustomPrimaryButton(
+                            onPressed: () {
+                              context.read<AuthCubit>().login(
+                                usernameController.text.trim(),
+                                currencyCode: _selectedCurrencyCode,
+                              );
+                            },
+                            width: double.infinity,
+                            text: 'ابدأ',
+                          ),
+                          12.verticalSpace,
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              context.read<AuthCubit>().loginWithGoogle(
+                                currencyCode: _selectedCurrencyCode,
+                              );
+                            },
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(kRadius),
+                              ),
+                              minimumSize: Size(double.infinity, 52.h),
+                            ),
+                            icon: const Icon(Icons.login),
+                            label: const Text('تسجيل الدخول بحساب جوجل'),
+                          ),
+                        ],
                       ),
                   ],
                 ),

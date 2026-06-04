@@ -51,4 +51,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Future<void> saveMonthlyPlan(MonthlyPlan plan) =>
       localDataSource.saveMonthlyPlan(plan);
+  @override
+  Future<List<MonthlyPlan>> getAllMonthlyPlans() =>
+      localDataSource.getAllMonthlyPlans();
 }

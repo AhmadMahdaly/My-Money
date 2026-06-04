@@ -62,7 +62,8 @@ class MyApp extends StatelessWidget {
             create: (context) => MonthlyPlanCubit(
               getMonthlyPlanUseCase: getIt(),
               saveMonthlyPlanUseCase: getIt(),
-            )..loadPlanForMonth(DateTime.now()),
+              getAllMonthlyPlansUseCase: getIt(),
+            )..loadAllPlans(),
           ),
           BlocProvider<WalletCubit>(
             create: (_) => walletCubit..loadWallets(),

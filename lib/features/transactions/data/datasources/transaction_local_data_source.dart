@@ -21,7 +21,7 @@ abstract class TransactionLocalDataSource {
   Future<void> saveCategory(TransactionCategory category);
   Future<void> updateCategory(TransactionCategory category);
   Future<void> deleteCategory(String categoryId);
-
+  Future<List<MonthlyPlan>> getAllMonthlyPlans();
   Future<void> saveDateFilter(
     DateTime startDate,
     DateTime endDate,
@@ -219,7 +219,6 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
     };
   }
 
-
   @override
   Future<MonthlyPlan> getMonthlyPlan(String yearMonth) async {
     final plans = await _getAllPlans();
@@ -263,6 +262,22 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
       key: monthlyPlansKey,
       value: json.encode(plans),
     );
+  }
+
+  @override
+  Future<List<MonthlyPlan>> getAllMonthlyPlans() async {
+    final plansMap = await _getAllPlans();
+
+    if (plansMap.isEmpty) {
+      return [];
+    }
+
+    return plansMap.values
+        .map(
+          (planJson) =>
+              MonthlyPlan.fromJson(Map<String, dynamic>.from(planJson as Map)),
+        )
+        .toList();
   }
 }
 
