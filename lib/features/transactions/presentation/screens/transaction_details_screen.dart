@@ -171,20 +171,20 @@ class _TransactionDetailsPage extends StatelessWidget {
     final transactionsForType = state.filteredTransactions.where((t) {
       if (t.type != type) return false;
 
-      if (type == TransactionType.expense) {
-        final category = state.allCategories.firstWhere(
-          (c) => c.id == t.categoryId,
-          orElse: () => TransactionCategory(
-            id: '',
-            name: 'غير معروف',
-            colorValue: 0,
-            type: type,
-          ),
-        );
+      // نجلب الفئة أولاً لمعرفة اسمها
+      final category = state.allCategories.firstWhere(
+        (c) => c.id == t.categoryId,
+        orElse: () => TransactionCategory(
+          id: '',
+          name: 'غير معروف',
+          colorValue: 0,
+          type: type,
+        ),
+      );
 
-        if (category.name == 'تحويل صادر') {
-          return false;
-        }
+      // نستبعد كلاً من التحويل الصادر (من المصاريف) والتحويل الوارد (من الدخل)
+      if (category.name == 'تحويل صادر' || category.name == 'تحويل وارد') {
+        return false;
       }
 
       return true;

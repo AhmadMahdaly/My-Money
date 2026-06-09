@@ -30,8 +30,17 @@ class MonthlyAnalyticsData extends Equatable {
     required List<Transaction> allTransactions,
     required List<TransactionCategory> allCategories,
   }) {
+    // 1. استخراج الـ IDs الخاصة بفئات التحويل لاستبعادها من الحسابات
+    final transferCategoryIds = allCategories
+        .where((c) => c.name == 'تحويل وارد' || c.name == 'تحويل صادر')
+        .map((c) => c.id)
+        .toList();
+
+    // 2. فلترة المعاملات السابقة (لاستبعاد التحويلات منها)
     final previousTransactions = allTransactions.where(
-      (t) => t.date.isBefore(cycleStart),
+      (t) =>
+          t.date.isBefore(cycleStart) &&
+          !transferCategoryIds.contains(t.categoryId),
     );
 
     final previousIncome = previousTransactions
@@ -44,11 +53,16 @@ class MonthlyAnalyticsData extends Equatable {
 
     final previousBalance = previousIncome - previousExpense;
 
+    // 3. فلترة معاملات الشهر الحالي (لاستبعاد التحويلات منها)
     final currentMonthTransactions = allTransactions.where((t) {
       return t.date.isAfter(cycleStart.subtract(const Duration(seconds: 1))) &&
-          t.date.isBefore(cycleEnd.add(const Duration(seconds: 1)));
+          t.date.isBefore(cycleEnd.add(const Duration(seconds: 1))) &&
+          !transferCategoryIds.contains(
+            t.categoryId,
+          ); // <--- السطر السحري لاستبعاد التحويلات
     }).toList();
 
+    // الآن سيتم جمع الدخل والمصروف بناءً على القائمة النظيفة
     final currentMonthIncome = currentMonthTransactions
         .where((t) => t.type == TransactionType.income)
         .fold(0.0, (sum, t) => sum + t.amount);
@@ -72,6 +86,7 @@ class MonthlyAnalyticsData extends Equatable {
     final mainSpending = <TransactionCategory, double>{};
     final subSpending = <TransactionCategory, double>{};
 
+    // حساب استهلاك الفئات بناءً على المعاملات المفلترة
     for (final main in expenseMainCategories) {
       final subIds = allCategories
           .where((c) => c.parentId == main.id)
@@ -129,7 +144,6 @@ class MonthlyAnalyticsData extends Equatable {
       expectedSavings: expectedSavings,
     );
   }
-
   final DateTime cycleStart;
   final DateTime cycleEnd;
   final double previousBalance;
