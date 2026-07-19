@@ -54,6 +54,20 @@ class DebtCubit extends Cubit<DebtState> {
     await _saveDebts(updatedList);
   }
 
+  Future<void> reactivateDebt(String id) async {
+    final updatedList = state.items.map((debt) {
+      if (debt.id == id) {
+        return debt.copyWith(
+          paidAmount: 0,
+          lastProcessedDate: null,
+        );
+      }
+      return debt;
+    }).toList();
+
+    await _saveDebts(updatedList);
+  }
+
   Future<void> recordManualPayment({
     required Debt debt,
     required double amount,

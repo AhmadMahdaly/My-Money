@@ -1,4 +1,4 @@
-import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opration/core/di.dart';
@@ -11,11 +11,11 @@ Future<void> initializeApp() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  try {
-    await Firebase.initializeApp();
-  } catch (_) {
-    // App can still run locally without Firebase config.
-  }
+  // try {
+  //   await Firebase.initializeApp();
+  // } catch (_) {
+  // App can still run locally without Firebase config.
+  // }
   await CacheHelper.init();
   // CloudAutoSyncService.initialize();
   await AppSettingsService.loadCurrency();

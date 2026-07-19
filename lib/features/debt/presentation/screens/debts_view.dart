@@ -258,28 +258,43 @@ class DebtsView extends StatelessWidget {
                     ],
                   ),
                 ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _showAddEditDebtDialog(context, existingDebt: debt);
-                    } else if (value == 'delete') {
-                      _showDeleteDebtConfirmation(context, debt);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Text('تعديل الدين'),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text(
-                        'مسح الدين',
-                        style: TextStyle(color: Colors.red),
+                if (!debt.isFullyPaid)
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        _showAddEditDebtDialog(context, existingDebt: debt);
+                      } else if (value == 'delete') {
+                        _showDeleteDebtConfirmation(context, debt);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Text('تعديل الدين'),
                       ),
-                    ),
-                  ],
-                ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          'مسح الدين',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'reActive') {
+                        _showReactivateDialog(context, debt);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'reActive',
+                        child: Text('إعادة الدين'),
+                      ),
+                    ],
+                  ),
               ],
             ),
             4.verticalSpace,
@@ -349,6 +364,39 @@ class DebtsView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showReactivateDialog(
+    BuildContext context,
+    Debt debt,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('إعادة تنشيط الدين'),
+        content: Text(
+          'سيتم إعادة "${debt.name}" كدين نشط وإلغاء حالة السداد الكامل.\n\nهل تريد المتابعة؟',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('إعادة التنشيط'),
+          ),
+        ],
+      ),
+    );
+
+    if ((result ?? false) && context.mounted) {
+      await context.read<DebtCubit>().reactivateDebt(debt.id);
+
+      showCustomSnackBar(
+        message: 'تم إعادة تنشيط الدين بنجاح',
+      );
+    }
   }
 
   void _showDeleteDebtConfirmation(BuildContext context, Debt debt) {
