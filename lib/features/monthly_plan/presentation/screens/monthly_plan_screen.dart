@@ -140,16 +140,16 @@ class _MonthlyPlanViewState extends State<_MonthlyPlanView> {
                   planState.plan == null) {
                 return const Center(child: CircularProgressIndicator());
               }
-              if (planState.status == MonthlyPlanStatus.saving) {
-                return Padding(
-                  padding: EdgeInsets.all(16.r),
-                  child: SizedBox(
-                    width: 20.w,
-                    height: 20.h,
-                    child: const CircularProgressIndicator(color: Colors.white),
-                  ),
-                );
-              }
+              // if (planState.status == MonthlyPlanStatus.saving) {
+              //   return Padding(
+              //     padding: EdgeInsets.all(16.r),
+              //     child: SizedBox(
+              //       width: 20.w,
+              //       height: 20.h,
+              //       child: const CircularProgressIndicator(color: Colors.white),
+              //     ),
+              //   );
+              // }
               if (planState.status == MonthlyPlanStatus.error) {
                 return Center(child: Text('فيه غلطة: ${planState.error}'));
               }
@@ -515,9 +515,11 @@ class _PlannedIncomeSection extends StatelessWidget {
           title: Text(
             'الدخل المتوقع',
             style: AppTextStyle.style14W500.copyWith(
-              color: AppColors.primaryColor,
+              color: AppColors.primaryTextColor,
             ),
           ),
+          collapsedIconColor: AppColors.primaryTextColor,
+          iconColor: AppColors.primaryTextColor,
           initiallyExpanded: false,
           children: [
             if (mainCategories.isEmpty)
@@ -764,7 +766,9 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
     final progressValue = (budgetedAmount > 0)
         ? (actualReceivedAmount / budgetedAmount).clamp(0.0, 1.0)
         : 0.0;
-
+    final currentAmount = widget.plan.incomes
+        .where((i) => i.name == widget.category.name)
+        .fold(0.0, (sum, item) => sum + item.amount);
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 16.r),
       title: Row(
@@ -810,7 +814,7 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                     size: 20.r,
                     color: AppColors.primaryColor,
                   ),
-                  label: 'إدارة المخصصات',
+                  label: 'إدارة الفئات',
                   onTap: () => context.push(AppRoutes.manageCategoriesScreen),
                 ),
               ],
@@ -870,9 +874,9 @@ class _IncomeBudgetTileState extends State<_IncomeBudgetTile> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                _controller.text.isEmpty
+                                currentAmount == 0
                                     ? '0'
-                                    : '${_controller.text}  $appCurrencySymbol',
+                                    : '${currentAmount.truncate()} $appCurrencySymbol',
                                 style: AppTextStyle.style14W500.copyWith(
                                   color: AppColors.primaryColor,
                                 ),
@@ -1399,7 +1403,7 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                               size: 20.r,
                               color: AppColors.primaryColor,
                             ),
-                            label: 'إدارة المخصصات',
+                            label: 'إدارة الفئات',
                             onTap: () =>
                                 context.push(AppRoutes.manageCategoriesScreen),
                           ),
@@ -1461,9 +1465,9 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                _controller.text.isEmpty
+                                parentOnlyBudgeted == 0
                                     ? '0'
-                                    : '${_controller.text} $appCurrencySymbol',
+                                    : '${parentOnlyBudgeted.truncate()} $appCurrencySymbol',
                                 style: AppTextStyle.style12W500.copyWith(
                                   color: AppColors.primaryTextColor,
                                 ),
@@ -1586,59 +1590,62 @@ class _ExpenseBudgetTileState extends State<_ExpenseBudgetTile> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.5,
-          maxChildSize: 0.9,
-          minChildSize: 0.3,
-          builder: (_, controller) {
-            return Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'الفئات الفرعية لـ ${widget.category.name}',
-                        style: AppTextStyle.style16W600,
+        return BlocBuilder<MonthlyPlanCubit, MonthlyPlanState>(
+          builder: (context, state) {
+            final currentPlan = state.plan ?? widget.plan;
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.5,
+              maxChildSize: 0.9,
+              minChildSize: 0.3,
+              builder: (_, controller) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'الفئات الفرعية لـ ${widget.category.name}',
+                            style: AppTextStyle.style16W600,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
+                    ),
+                    const Divider(height: 1, color: AppColors.secondaryColor),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: controller,
+                        padding: EdgeInsets.symmetric(vertical: 4.h),
+                        itemCount: subCategories.length + (showGeneral ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (showGeneral && index == 0) {
+                            return _ExpenseBudgetTile(
+                              category: widget.category,
+                              plan: currentPlan, // استخدام الخطة المحدثة هنا
+                              transactions: widget.transactions,
+                              isSubCategory: true,
+                              customName: 'عام',
+                            );
+                          }
+                          final actualIndex = showGeneral ? index - 1 : index;
+                          return _ExpenseBudgetTile(
+                            category: subCategories[actualIndex],
+                            plan: currentPlan, // استخدام الخطة المحدثة هنا
+                            transactions: widget.transactions,
+                            isSubCategory: true,
+                          );
+                        },
                       ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1, color: AppColors.secondaryColor),
-                Expanded(
-                  child: ListView.builder(
-                    controller: controller,
-                    padding: EdgeInsets.symmetric(vertical: 4.h),
-                    itemCount: subCategories.length + (showGeneral ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (showGeneral && index == 0) {
-                        return _ExpenseBudgetTile(
-                          category: widget.category,
-                          plan: widget.plan,
-                          transactions: widget.transactions,
-                          isSubCategory: true,
-                          customName: 'عام',
-                        );
-                      }
-
-                      final actualIndex = showGeneral ? index - 1 : index;
-
-                      return _ExpenseBudgetTile(
-                        category: subCategories[actualIndex],
-                        plan: widget.plan,
-                        transactions: widget.transactions,
-                        isSubCategory: true,
-                      );
-                    },
-                  ),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              },
             );
           },
         );

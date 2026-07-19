@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opration/core/services/cache_helper/cache_helper.dart';
-import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/domain/usecases/add_category.dart';
@@ -66,7 +65,7 @@ class TransactionCubit extends Cubit<TransactionState> {
       key: 'last_recurring_check',
       value: DateFormat('yyyy-MM-dd').format(_dateOnly(date)),
     );
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> loadInitialData() async {
@@ -121,7 +120,7 @@ class TransactionCubit extends Cubit<TransactionState> {
   ) async {
     final periodKey = _getPeriodKey(category, executionDate);
     await CacheHelper.saveData(key: periodKey, value: true);
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> checkScheduledTransactions() async {
@@ -266,7 +265,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     await walletCubit.updateWalletBalance(finalWalletId, amountWithSign);
 
     await _markAsExecuted(category, date);
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> executeScheduledTransaction(TransactionCategory category) async {
@@ -308,7 +307,8 @@ class TransactionCubit extends Cubit<TransactionState> {
     switch (filter) {
       case PredefinedFilter.today:
         final start = DateTime(now.year, now.month, now.day);
-        return DateTimeRange(start: start, end: start);
+        final end = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        return DateTimeRange(start: start, end: end);
       case PredefinedFilter.week:
         final daysToSubtract = (now.weekday == DateTime.saturday)
             ? 0
@@ -362,7 +362,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   Future<void> addTransaction(Transaction transaction) async {
     await _performDatabaseOperation(() => addTransactionUseCase(transaction));
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> updateTransaction(Transaction updatedTransaction) async {
@@ -388,7 +388,7 @@ class TransactionCubit extends Cubit<TransactionState> {
       );
 
       final transactions = await getTransactionsUseCase();
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
       emit(state.copyWith(isLoading: false, allTransactions: transactions));
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
@@ -414,7 +414,7 @@ class TransactionCubit extends Cubit<TransactionState> {
       );
 
       final transactions = await getTransactionsUseCase();
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
       emit(state.copyWith(isLoading: false, allTransactions: transactions));
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
@@ -423,12 +423,12 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   Future<void> addCategory(TransactionCategory category) async {
     await _performDatabaseOperation(() => addCategoryUseCase(category));
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> updateCategory(TransactionCategory category) async {
     await _performDatabaseOperation(() => updateCategoryUseCase(category));
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
   }
 
   Future<void> deleteCategory(String categoryId) async {
@@ -452,7 +452,7 @@ class TransactionCubit extends Cubit<TransactionState> {
 
       final transactions = await getTransactionsUseCase();
       final categories = await getCategoriesUseCase();
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
       emit(
         state.copyWith(
           isLoading: false,
@@ -530,7 +530,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     final updatedPending = state.pendingTransactions
         .where((c) => c.id != category.id)
         .toList();
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
     emit(state.copyWith(pendingTransactions: updatedPending));
 
     await executeRecurringTransaction(category);
@@ -566,7 +566,7 @@ class TransactionCubit extends Cubit<TransactionState> {
       final updatedPending = List<TransactionCategory>.from(
         state.pendingTransactions,
       )..removeWhere((c) => c.id == category.id);
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
       emit(
         state.copyWith(
           pendingTransactions: updatedPending,
@@ -582,7 +582,7 @@ class TransactionCubit extends Cubit<TransactionState> {
     final updatedPending = state.pendingTransactions
         .where((c) => c.id != category.id)
         .toList();
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
     emit(state.copyWith(pendingTransactions: updatedPending));
 
     await _markAsExecuted(category, DateTime.now());

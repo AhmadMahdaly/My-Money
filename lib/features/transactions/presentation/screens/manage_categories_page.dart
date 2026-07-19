@@ -21,7 +21,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
     return Scaffold(
       appBar: const PageHeader(
         isLeading: true,
-        title: 'إدارة مخصصاتك',
+        title: 'إدارة الفئات',
       ),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {
@@ -50,12 +50,12 @@ class ManageCategoriesDrawer extends StatelessWidget {
           return ListView(
             children: [
               _CategoryListSection(
-                title: 'مخصصات الدخل',
+                title: 'فئات الدخل',
                 categories: incomeCategories,
               ),
               const Divider(),
               _CategoryListSection(
-                title: 'مخصصات الصرف',
+                title: 'فئات الصرف',
                 categories: expenseCategories,
               ),
               60.verticalSpace,
@@ -86,7 +86,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
         titleTextStyle: AppTextStyle.style18W600,
         title: Text(
           textAlign: TextAlign.center,
-          'اختار نوع المخصص',
+          'اختار نوع الفئة',
           style: AppTextStyle.style16W700.copyWith(
             color: AppColors.forthColor,
           ),
@@ -100,7 +100,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
                 color: AppColors.successColor,
               ),
               title: Text(
-                'مخصص دخل',
+                'فئة دخل',
                 style: AppTextStyle.style14W500.copyWith(
                   color: AppColors.successColor,
                 ),
@@ -116,7 +116,7 @@ class ManageCategoriesDrawer extends StatelessWidget {
                 color: AppColors.errorColor,
               ),
               title: Text(
-                'مخصص صرف',
+                'فئة صرف',
                 style: AppTextStyle.style14W500.copyWith(
                   color: AppColors.errorColor,
                 ),

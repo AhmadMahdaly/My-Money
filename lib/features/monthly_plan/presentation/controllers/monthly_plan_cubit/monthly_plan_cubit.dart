@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/features/monthly_plan/domain/entities/monthly_plan.dart';
 import 'package:opration/features/monthly_plan/domain/usecases/get_all_monthly_plans.dart';
 import 'package:opration/features/monthly_plan/domain/usecases/get_monthly_plan.dart';
@@ -65,7 +64,7 @@ class MonthlyPlanCubit extends Cubit<MonthlyPlanState> {
     emit(state.copyWith(status: MonthlyPlanStatus.saving));
     try {
       await saveMonthlyPlanUseCase(state.plan!);
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
       if (!isClosed) {
         emit(state.copyWith(status: MonthlyPlanStatus.loaded));
       }
@@ -127,7 +126,7 @@ class MonthlyPlanCubit extends Cubit<MonthlyPlanState> {
 
     try {
       await saveMonthlyPlanUseCase(updatedPlan);
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
       emit(
         state.copyWith(
           status: MonthlyPlanStatus.loaded,

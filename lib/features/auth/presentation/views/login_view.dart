@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:opration/core/constants.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/services/app_settings_service.dart';
@@ -66,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
           return Center(
             child: SingleChildScrollView(
               child: Padding(
-                padding: EdgeInsets.all(24.r),
+                padding: EdgeInsets.symmetric(horizontal: 24.w),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -105,22 +104,32 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: double.infinity,
                             text: 'ابدأ',
                           ),
-                          12.verticalSpace,
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              context.read<AuthCubit>().loginWithGoogle(
-                                currencyCode: _selectedCurrencyCode,
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(kRadius),
-                              ),
-                              minimumSize: Size(double.infinity, 52.h),
-                            ),
-                            icon: const Icon(Icons.login),
-                            label: const Text('تسجيل الدخول بحساب جوجل'),
-                          ),
+
+                          // 12.verticalSpace,
+                          // IconButton(
+                          //   onPressed: () {
+                          //     context.read<AuthCubit>().loginWithGoogle(
+                          //       currencyCode: _selectedCurrencyCode,
+                          //     );
+                          //   },
+                          //   icon: Row(
+                          //     mainAxisAlignment: MainAxisAlignment.center,
+                          //     children: [
+                          //       Text(
+                          //         'أو سجل الدخول بحساب جوجل',
+                          //         style: AppTextStyle.style14W600.copyWith(
+                          //           color: AppColors.primaryColor,
+                          //         ),
+                          //       ),
+                          //       10.horizontalSpace,
+                          //       SvgImage(
+                          //         height: 30.h,
+                          //         imagePath: 'assets/image/svg/google-icon.svg',
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                          36.verticalSpace,
                         ],
                       ),
                   ],

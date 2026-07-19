@@ -31,7 +31,7 @@ class MoreView extends StatelessWidget {
 
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'إدارة مخصصات الدخل والمصاريف',
+            text: 'إدارة فئات الدخل والمصاريف',
             onTap: () => context.pushNamed(AppRoutes.manageCategoriesScreen),
           ),
           CustomMorePageCard(

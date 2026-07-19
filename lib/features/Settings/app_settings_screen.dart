@@ -7,8 +7,6 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/services/app_settings_service.dart';
 import 'package:opration/core/services/cache_helper/backup_service.dart';
-import 'package:opration/core/services/cloud_auth_service.dart';
-import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/core/shared_widgets/currency_picker_field.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
@@ -63,7 +61,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
       await context.read<AuthCubit>().updateUsername(name);
       await AppSettingsService.saveCurrencyCode(_selectedCurrencyCode);
 
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
 
       if (!mounted) return;
       showCustomSnackBar(message: 'تم حفظ الإعدادات');
@@ -108,7 +106,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
 
       await BackupService.restoreFromJson();
 
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
 
       if (!mounted) return;
       await _refreshAllCubits();
@@ -208,64 +206,64 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                   ),
                   16.verticalSpace,
                   const Divider(color: AppColors.secondaryColor),
-                  8.verticalSpace,
+                  16.verticalSpace,
 
-                  if (!CloudAuthService.isLoggedIn) ...[
-                    16.verticalSpace,
-                    Text(
-                      'التخزين السحابي غير مفعل',
-                      style: AppTextStyle.style14W600.copyWith(
-                        color: AppColors.primaryTextColor,
-                      ),
+                  // if (!CloudAuthService.isLoggedIn) ...[
+                  //   8.verticalSpace,
+                  Text(
+                    'نسخ البيانات احتياطياً أو استعادتها',
+                    style: AppTextStyle.style14W600.copyWith(
+                      color: AppColors.primaryTextColor,
                     ),
-                    16.verticalSpace,
-                    if (state is AuthLoading)
-                      const Center(child: CircularProgressIndicator())
-                    else
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          context.read<AuthCubit>().loginWithGoogle(
-                            currencyCode: _selectedCurrencyCode,
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(kRadius),
-                          ),
-                          minimumSize: Size(double.infinity, 52.h),
-                        ),
-                        icon: const Icon(Icons.login),
-                        label: const Text('تسجيل الدخول بحساب جوجل'),
-                      ),
-                  ] else ...[
-                    16.verticalSpace,
-                    Text(
-                      'التخزين السحابي مفعل',
-                      style: AppTextStyle.style14W600.copyWith(
-                        color: AppColors.primaryTextColor,
-                      ),
+                  ),
+                  16.verticalSpace,
+                  OutlinedButton.icon(
+                    onPressed: () => context.pushNamed(
+                      AppRoutes.backupScreen,
+                      extra: true,
                     ),
-                    16.verticalSpace,
-                    OutlinedButton.icon(
-                      onPressed: () => context.pushNamed(
-                        AppRoutes.backupScreen,
-                        extra: true,
-                      ),
-                      icon: Image.asset(
-                        'assets/image/png/reset.png',
-                        height: 20.r,
+                    icon: Image.asset(
+                      'assets/image/png/reset.png',
+                      height: 20.r,
 
-                        color: AppColors.primaryColor,
-                      ),
-                      label: const Text('نسخ البيانات احتياطياً أو استعادتها'),
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(kRadius),
-                        ),
-                        minimumSize: Size(double.infinity, 52.h),
-                      ),
+                      color: AppColors.primaryColor,
                     ),
-                  ],
+                    label: const Text('إدارة نسخ البيانات'),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(kRadius),
+                      ),
+                      minimumSize: Size(double.infinity, 52.h),
+                    ),
+                  ),
+                  // ] else if (CloudAuthService.isLoggedIn) ...[
+                  //   8.verticalSpace,
+                  //   Text(
+                  //     'التخزين السحابي غير مفعل',
+                  //     style: AppTextStyle.style14W600.copyWith(
+                  //       color: AppColors.primaryTextColor,
+                  //     ),
+                  //   ),
+                  //   16.verticalSpace,
+                  //   if (state is AuthLoading)
+                  //     const Center(child: CircularProgressIndicator())
+                  //   else
+                  //     OutlinedButton.icon(
+                  //       onPressed: () {
+                  //         context.read<AuthCubit>().loginWithGoogle(
+                  //           currencyCode: _selectedCurrencyCode,
+                  //         );
+                  //       },
+                  //       style: OutlinedButton.styleFrom(
+                  //         shape: RoundedRectangleBorder(
+                  //           borderRadius: BorderRadius.circular(kRadius),
+                  //         ),
+                  //         minimumSize: Size(double.infinity, 52.h),
+                  //       ),
+                  //       icon: const Icon(Icons.login),
+                  //       label: const Text('تسجيل الدخول بحساب جوجل'),
+                  //     ),
+                  // ],
                 ],
               ),
             ],

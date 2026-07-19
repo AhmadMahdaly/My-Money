@@ -170,7 +170,9 @@ void _showChangeMainWalletDialog(
                         final wallet = wallets[index];
                         return RadioListTile<String>(
                           title: Text(wallet.name),
-                          subtitle: Text('${wallet.balance.truncate()} $appCurrencySymbol'),
+                          subtitle: Text(
+                            '${wallet.balance.truncate()} $appCurrencySymbol',
+                          ),
                           value: wallet.id,
                           groupValue: selectedWalletId,
                           onChanged: (value) {
@@ -702,8 +704,8 @@ class _TransactionFormState extends State<_TransactionForm> {
 
                     _buildCategorySelectionField(
                       hint: widget.type == TransactionType.income
-                          ? 'الفلوس دي جاية منين (اختار المخصص الرئيسي)؟'
-                          : 'صرفت على ايه (اختار المخصص الرئيسي)؟',
+                          ? 'الفلوس دي جاية منين (اختار الفئة الرئيسية)؟'
+                          : 'صرفت على ايه (اختار الفئة الرئيسية)؟',
                       selectedCategory: selectedMainCategory,
                       onTap: () => _showCategorySelectionSheet(
                         context: context,
@@ -716,7 +718,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                       _buildCategorySelectionField(
                         hint: subCategories.isEmpty
                             ? 'لا توجد تفريعات، اضغط لإضافة واحدة'
-                            : 'اختر المخصص الفرعي',
+                            : 'اختر فئة الفرعية',
                         selectedCategory: selectedSubCategory,
                         onTap: () => _showCategorySelectionSheet(
                           context: context,
@@ -829,9 +831,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Text(
-                    isMainCategory
-                        ? 'اختر المخصص الرئيسي'
-                        : 'اختر المخصص الفرعي',
+                    isMainCategory ? 'اختر فئة الرئيسية' : 'اختر الفئة الفرعية',
                     style: AppTextStyle.style18W600,
                   ),
                 ),
@@ -840,7 +840,7 @@ class _TransactionFormState extends State<_TransactionForm> {
                   child: categories.isEmpty
                       ? Center(
                           child: Text(
-                            'مفيش مخصصات مسجلة هنا',
+                            'مفيش فئات مسجلة هنا',
                             style: AppTextStyle.style14W400.copyWith(
                               color: Colors.grey,
                             ),
@@ -987,8 +987,8 @@ class _TransactionFormState extends State<_TransactionForm> {
                       ),
                       title: Text(
                         isMainCategory
-                            ? 'إضافة مخصص رئيسي جديد'
-                            : 'إضافة مخصص فرعي جديد',
+                            ? 'إضافة فئة رئيسية جديدة'
+                            : 'إضافة فئة فرعية جديدة',
                         style: AppTextStyle.style14W600.copyWith(
                           color: AppColors.primaryTextColor,
                         ),

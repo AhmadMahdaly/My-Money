@@ -27,55 +27,57 @@ class LoginWelcomeUserWidget extends StatelessWidget {
             color: AppColors.secondaryTextColor,
           ),
         ),
-        // Row(
-        //   spacing: 8.w,
-        //   children: [
-        //     const Icon(
-        //       Icons.check_circle,
-        //       color: AppColors.primaryColor,
-        //     ),
-        //     Text(
-        //       'من غير إنترنت.',
-        //       style: AppTextStyles.style16W400.copyWith(
-        //         color: AppColors.secondaryTextColor,
-        //       ),
-        //     ),
-        //   ],
-        // ),
-        // Row(
-        //   spacing: 8.w,
-        //   children: [
-        //     const Icon(
-        //       Icons.check_circle,
-        //       color: AppColors.primaryColor,
-        //     ),
-        //     Text(
-        //       'من غير إعلانات.',
-        //       style: AppTextStyles.style16W400.copyWith(
-        //         color: AppColors.secondaryTextColor,
-        //       ),
-        //     ),
-        //   ],
-        // ),
-        // Row(
-        //   spacing: 8.w,
-        //   children: [
-        //     const Icon(
-        //       Icons.check_circle,
-        //       color: AppColors.primaryColor,
-        //     ),
-        //     Text(
-        //       'وكل ده على تليفونك بس.',
-        //       style: AppTextStyles.style16W400.copyWith(
-        //         color: AppColors.secondaryTextColor,
-        //       ),
-        //     ),
-        //   ],
-        // ),
+        4.verticalSpace,
+        Row(
+          spacing: 8.w,
+          children: [
+            const Icon(
+              Icons.volunteer_activism_rounded,
+              color: AppColors.primaryColor,
+            ),
+            Text(
+              'مجاني تماماً.',
+              style: AppTextStyle.style16W500.copyWith(
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          spacing: 8.w,
+          children: [
+            const Icon(
+              Icons.wifi_off_rounded,
+              color: AppColors.primaryColor,
+            ),
+            Text(
+              'من غير إنترنت.',
+              style: AppTextStyle.style16W500.copyWith(
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          spacing: 8.w,
+          children: [
+            const Icon(
+              Icons.block_rounded,
+              color: AppColors.primaryColor,
+            ),
+            Text(
+              'من غير إعلانات.',
+              style: AppTextStyle.style16W400.copyWith(
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ],
+        ),
+
         8.verticalSpace,
         Text(
           '✨ يلا نبدأ… اكتب اسمك وخلينا ننطلق!',
-          style: AppTextStyle.style16W400.copyWith(
+          style: AppTextStyle.style16W600.copyWith(
             color: AppColors.primaryColor,
           ),
         ),

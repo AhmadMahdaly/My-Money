@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:opration/core/services/cache_helper/cache_helper.dart';
-import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/features/debt/domain/entities/debt.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
@@ -33,7 +32,7 @@ class DebtCubit extends Cubit<DebtState> {
   Future<void> _saveDebts(List<Debt> debts) async {
     final jsonList = debts.map((d) => d.toJson()).toList();
     await CacheHelper.saveData(key: _cacheKey, value: json.encode(jsonList));
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
     emit(state.copyWith(debts: debts));
   }
 

@@ -42,28 +42,62 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
   String? _selectedParentId;
 
   final List<Color> _availableColors = [
-    Colors.blue,
-    Colors.green,
     Colors.red,
-    Colors.orange,
-    Colors.purple,
-    Colors.teal,
-    Colors.pink,
-    Colors.amber,
-    Colors.cyan,
-    Colors.brown,
-    Colors.black,
-    Colors.indigo,
-    Colors.blueAccent,
-    Colors.blueGrey,
-    Colors.deepOrange,
-    Colors.deepPurple,
-    Colors.lightGreen,
-    Colors.lime,
-    Colors.yellow,
-    Colors.pinkAccent,
-  ];
+    Colors.redAccent,
 
+    Colors.pink,
+    Colors.pinkAccent,
+
+    Colors.purple,
+    Colors.purpleAccent,
+
+    Colors.deepPurple,
+    Colors.deepPurpleAccent,
+
+    Colors.indigo,
+    Colors.indigoAccent,
+
+    Colors.blue,
+    Colors.blueAccent,
+
+    Colors.lightBlue,
+    Colors.lightBlueAccent,
+
+    Colors.cyan,
+    Colors.cyanAccent,
+
+    Colors.teal,
+    Colors.tealAccent,
+
+    Colors.green,
+    Colors.greenAccent,
+
+    Colors.lightGreen,
+    Colors.lightGreenAccent,
+
+    Colors.lime,
+
+    Colors.yellow,
+    Colors.yellowAccent,
+
+    Colors.amber,
+    Colors.amberAccent,
+
+    Colors.orange,
+    Colors.orangeAccent,
+
+    Colors.deepOrange,
+    Colors.deepOrangeAccent,
+
+    Colors.brown,
+
+    Colors.blueGrey,
+
+    Colors.grey,
+
+    Colors.black,
+    Colors.white,
+  ];
   @override
   void initState() {
     super.initState();
@@ -115,7 +149,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف المخصص؟'),
+        title: const Text('حذف الفئة'),
         content: Text(
           'سيتم حذف "${category.name}" وجميع العمليات المرتبطة بها.',
         ),
@@ -156,7 +190,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.scaffoldBackgroundLightColor,
         title: Text(
-          widget.categoryToEdit != null ? 'تعديل المخصص' : 'إضافة مخصص ذكي',
+          widget.categoryToEdit != null ? 'تعديل الفئة' : 'إضافة فئة ذكية',
           style: AppTextStyle.style16W600.copyWith(
             color: AppColors.primaryColor,
           ),
@@ -194,7 +228,11 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
           final wallets = (walletState is WalletLoaded)
               ? walletState.wallets
               : <Wallet>[];
-
+          final excludedCategories = [
+            'رصيد افتتاحي',
+            'تحويل وارد',
+            'تحويل صادر',
+          ];
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: SingleChildScrollView(
@@ -210,7 +248,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                       children: [
                         CustomPrimaryTextfield(
                           controller: _nameController,
-                          text: 'اسم المخصص',
+                          text: 'اسم الفئة',
                           validator: (v) => v!.isEmpty ? 'سجل الاسم' : null,
                         ),
                         16.verticalSpace,
@@ -222,7 +260,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             Padding(
                               padding: EdgeInsets.only(bottom: 16.h),
                               child: Text(
-                                '⚠️ لا يمكن تحويل هذا المخصص إلى فرعي لأن بداخله مخصصات فرعية بالفعل.',
+                                '⚠️ لا يمكن تحويل هذه الفئة إلى فرعية لأن بداخلها فئات فرعية بالفعل.',
                                 style: AppTextStyle.style12W400.copyWith(
                                   color: AppColors.orangeColor,
                                 ),
@@ -232,7 +270,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             SwitchListTile(
                               contentPadding: EdgeInsets.zero,
                               title: Text(
-                                'هل هذا مخصص فرعي؟',
+                                'هل هذه فئة فرعية؟',
                                 style: AppTextStyle.style14W600,
                               ),
                               value: _isSubCategory,
@@ -241,17 +279,19 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                             ),
                             if (_isSubCategory) ...[
                               Text(
-                                'يندرج تحت مخصص:',
+                                'يندرج تحت فئة:',
                                 style: AppTextStyle.style12W300,
                               ),
                               8.verticalSpace,
                               CustomDropdownButtonFormField<String>(
                                 value: _selectedParentId,
-                                hintText: 'المخصصات:',
+                                hintText: 'الفئات:',
 
                                 items: mainCategories
                                     .where(
-                                      (c) => c.id != widget.categoryToEdit?.id,
+                                      (c) =>
+                                          c.id != widget.categoryToEdit?.id &&
+                                          !excludedCategories.contains(c.name),
                                     )
                                     .map(
                                       (c) => DropdownMenuItem(
@@ -267,7 +307,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                                 onChanged: (v) =>
                                     setState(() => _selectedParentId = v),
                                 validator: (v) => _isSubCategory && v == null
-                                    ? 'اختر المخصص الرئيسي'
+                                    ? 'اختر الفئة الرئيسية'
                                     : null,
                               ),
                               16.verticalSpace,
@@ -306,7 +346,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
-                            'مخصص مكرر (التزامات ثابتة)',
+                            'فئة مكررة (التزامات ثابتة)',
                             style: AppTextStyle.style14W600,
                           ),
                           subtitle: Text(

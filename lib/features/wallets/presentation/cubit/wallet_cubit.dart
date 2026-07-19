@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/features/wallets/domain/entities/wallet.dart';
 import 'package:opration/features/wallets/domain/usecases/add_wallet.dart';
 import 'package:opration/features/wallets/domain/usecases/delete_wallet.dart';
@@ -54,7 +53,7 @@ class WalletCubit extends Cubit<WalletState> {
     try {
       await operation();
 
-      await CloudSyncService.touchLocalUpdate();
+      // await CloudSyncService.touchLocalUpdate();
 
       await loadWallets(isSilentRefresh: true);
     } catch (e) {
@@ -101,7 +100,7 @@ class WalletCubit extends Cubit<WalletState> {
 
     await saveShowMainWalletPrefUseCase(newPref);
 
-    await CloudSyncService.touchLocalUpdate();
+    // await CloudSyncService.touchLocalUpdate();
 
     emit(WalletLoaded(currentState.wallets, showMainWallet: newPref));
   }

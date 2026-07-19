@@ -35,8 +35,18 @@ class TransactionState extends Equatable {
   final List<TransactionCategory> pendingTransactions;
   List<Transaction> get filteredTransactions {
     if (filterStartDate == null || filterEndDate == null) {
-      return [];
+      return allTransactions;
     }
+
+    final inclusiveStartDate = DateTime(
+      filterStartDate!.year,
+      filterStartDate!.month,
+      filterStartDate!.day,
+      0,
+      0,
+      0,
+    );
+
     final inclusiveEndDate = DateTime(
       filterEndDate!.year,
       filterEndDate!.month,
@@ -45,8 +55,9 @@ class TransactionState extends Equatable {
       59,
       59,
     );
+
     var dateFilteredTransactions = allTransactions.where((t) {
-      return !t.date.isBefore(filterStartDate!) &&
+      return !t.date.isBefore(inclusiveStartDate) &&
           !t.date.isAfter(inclusiveEndDate);
     }).toList();
 
@@ -55,6 +66,8 @@ class TransactionState extends Equatable {
           .where((t) => t.walletId == selectedWalletId)
           .toList();
     }
+
+    dateFilteredTransactions.sort((a, b) => b.date.compareTo(a.date));
 
     return dateFilteredTransactions;
   }

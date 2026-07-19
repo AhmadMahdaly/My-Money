@@ -6,7 +6,6 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/app_routes.dart';
 import 'package:opration/core/services/cache_helper/backup_service.dart';
 import 'package:opration/core/services/cache_helper/cache_helper.dart';
-import 'package:opration/core/services/cloud_auth_service.dart';
 import 'package:opration/core/shared_widgets/custom_primary_button.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/shared_widgets/show_custom_snackbar.dart';
@@ -30,50 +29,49 @@ class BackupScreen extends StatefulWidget {
 class _BackupScreenState extends State<BackupScreen> {
   bool isLoading = false;
 
-  Future<void> _refreshAppData() async {
-    await context.read<AuthCubit>().checkAuthStatus();
-    await context.read<TransactionCubit>().loadInitialData();
-    await context.read<MonthlyPlanCubit>().loadPlanForMonth(DateTime.now());
-    await context.read<WalletCubit>().loadWallets();
-    await context.read<FinancialGoalCubit>().loadGoals();
-    await context.read<DebtCubit>().processDueDebts(
-      context.read<TransactionCubit>(),
-      context.read<WalletCubit>(),
-    );
-  }
+  // Future<void> _refreshAppData() async {
+  //   await context.read<AuthCubit>().checkAuthStatus();
+  //   await context.read<TransactionCubit>().loadInitialData();
+  //   await context.read<MonthlyPlanCubit>().loadPlanForMonth(DateTime.now());
+  //   await context.read<WalletCubit>().loadWallets();
+  //   await context.read<FinancialGoalCubit>().loadGoals();
+  //   await context.read<DebtCubit>().processDueDebts(
+  //     context.read<TransactionCubit>(),
+  //     context.read<WalletCubit>(),
+  //   );
+  // }
+  // Future<void> _pushCloudSync() async {
+  //   final success = await context.read<AuthCubit>().syncToCloud();
+  //   if (mounted) {
+  //     showCustomSnackBar(
+  //       message: success ? 'تم رفع البيانات للسحابة' : 'فشل رفع البيانات',
+  //       isError: !success,
+  //     );
+  //   }
+  // }
 
-  Future<void> _pushCloudSync() async {
-    final success = await context.read<AuthCubit>().syncToCloud();
-    if (mounted) {
-      showCustomSnackBar(
-        message: success ? 'تم رفع البيانات للسحابة' : 'فشل رفع البيانات',
-        isError: !success,
-      );
-    }
-  }
+  // Future<void> _deleteDataFromCloud() async {
+  //   final success = await context.read<AuthCubit>().deleteDataFromCloud();
+  //   if (mounted) {
+  //     showCustomSnackBar(
+  //       message: success ? 'تم حذف البيانات من السحابة' : 'فشل حذف البيانات',
+  //       isError: !success,
+  //     );
+  //   }
+  // }
 
-  Future<void> _deleteDataFromCloud() async {
-    final success = await context.read<AuthCubit>().deleteDataFromCloud();
-    if (mounted) {
-      showCustomSnackBar(
-        message: success ? 'تم حذف البيانات من السحابة' : 'فشل حذف البيانات',
-        isError: !success,
-      );
-    }
-  }
-
-  Future<void> _pullCloudSync() async {
-    final success = await context.read<AuthCubit>().restoreFromCloud();
-    if (success) {
-      await _refreshAppData();
-    }
-    if (mounted) {
-      showCustomSnackBar(
-        message: success ? 'تم استرجاع البيانات من السحابة' : 'فشل الاسترجاع',
-        isError: !success,
-      );
-    }
-  }
+  // Future<void> _pullCloudSync() async {
+  //   final success = await context.read<AuthCubit>().restoreFromCloud();
+  //   if (success) {
+  //     await _refreshAppData();
+  //   }
+  //   if (mounted) {
+  //     showCustomSnackBar(
+  //       message: success ? 'تم استرجاع البيانات من السحابة' : 'فشل الاسترجاع',
+  //       isError: !success,
+  //     );
+  //   }
+  // }
 
   void _setLoading(bool value) {
     setState(() {
@@ -207,7 +205,7 @@ class _BackupScreenState extends State<BackupScreen> {
                         if (widget.isFromMorePage) ...[
                           const _Section(
                             icon: Icons.backup,
-                            title: 'إنشاء نسخة احتياطية',
+                            title: 'سحب ملف كنسخة احتياطية',
                             description:
                                 'يقوم بحفظ جميع بياناتك (المعاملات، المحافظ، الفئات، والخطط الشهرية) في ملف يمكنك مشاركته أو الاحتفاظ به.',
                             color: Colors.green,
@@ -218,14 +216,17 @@ class _BackupScreenState extends State<BackupScreen> {
                             color: Colors.green,
                             width: double.infinity,
                             onPressed: () => isLoading ? null : handleBackup(),
-                            text: 'مشاركة نسخة احتياطية من البيانات',
+                            text: 'مشاركة النسخة',
                           ),
-                          16.verticalSpace,
+                          8.verticalSpace,
                         ],
+                        8.verticalSpace,
+                        const Divider(color: AppColors.secondaryColor),
 
+                        8.verticalSpace,
                         const _Section(
                           icon: Icons.restore,
-                          title: 'استعادة نسخة احتياطية',
+                          title: 'استعادة البيانات من ملف سابق',
                           description:
                               'يقوم بتحميل البيانات من ملف واستبدال البيانات الحالية بالكامل بالبيانات الموجودة في النسخة الاحتياطية.',
                           color: Colors.orange,
@@ -235,64 +236,61 @@ class _BackupScreenState extends State<BackupScreen> {
                           color: Colors.orange,
                           width: double.infinity,
                           onPressed: () => isLoading ? null : handleRestore(),
-                          text: 'استعادة النسخة الاحتياطية',
+                          text: 'تحميل الملف',
                         ),
+
+                        // 8.verticalSpace,
+                        // if (widget.isFromMorePage) ...[
+                        // if (CloudAuthService.isLoggedIn) ...[
+                        //   16.verticalSpace,
+                        //   OutlinedButton.icon(
+                        //     style: OutlinedButton.styleFrom(
+                        //       side: BorderSide.none,
+                        //       shape: RoundedRectangleBorder(
+                        //         borderRadius: BorderRadius.circular(kRadius),
+                        //       ),
+                        //       backgroundColor: Colors.green,
+                        //       minimumSize: Size(double.infinity, 52.h),
+                        //     ),
+                        //     onPressed: _pushCloudSync,
+                        //     icon: const Icon(
+                        //       Icons.cloud_upload_outlined,
+                        //       color: Colors.white,
+                        //     ),
+                        //     label: Text(
+                        //       'رفع نسخة سحابية الآن',
+                        //       style: AppTextStyle.style14W600.copyWith(
+                        //         color: Colors.white,
+                        //       ),
+                        //     ),
+                        //   ),
+                        //   8.verticalSpace,
+                        //   OutlinedButton.icon(
+                        //     style: OutlinedButton.styleFrom(
+                        //       shape: RoundedRectangleBorder(
+                        //         borderRadius: BorderRadius.circular(kRadius),
+                        //       ),
+                        //       side: BorderSide.none,
+                        //       backgroundColor: AppColors.orangeColor,
+                        //       minimumSize: Size(double.infinity, 52.h),
+                        //     ),
+
+                        //     onPressed: _pullCloudSync,
+                        //     icon: const Icon(
+                        //       Icons.cloud_download_outlined,
+                        //       color: Colors.white,
+                        //     ),
+                        //     label: Text(
+                        //       'استرجاع من السحابة',
+                        //       style: AppTextStyle.style14W600.copyWith(
+                        //         color: Colors.white,
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ],
                         16.verticalSpace,
                         const Divider(color: AppColors.secondaryColor),
-
-                        8.verticalSpace,
-                        if (widget.isFromMorePage) ...[
-                          if (CloudAuthService.isLoggedIn) ...[
-                            16.verticalSpace,
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide.none,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(kRadius),
-                                ),
-                                backgroundColor: Colors.green,
-                                minimumSize: Size(double.infinity, 52.h),
-                              ),
-                              onPressed: _pushCloudSync,
-                              icon: const Icon(
-                                Icons.cloud_upload_outlined,
-                                color: Colors.white,
-                              ),
-                              label: Text(
-                                'رفع نسخة سحابية الآن',
-                                style: AppTextStyle.style14W600.copyWith(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            8.verticalSpace,
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(kRadius),
-                                ),
-                                side: BorderSide.none,
-                                backgroundColor: AppColors.orangeColor,
-                                minimumSize: Size(double.infinity, 52.h),
-                              ),
-
-                              onPressed: _pullCloudSync,
-                              icon: const Icon(
-                                Icons.cloud_download_outlined,
-                                color: Colors.white,
-                              ),
-                              label: Text(
-                                'استرجاع من السحابة',
-                                style: AppTextStyle.style14W600.copyWith(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-
-                          16.verticalSpace,
-                          const Divider(color: AppColors.secondaryColor),
-                        ],
+                        // ],
                         20.verticalSpace,
                         OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
@@ -356,7 +354,7 @@ class _BackupScreenState extends State<BackupScreen> {
                                       onPressed: () async {
                                         Navigator.pop(context);
                                         try {
-                                          await _deleteDataFromCloud();
+                                          // await _deleteDataFromCloud();
                                           await CacheHelper.clearAllData();
                                           await refreshAllCubits();
 

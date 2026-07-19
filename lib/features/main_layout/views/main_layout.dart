@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
-import 'package:opration/core/services/cloud_auth_service.dart';
-import 'package:opration/core/services/cloud_sync_service.dart';
 import 'package:opration/core/shared_widgets/svg_image_widget.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
@@ -30,10 +28,10 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Future<void> _refreshAllCubits() async {
-    final user = CloudAuthService.currentUser;
-    if (user != null) {
-      await CloudSyncService.smartSync(uid: user.uid);
-    }
+    // final user = CloudAuthService.currentUser;
+    // if (user != null) {
+    //   await CloudSyncService.smartSync(uid: user.uid);
+    // }
 
     await Future.wait([
       context.read<AuthCubit>().checkAuthStatus(),
