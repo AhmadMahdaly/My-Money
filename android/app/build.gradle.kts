@@ -15,8 +15,8 @@ plugins {
 
 android {
     namespace = "com.mahdaly.mymoney"
-    compileSdk = 36
-    ndkVersion = "28.2.13676358"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -31,8 +31,8 @@ android {
 
     defaultConfig {
         applicationId = "com.mahdaly.mymoney"
-        minSdk = 24
-        targetSdk = 35
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -60,6 +60,11 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
 flutter {
     source = "../.."
 }

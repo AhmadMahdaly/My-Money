@@ -185,8 +185,38 @@ class ShoppingListView extends StatelessWidget {
             color: Colors.red,
             size: 20.r,
           ),
-          onPressed: () => context.read<ShoppingCubit>().deleteItem(item.id),
+          onPressed: () => _showDeleteConfirmationDialog(context, item),
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, ShoppingItem item) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content: Text(
+          'هل أنت متأكد أنك تريد مسح "${item.name}" من القائمة؟',
+          style: AppTextStyle.style14W400,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () {
+              context.read<ShoppingCubit>().deleteItem(item.id);
+              Navigator.pop(ctx);
+              showCustomSnackBar(message: 'تم المسح بنجاح');
+            },
+            child: const Text('مسح', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

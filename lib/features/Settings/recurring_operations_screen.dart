@@ -20,8 +20,31 @@ import 'package:opration/features/transactions/presentation/screens/widgets/add_
 import 'package:opration/features/wallets/presentation/cubit/wallet_cubit.dart';
 import 'package:uuid/uuid.dart';
 
-class RecurringOperationsScreen extends StatelessWidget {
+enum RecurringFilter { all, income, expense }
+
+class RecurringOperationsScreen extends StatefulWidget {
   const RecurringOperationsScreen({super.key});
+
+  @override
+  State<RecurringOperationsScreen> createState() =>
+      _RecurringOperationsScreenState();
+}
+
+class _RecurringOperationsScreenState extends State<RecurringOperationsScreen> {
+  RecurringFilter _selectedFilter = RecurringFilter.all;
+
+  DateTime? _getLastExecutionDate(
+    String? categoryId,
+    List<Transaction> allTransactions,
+  ) {
+    if (categoryId == null || categoryId.isEmpty) return null;
+    final relatedTxs = allTransactions
+        .where((t) => t.categoryId == categoryId)
+        .toList();
+    if (relatedTxs.isEmpty) return null;
+    relatedTxs.sort((a, b) => b.date.compareTo(a.date));
+    return relatedTxs.first.date;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,50 +57,94 @@ class RecurringOperationsScreen extends StatelessWidget {
         builder: (context, transactionState) {
           return BlocBuilder<DebtCubit, DebtState>(
             builder: (context, debtState) {
-              final recurringCategories = transactionState.allCategories
+              final allTransactions = transactionState.allTransactions;
+              var recurringCategories = transactionState.allCategories
                   .where((c) => c.isRecurring)
                   .toList();
 
-              final recurringDebts = debtState.items
+              var recurringDebts = debtState.items
                   .where((d) => d.recurrence != DebtRecurrence.once)
                   .toList();
 
-              if (recurringCategories.isEmpty && recurringDebts.isEmpty) {
-                return Center(
-                  child: Text(
-                    'لا توجد أي عمليات متكررة مسجلة حالياً.',
-                    style: AppTextStyle.style14W500.copyWith(
-                      color: AppColors.primaryColor.withAlpha(150),
-                    ),
-                  ),
-                );
+              if (_selectedFilter == RecurringFilter.income) {
+                recurringCategories = recurringCategories
+                    .where((c) => c.type == TransactionType.income)
+                    .toList();
+                recurringDebts = [];
+              } else if (_selectedFilter == RecurringFilter.expense) {
+                recurringCategories = recurringCategories
+                    .where((c) => c.type == TransactionType.expense)
+                    .toList();
               }
 
-              return ListView(
-                padding: EdgeInsets.all(16.r),
+              var totalIncome = 0.0;
+              var totalExpense = 0.0;
+
+              for (final cat in recurringCategories) {
+                if (cat.type == TransactionType.income) {
+                  totalIncome += cat.fixedAmount ?? 0;
+                } else {
+                  totalExpense += cat.fixedAmount ?? 0;
+                }
+              }
+
+              for (final debt in recurringDebts) {
+                totalExpense += debt.installmentAmount;
+              }
+
+              return Column(
                 children: [
-                  if (recurringCategories.isNotEmpty) ...[
-                    Text(
-                      'المخصصات الثابتة (دخل / صرف)',
-                      style: AppTextStyle.style16Bold,
-                    ),
-                    8.verticalSpace,
-                    ...recurringCategories.map(
-                      (category) => _RecurringCategoryCard(category: category),
-                    ),
-                    20.verticalSpace,
-                  ],
-                  if (recurringDebts.isNotEmpty) ...[
-                    Text(
-                      'الالتزامات والأقساط المتكررة',
-                      style: AppTextStyle.style16Bold,
-                    ),
-                    8.verticalSpace,
-                    ...recurringDebts.map(
-                      (debt) => _RecurringDebtCard(debt: debt),
-                    ),
-                    60.verticalSpace,
-                  ],
+                  _buildFilterAndStats(totalIncome, totalExpense),
+                  Expanded(
+                    child: recurringCategories.isEmpty && recurringDebts.isEmpty
+                        ? Center(
+                            child: Text(
+                              'لا توجد أي عمليات متكررة مسجلة حالياً.',
+                              style: AppTextStyle.style14W500.copyWith(
+                                color: AppColors.primaryColor.withAlpha(150),
+                              ),
+                            ),
+                          )
+                        : ListView(
+                            padding: EdgeInsets.all(16.r),
+                            children: [
+                              if (recurringCategories.isNotEmpty) ...[
+                                Text(
+                                  'المخصصات الثابتة',
+                                  style: AppTextStyle.style16Bold,
+                                ),
+                                8.verticalSpace,
+                                ...recurringCategories.map(
+                                  (category) => _RecurringCategoryCard(
+                                    category: category,
+                                    lastExecutionDate: _getLastExecutionDate(
+                                      category.id,
+                                      allTransactions,
+                                    ),
+                                  ),
+                                ),
+                                20.verticalSpace,
+                              ],
+                              if (recurringDebts.isNotEmpty) ...[
+                                Text(
+                                  'الالتزامات والأقساط المتكررة',
+                                  style: AppTextStyle.style16Bold,
+                                ),
+                                8.verticalSpace,
+                                ...recurringDebts.map(
+                                  (debt) => _RecurringDebtCard(
+                                    debt: debt,
+                                    lastExecutionDate: _getLastExecutionDate(
+                                      debt.categoryId,
+                                      allTransactions,
+                                    ),
+                                  ),
+                                ),
+                                80.verticalSpace,
+                              ],
+                            ],
+                          ),
+                  ),
                 ],
               );
             },
@@ -101,6 +168,111 @@ class RecurringOperationsScreen extends StatelessWidget {
             color: AppColors.scaffoldBackgroundLightColor,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFilterAndStats(double totalIncome, double totalExpense) {
+    return Container(
+      padding: EdgeInsets.all(16.r),
+      decoration: BoxDecoration(
+        color: AppColors.scaffoldBackgroundLightColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Filter Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _filterChip('الكل', RecurringFilter.all),
+              _filterChip('الدخل', RecurringFilter.income),
+              _filterChip('الصرف', RecurringFilter.expense),
+            ],
+          ),
+          16.verticalSpace,
+          // Stats Row
+          Row(
+            children: [
+              if (_selectedFilter == RecurringFilter.all ||
+                  _selectedFilter == RecurringFilter.income)
+                Expanded(
+                  child: _statBox(
+                    title: 'إجمالي الدخل',
+                    amount: totalIncome,
+                    color: AppColors.successColor,
+                  ),
+                ),
+              if (_selectedFilter == RecurringFilter.all) 12.horizontalSpace,
+              if (_selectedFilter == RecurringFilter.all ||
+                  _selectedFilter == RecurringFilter.expense)
+                Expanded(
+                  child: _statBox(
+                    title: 'إجمالي الصرف',
+                    amount: totalExpense,
+                    color: AppColors.errorColor,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip(String label, RecurringFilter filter) {
+    final isSelected = _selectedFilter == filter;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedFilter = filter),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryColor
+              : AppColors.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyle.style14W600.copyWith(
+            color: isSelected ? Colors.white : AppColors.primaryColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statBox({
+    required String title,
+    required double amount,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: AppTextStyle.style12W500.copyWith(color: color),
+          ),
+          4.verticalSpace,
+          Text(
+            '${amount.truncate()} $appCurrencySymbol',
+            style: AppTextStyle.style16Bold.copyWith(color: color),
+          ),
+        ],
       ),
     );
   }
@@ -778,8 +950,12 @@ class RecurringOperationsScreen extends StatelessWidget {
 }
 
 class _RecurringCategoryCard extends StatelessWidget {
-  const _RecurringCategoryCard({required this.category});
+  const _RecurringCategoryCard({
+    required this.category,
+    this.lastExecutionDate,
+  });
   final TransactionCategory category;
+  final DateTime? lastExecutionDate;
 
   @override
   Widget build(BuildContext context) {
@@ -798,11 +974,21 @@ class _RecurringCategoryCard extends StatelessWidget {
           ),
         ),
         title: Text(category.name, style: AppTextStyle.style14W500),
-        subtitle: Text(
-          isIncome ? 'دخل متكرر' : 'صرف متكرر',
-          style: AppTextStyle.style12W300.copyWith(
-            color: AppColors.primaryColor.withAlpha(150),
-          ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isIncome ? 'دخل متكرر' : 'صرف متكرر',
+              style: AppTextStyle.style12W300.copyWith(
+                color: AppColors.primaryColor.withAlpha(150),
+              ),
+            ),
+            if (lastExecutionDate != null)
+              Text(
+                'آخر تنفيذ: ${DateFormat.yMMMd('ar').format(lastExecutionDate!)}',
+                style: AppTextStyle.style12W400.copyWith(color: Colors.grey),
+              ),
+          ],
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -838,8 +1024,12 @@ class _RecurringCategoryCard extends StatelessWidget {
 }
 
 class _RecurringDebtCard extends StatelessWidget {
-  const _RecurringDebtCard({required this.debt});
+  const _RecurringDebtCard({
+    required this.debt,
+    this.lastExecutionDate,
+  });
   final Debt debt;
+  final DateTime? lastExecutionDate;
 
   @override
   Widget build(BuildContext context) {
@@ -895,13 +1085,19 @@ class _RecurringDebtCard extends StatelessWidget {
               ],
             ),
             4.verticalSpace,
-
             Text(
               '$recurrenceText: ${debt.installmentAmount.truncate()} $appCurrencySymbol',
               style: AppTextStyle.style12W500.copyWith(
                 color: AppColors.primaryColor,
               ),
             ),
+            if (lastExecutionDate != null) ...[
+              4.verticalSpace,
+              Text(
+                'آخر سداد: ${DateFormat.yMMMd('ar').format(lastExecutionDate!)}',
+                style: AppTextStyle.style12W400.copyWith(color: Colors.grey),
+              ),
+            ],
             8.verticalSpace,
             Text(
               'المتبقي: ${debt.remainingAmount.truncate()} $appCurrencySymbol',

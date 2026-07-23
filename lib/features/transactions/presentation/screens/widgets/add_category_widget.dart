@@ -470,6 +470,9 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                                 ),
                               ),
                               onChanged: (v) => setState(() => _dayOfMonth = v),
+                              validator: (v) => _isRecurring && (v == null)
+                                  ? 'حدد يوم الخصم'
+                                  : null,
                             ),
                           ],
                           SwitchListTile(

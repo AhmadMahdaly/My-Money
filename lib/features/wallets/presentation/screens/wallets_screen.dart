@@ -15,7 +15,6 @@ import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
 import 'package:opration/core/theme/colors.dart';
 import 'package:opration/core/theme/text_style.dart';
-import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_cubit.dart';
 import 'package:opration/features/transactions/domain/entities/transaction.dart';
 import 'package:opration/features/transactions/domain/entities/transaction_category.dart';
 import 'package:opration/features/transactions/presentation/controllers/transactions_cubit/transactions_cubit.dart';
@@ -395,24 +394,21 @@ class WalletsScreen extends StatelessWidget {
         'لا يمكنك حذف المحفظة الرئيسية. قم بتعيين محفظة أخرى كرئيسية أولاً.',
       );
       return;
-    }
-
-    final debtsState = context.read<DebtCubit>().state;
-    final isLinkedToDebts = debtsState.items.any(
-      (d) => d.targetWalletId == wallet.id,
-    );
-
-    final transactionsState = context.read<TransactionCubit>().state;
-    final isLinkedToTransactions = transactionsState.allTransactions.any(
-      (t) => t.walletId == wallet.id,
-    );
-
-    if (isLinkedToDebts || isLinkedToTransactions) {
-      _showWarningDialog(
-        context,
-        'لا يمكن الحذف!',
-        'هذه المحفظة مرتبطة بـ ${isLinkedToDebts ? 'ديون/أقساط' : ''} ${isLinkedToDebts && isLinkedToTransactions ? 'و' : ''} ${isLinkedToTransactions ? 'سجل معاملات' : ''}.\nلا يمكن حذفها للحفاظ على صحة حساباتك.',
-      );
+      // }
+      // final debtsState = context.read<DebtCubit>().state;
+      // final isLinkedToDebts = debtsState.items.any(
+      //   (d) => d.targetWalletId == wallet.id,
+      // );
+      // final transactionsState = context.read<TransactionCubit>().state;
+      // final isLinkedToTransactions = transactionsState.allTransactions.any(
+      //   (t) => t.walletId == wallet.id,
+      // );
+      // if (isLinkedToDebts || isLinkedToTransactions) {
+      //   _showWarningDialog(
+      //     context,
+      //     'لا يمكن الحذف!',
+      //     'هذه المحفظة مرتبطة بـ ${isLinkedToDebts ? 'ديون/أقساط' : ''} ${isLinkedToDebts && isLinkedToTransactions ? 'و' : ''} ${isLinkedToTransactions ? 'سجل معاملات' : ''}.\nلا يمكن حذفها للحفاظ على صحة حساباتك.',
+      //   );
     } else {
       showDialog<void>(
         context: context,
