@@ -1,13 +1,24 @@
 part of 'shopping_cubit.dart';
 
 class ShoppingState extends Equatable {
-  const ShoppingState({this.items = const []});
-  final List<ShoppingItem> items;
+  const ShoppingState({
+    this.items = const [],
+    this.categoryOrder = const [],
+  });
 
-  ShoppingState copyWith({List<ShoppingItem>? items}) {
-    return ShoppingState(items: items ?? this.items);
+  final List<ShoppingItem> items;
+  final List<String> categoryOrder;
+
+  ShoppingState copyWith({
+    List<ShoppingItem>? items,
+    List<String>? categoryOrder,
+  }) {
+    return ShoppingState(
+      items: items ?? this.items,
+      categoryOrder: categoryOrder ?? this.categoryOrder,
+    );
   }
 
   @override
-  List<Object> get props => [items];
+  List<Object> get props => [items, categoryOrder];
 }

@@ -72,7 +72,7 @@ Future<void> setupGetIt() async {
       () => TransactionRepositoryImpl(localDataSource: getIt()),
     )
     ..registerFactory(DebtCubit.new)
-    ..registerFactory(ShoppingCubit.new)
+    ..registerLazySingleton(ShoppingCubit.new)
     ..registerFactory(() => GetTransactionsUseCase(repository: getIt()))
     ..registerFactory(() => AddTransactionUseCase(repository: getIt()))
     ..registerFactory(() => GetCategoriesUseCase(repository: getIt()))

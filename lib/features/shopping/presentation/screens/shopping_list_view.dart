@@ -1,8 +1,9 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opration/core/constants.dart';
-import 'package:opration/core/di.dart';
 import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/shared_widgets/custom_primary_textfield.dart';
 import 'package:opration/core/shared_widgets/page_header.dart';
@@ -22,77 +23,90 @@ class ShoppingListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: getIt<ShoppingCubit>(),
+    return BlocBuilder<ShoppingCubit, ShoppingState>(
+      builder: (context, state) {
+        final activeItems = state.items.where((i) => !i.isBought).toList();
+        final boughtItems = state.items.where((i) => i.isBought).toList();
 
-      child: BlocBuilder<ShoppingCubit, ShoppingState>(
-        builder: (context, state) {
-          final activeItems = state.items.where((i) => !i.isBought).toList();
-          final boughtItems = state.items.where((i) => i.isBought).toList();
+        final categoryTotals = <String, double>{};
+        for (final item in activeItems) {
+          final catId = item.categoryId ?? 'unknown';
+          categoryTotals[catId] =
+              (categoryTotals[catId] ?? 0) + item.expectedPrice;
+        }
+        return Scaffold(
+          appBar: const PageHeader(
+            isLeading: true,
+            subTitle: SubTitle(),
+            title: 'قائمة المشتريات',
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
 
-          return Scaffold(
-            appBar: const PageHeader(
-              isLeading: true,
-              subTitle: SubTitle(),
-              title: 'قائمة المشتريات',
-              // bottom: Container(
-              //   height: 50.h,
-              //   decoration: BoxDecoration(
-              //     border: Border.all(
-              //       color: AppColors.scaffoldBackgroundLightColor,
-              //       width: 0.5.w,
-              //     ),
-              //     borderRadius: BorderRadius.circular(kRadius),
-              //   ),
-              //   child: TabBar(
-              //     indicatorPadding: EdgeInsets.all(3.r),
-              //     indicator: BoxDecoration(
-              //       borderRadius: BorderRadius.circular(kRadius),
-              //       color: AppColors.scaffoldBackgroundLightColor,
-              //     ),
-              //     indicatorSize: TabBarIndicatorSize.tab,
-              //     dividerHeight: 0,
-              //     labelColor: AppColors.primaryColor,
-              //     unselectedLabelColor: AppColors.scaffoldBackgroundLightColor,
-              //     labelStyle: AppTextStyles.style14W600.copyWith(
-              //       fontFamily: kPrimaryFont,
-              //     ),
-              //     unselectedLabelStyle: AppTextStyles.style14W600.copyWith(
-              //       fontFamily: kPrimaryFont,
-              //     ),
-              //     tabs: const [
-              //       Tab(text: 'الأهداف'),
-              //       Tab(text: 'المشتريات'),
-              //       Tab(text: 'الديون'),
-              //     ],
-              //   ),
-              // ),
-              // // heightBar: 170.h,
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: AppColors.primaryColor,
+            onPressed: () => _showAddShoppingItemDialog(context),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(320.r),
             ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.startFloat,
-
-            floatingActionButton: FloatingActionButton(
-              backgroundColor: AppColors.primaryColor,
-              onPressed: () => _showAddShoppingItemDialog(context),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(320.r),
-              ),
-              child: const Icon(Icons.add, color: Colors.white),
-            ),
-            body: ListView(
-              padding: EdgeInsets.all(16.r),
-              children: [
-                Text('حاجات ناوي تشتريها:', style: AppTextStyle.style16W600),
-                8.verticalSpace,
-                if (activeItems.isEmpty) ...[
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+          body: Column(
+            children: [
+              if (categoryTotals.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16.r, 16.r, 16.r, 0),
+                  child: Column(
                     children: [
-                      Padding(
-                        padding: EdgeInsets.all(16.r),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.bar_chart,
+                            color: AppColors.primaryColor,
+                            size: 20.r,
+                          ),
+                          8.horizontalSpace,
+                          Text(
+                            'إجمالي المشتريات بالفئات:',
+                            style: AppTextStyle.style14W600,
+                          ),
+                        ],
+                      ),
+                      12.verticalSpace,
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: categoryTotals.keys.map((catId) {
+                            return _buildStatCard(
+                              context,
+                              catId,
+                              categoryTotals[catId]!,
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      16.verticalSpace,
+                      const Divider(height: 1),
+                    ],
+                  ),
+                ),
+
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(16.r, 16.r, 16.r, 8.r),
+                        child: Text(
+                          'حاجات ناوي تشتريها:',
+                          style: AppTextStyle.style16W600,
+                        ),
+                      ),
+                    ),
+
+                    if (activeItems.isEmpty)
+                      SliverToBoxAdapter(
                         child: SizedBox(
-                          height: SizeConfig.screenHeight / 1.5,
+                          height: 200.h,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -102,53 +116,153 @@ class ShoppingListView extends StatelessWidget {
                                 color: AppColors.textGreyColor.withAlpha(100),
                               ),
                               12.verticalSpace,
-                              Center(
-                                child: Text(
-                                  'مفيش حاجات مسجلها حالياً.',
-                                  style: AppTextStyle.style14W400.copyWith(
-                                    color: AppColors.textGreyColor.withAlpha(
-                                      100,
-                                    ),
-                                  ),
+                              Text(
+                                'مفيش حاجات مسجلها حالياً.',
+                                style: AppTextStyle.style14W400.copyWith(
+                                  color: AppColors.textGreyColor.withAlpha(100),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      SliverReorderableList(
+                        itemCount: activeItems.length,
+                        onReorder: (oldIndex, newIndex) {
+                          context.read<ShoppingCubit>().reorderShoppingItems(
+                            oldIndex,
+                            newIndex,
+                            List.from(activeItems),
+                          );
+                        },
+                        itemBuilder: (context, index) {
+                          final item = activeItems[index];
+                          return ReorderableDelayedDragStartListener(
+                            key: ValueKey(item.id),
+                            index: index,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16.r,
+                                vertical: 4.r,
+                              ),
+                              child: _buildItemTile(context, item),
+                            ),
+                          );
+                        },
+                      ),
+
+                    if (boughtItems.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.r),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              24.verticalSpace,
+                              Text(
+                                'تم شراؤها (نزلت في المعاملات):',
+                                style: AppTextStyle.style14W600.copyWith(
+                                  color: AppColors.textGreyColor,
+                                ),
+                              ),
+                              const Divider(),
+                              ...boughtItems.map(
+                                (item) => Padding(
+                                  padding: EdgeInsets.only(bottom: 8.r),
+                                  child: _buildItemTile(context, item),
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ] else ...[
-                  ...activeItems.map((item) => _buildItemTile(context, item)),
-                  60.verticalSpace,
-                ],
 
-                if (boughtItems.isNotEmpty) ...[
-                  24.verticalSpace,
-                  Text(
-                    'تم شراؤها (نزلت في المعاملات):',
-                    style: AppTextStyle.style14W600.copyWith(
-                      color: AppColors.textGreyColor,
+                    SliverToBoxAdapter(
+                      child: 80.verticalSpace,
                     ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, String categoryId, double total) {
+    final categories = context.read<TransactionCubit>().state.allCategories;
+    final category = categories.where((c) => c.id == categoryId).firstOrNull;
+
+    final categoryName = category?.name ?? 'غير محدد';
+    final categoryColor = category != null
+        ? category.color
+        : AppColors.textGreyColor;
+
+    return Container(
+      width: 140.w,
+      margin: EdgeInsets.only(left: 12.w),
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: categoryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: categoryColor.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  categoryName,
+                  style: AppTextStyle.style12W600.copyWith(
+                    color: AppColors.primaryTextColor,
                   ),
-                  const Divider(),
-                  ...boughtItems.map((item) => _buildItemTile(context, item)),
-                ],
-              ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            '${total.truncate()} $appCurrencySymbol',
+            style: AppTextStyle.style16W600.copyWith(
+              color: categoryColor,
+              fontWeight: FontWeight.bold,
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildItemTile(BuildContext context, ShoppingItem item) {
+    final categories = context.read<TransactionCubit>().state.allCategories;
+    final itemCategory = categories
+        .where((c) => c.id == item.categoryId)
+        .firstOrNull;
+
+    var cardColor = Colors.white;
+    if (itemCategory != null) {
+      cardColor = itemCategory.color.withValues(alpha: 0.15);
+    }
+    if (item.isBought) {
+      cardColor = Colors.grey.shade100;
+    }
+
     return Card(
       elevation: 0,
-      color: item.isBought ? Colors.grey.shade100 : Colors.white,
+      color: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.r),
-        side: BorderSide(color: Colors.grey.shade300),
+        side: BorderSide(
+          color: itemCategory != null
+              ? itemCategory.color
+              : Colors.grey.shade300,
+        ),
       ),
       child: ListTile(
         leading: Checkbox(
@@ -226,74 +340,164 @@ class ShoppingListView extends StatelessWidget {
     final priceController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
+    final allExpenseCategories = context
+        .read<TransactionCubit>()
+        .state
+        .allCategories
+        .where((c) => c.type == TransactionType.expense)
+        .toList();
+
+    final mainCategories = allExpenseCategories
+        .where((c) => c.parentId == null)
+        .toList();
+
+    String? selectedMainCategoryId;
+    String? selectedSubCategoryId;
+
     showModalBottomSheet<void>(
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
       context: context,
-      builder: (ctx) => Column(
-        children: [
-          Text(
-            'ضيف حاجة عايز تشتريها',
-            style: AppTextStyle.style14W600,
-          ),
-          20.verticalSpace,
-          Form(
-            key: formKey,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomPrimaryTextfield(
-                    autofocus: true,
-                    controller: nameController,
-                    textInputAction: TextInputAction.next,
-                    text: 'اسم الحاجة (لاب توب، هدوم...)',
-                    validator: (v) => v!.isEmpty ? 'مطلوب' : null,
-                  ),
-                  12.verticalSpace,
-                  CustomPrimaryTextfield(
-                    controller: priceController,
-                    text: 'المبلغ المتوقع',
-                    textInputAction: TextInputAction.done,
-
-                    keyboardType: TextInputType.number,
-                    validator: (v) => v!.isEmpty ? 'مطلوب' : null,
-                  ),
-                ],
-              ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(
+                ctx,
+              ).viewInsets.bottom,
             ),
-          ),
-          16.verticalSpace,
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('إلغاء'),
+                Text(
+                  'ضيف حاجة عايز تشتريها',
+                  style: AppTextStyle.style14W600,
                 ),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        final newItem = ShoppingItem(
-                          id: const Uuid().v4(),
-                          name: nameController.text,
-                          expectedPrice: double.parse(priceController.text),
-                        );
-                        context.read<ShoppingCubit>().addItem(newItem);
-                        Navigator.pop(ctx);
-                      }
-                    },
-                    child: const Text('إضافة'),
+                20.verticalSpace,
+                Form(
+                  key: formKey,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomPrimaryTextfield(
+                          autofocus: true,
+                          controller: nameController,
+                          textInputAction: TextInputAction.next,
+                          text: 'اسم الحاجة (لاب توب، هدوم...)',
+                          validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                        ),
+                        12.verticalSpace,
+                        CustomPrimaryTextfield(
+                          controller: priceController,
+                          text: 'المبلغ المتوقع',
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.number,
+                          validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                        ),
+                        16.verticalSpace,
+                        DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: 'يندرج تحت فئة (الرئيسية):',
+                          ),
+                          items: mainCategories
+                              .map(
+                                (c) => DropdownMenuItem<String>(
+                                  value: c.id,
+                                  child: Text(c.name),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) {
+                            setState(() {
+                              selectedMainCategoryId = v;
+                              selectedSubCategoryId = null;
+                            });
+                          },
+                          validator: (v) =>
+                              v == null ? 'مطلوب تحديد الفئة' : null,
+                        ),
+                        ...(() {
+                          final subCategories = selectedMainCategoryId != null
+                              ? allExpenseCategories
+                                    .where(
+                                      (c) =>
+                                          c.parentId == selectedMainCategoryId,
+                                    )
+                                    .toList()
+                              : <TransactionCategory>[];
+
+                          if (subCategories.isNotEmpty) {
+                            return [
+                              16.verticalSpace,
+                              DropdownButtonFormField(
+                                decoration: const InputDecoration(
+                                  labelText: 'الفئة الفرعية (اختياري):',
+                                ),
+                                initialValue: selectedSubCategoryId,
+                                items: subCategories
+                                    .map(
+                                      (c) => DropdownMenuItem(
+                                        value: c.id,
+                                        child: Text(c.name),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) {
+                                  setState(() {
+                                    selectedSubCategoryId = v.toString();
+                                  });
+                                },
+                              ),
+                            ];
+                          }
+                          return [const SizedBox.shrink()];
+                        }()),
+                      ],
+                    ),
                   ),
                 ),
+                16.verticalSpace,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Row(
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('إلغاء'),
+                      ),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (formKey.currentState!.validate()) {
+                              final finalCategoryId =
+                                  selectedSubCategoryId ??
+                                  selectedMainCategoryId;
+                              final newItem = ShoppingItem(
+                                id: const Uuid().v4(),
+                                name: nameController.text,
+                                expectedPrice: double.parse(
+                                  priceController.text,
+                                ),
+                                categoryId: finalCategoryId,
+                              );
+                              context.read<ShoppingCubit>().addItem(newItem);
+                              Navigator.pop(ctx);
+                            }
+                          },
+                          child: const Text('إضافة'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                16.verticalSpace,
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -323,6 +527,21 @@ class ShoppingListView extends StatelessWidget {
     String? selectedWalletId;
     String? selectedMainCategoryId;
     String? selectedSubCategoryId;
+
+    if (item.categoryId != null) {
+      final preSelectedCat = allExpenseCategories
+          .where((c) => c.id == item.categoryId)
+          .firstOrNull;
+      if (preSelectedCat != null) {
+        if (preSelectedCat.parentId != null) {
+          selectedSubCategoryId = preSelectedCat.id;
+          selectedMainCategoryId = preSelectedCat.parentId;
+        } else {
+          selectedMainCategoryId = preSelectedCat.id;
+        }
+      }
+    }
+
     showModalBottomSheet<void>(
       isScrollControlled: true,
       useSafeArea: true,
@@ -381,6 +600,7 @@ class ShoppingListView extends StatelessWidget {
                           decoration: const InputDecoration(
                             labelText: 'سجلها تحت فئة (الرئيسية):',
                           ),
+                          initialValue: selectedMainCategoryId,
                           items: mainCategories
                               .map(
                                 (c) => DropdownMenuItem<String>(
@@ -408,13 +628,20 @@ class ShoppingListView extends StatelessWidget {
                               : <TransactionCategory>[];
 
                           if (subCategories.isNotEmpty) {
+                            final isSubCatValid = subCategories.any(
+                              (c) => c.id == selectedSubCategoryId,
+                            );
+                            final initialSubCat = isSubCatValid
+                                ? selectedSubCategoryId
+                                : null;
+
                             return [
                               16.verticalSpace,
                               DropdownButtonFormField(
                                 decoration: const InputDecoration(
                                   labelText: 'الفئة الفرعية (اختياري):',
                                 ),
-                                initialValue: selectedSubCategoryId,
+                                initialValue: initialSubCat,
                                 items: subCategories
                                     .map(
                                       (c) => DropdownMenuItem(
@@ -473,21 +700,17 @@ class ShoppingListView extends StatelessWidget {
                                     walletId: selectedWalletId!,
                                     note: 'مشتريات مخططة: ${item.name}',
                                   );
+
                                   context
                                       .read<TransactionCubit>()
-                                      .addTransaction(
-                                        transaction,
-                                      );
+                                      .addTransaction(transaction);
                                   context
                                       .read<WalletCubit>()
                                       .updateWalletBalance(
                                         selectedWalletId!,
                                         -actualPrice,
                                       );
-
-                                  shoppingCubit.markAsBought(
-                                    item.id,
-                                  );
+                                  shoppingCubit.markAsBought(item.id);
 
                                   Navigator.pop(ctx);
                                   showCustomSnackBar(

@@ -6,6 +6,7 @@ class ShoppingItem extends Equatable {
     required this.name,
     required this.expectedPrice,
     this.isBought = false,
+    this.categoryId,
   });
 
   factory ShoppingItem.fromJson(Map<String, dynamic> json) {
@@ -14,6 +15,7 @@ class ShoppingItem extends Equatable {
       name: json['name'] as String,
       expectedPrice: (json['expectedPrice'] as num).toDouble(),
       isBought: json['isBought'] as bool? ?? false,
+      categoryId: json['categoryId'] as String?,
     );
   }
 
@@ -21,6 +23,7 @@ class ShoppingItem extends Equatable {
   final String name;
   final double expectedPrice;
   final bool isBought;
+  final String? categoryId;
 
   Map<String, dynamic> toJson() {
     return {
@@ -28,6 +31,7 @@ class ShoppingItem extends Equatable {
       'name': name,
       'expectedPrice': expectedPrice,
       'isBought': isBought,
+      'categoryId': categoryId,
     };
   }
 
@@ -36,15 +40,17 @@ class ShoppingItem extends Equatable {
     String? name,
     double? expectedPrice,
     bool? isBought,
+    String? categoryId,
   }) {
     return ShoppingItem(
       id: id ?? this.id,
       name: name ?? this.name,
       expectedPrice: expectedPrice ?? this.expectedPrice,
       isBought: isBought ?? this.isBought,
+      categoryId: categoryId ?? this.categoryId,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, expectedPrice, isBought];
+  List<Object?> get props => [id, name, expectedPrice, isBought, categoryId];
 }

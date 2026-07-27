@@ -76,8 +76,8 @@ class MyApp extends StatelessWidget {
               deleteFinancialGoalUseCase: getIt(),
             )..loadGoals(),
           ),
-          BlocProvider(
-            create: (_) => getIt<ShoppingCubit>(),
+          BlocProvider.value(
+            value: getIt<ShoppingCubit>(),
           ),
           BlocProvider(create: (_) => getIt<DebtCubit>()),
         ],
