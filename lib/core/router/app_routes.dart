@@ -13,6 +13,7 @@ class AppRoutes {
   static const String transferHistoryScreen = '/transferHistoryScreen';
   static const String moreScreen = '/moreScreen';
   static const String debtsView = '/debtsView';
+  static const String creditsView = '/creditsView';
   static const String addDebtsView = '/addDebtsView';
   static const String shoppingListView = '/shoppingListView';
   static const String backupScreen = '/backupScreen';

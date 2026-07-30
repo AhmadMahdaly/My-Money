@@ -5,6 +5,7 @@ import 'package:opration/features/Settings/backup_screen.dart';
 import 'package:opration/features/Settings/more_page.dart';
 import 'package:opration/features/Settings/recurring_operations_screen.dart';
 import 'package:opration/features/auth/presentation/views/login_view.dart';
+import 'package:opration/features/debt/presentation/screens/credits_view.dart';
 import 'package:opration/features/debt/presentation/screens/debt_payments_log_view.dart';
 import 'package:opration/features/debt/presentation/screens/debts_view.dart';
 import 'package:opration/features/goals/presentation/screens/financial_goals_screen.dart';
@@ -90,6 +91,11 @@ class RouterGenerationConfig {
         path: AppRoutes.debtsView,
         name: AppRoutes.debtsView,
         builder: (context, state) => const DebtsView(),
+      ),
+      GoRoute(
+        path: AppRoutes.creditsView,
+        name: AppRoutes.creditsView,
+        builder: (context, state) => const CreditsView(),
       ),
       GoRoute(
         path: AppRoutes.shoppingListView,

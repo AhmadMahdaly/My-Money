@@ -44,15 +44,26 @@ class MoreView extends StatelessWidget {
             text: 'إدارة العمليات المتكررة',
             onTap: () => context.pushNamed(AppRoutes.recurringOperationsScreen),
           ),
+
           CustomMorePageCard(
             icon: Image.asset(
-              'assets/image/png/shopping-cart.png',
+              'assets/image/png/money-bag.png',
               height: 24.r,
 
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'قائمة المشتريات',
-            onTap: () => context.pushNamed(AppRoutes.shoppingListView),
+            text: 'الديون والإلتزامات',
+            onTap: () => context.pushNamed(AppRoutes.debtsView),
+          ),
+          CustomMorePageCard(
+            icon: Image.asset(
+              'assets/image/png/money-bag.png',
+              height: 24.r,
+
+              color: AppColors.scaffoldBackgroundLightColor,
+            ),
+            text: 'المستحقات والتحصيلات',
+            onTap: () => context.pushNamed(AppRoutes.creditsView),
           ),
           CustomMorePageCard(
             icon: Image.asset(
@@ -66,14 +77,15 @@ class MoreView extends StatelessWidget {
           ),
           CustomMorePageCard(
             icon: Image.asset(
-              'assets/image/png/money-bag.png',
+              'assets/image/png/shopping-cart.png',
               height: 24.r,
 
               color: AppColors.scaffoldBackgroundLightColor,
             ),
-            text: 'الديون والإلتزامات',
-            onTap: () => context.pushNamed(AppRoutes.debtsView),
+            text: 'قائمة المشتريات',
+            onTap: () => context.pushNamed(AppRoutes.shoppingListView),
           ),
+
           CustomMorePageCard(
             icon: Icon(
               Icons.settings_outlined,

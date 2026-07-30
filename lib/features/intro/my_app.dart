@@ -7,6 +7,7 @@ import 'package:opration/core/responsive/responsive_config.dart';
 import 'package:opration/core/router/router_generation_config.dart';
 import 'package:opration/core/theme/themes.dart';
 import 'package:opration/features/auth/presentation/cubit/login_cubit.dart';
+import 'package:opration/features/debt/presentation/controllers/credit_cubit/credit_cubit.dart';
 import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_cubit.dart';
 import 'package:opration/features/goals/presentation/controllers/financial_goal_cubit/financial_goal_cubit.dart';
 import 'package:opration/features/main_layout/cubit/main_layout_cubit.dart';
@@ -80,6 +81,7 @@ class MyApp extends StatelessWidget {
             value: getIt<ShoppingCubit>(),
           ),
           BlocProvider(create: (_) => getIt<DebtCubit>()),
+          BlocProvider(create: (_) => getIt<CreditCubit>()),
         ],
         child: MaterialApp.router(
           scaffoldMessengerKey: GlobalVariable.scaffoldMessengerKey,

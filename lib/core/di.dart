@@ -5,6 +5,7 @@ import 'package:opration/features/auth/domain/repositories/login_repository.dart
 import 'package:opration/features/auth/domain/usecases/login_usecase.dart';
 import 'package:opration/features/auth/presentation/cubit/login_cubit.dart';
 import 'package:opration/features/debt/data/repositories/financial_goal_repository_impl.dart';
+import 'package:opration/features/debt/presentation/controllers/credit_cubit/credit_cubit.dart';
 import 'package:opration/features/debt/presentation/controllers/debt_cubit/debt_cubit.dart';
 import 'package:opration/features/goals/data/datasources/financial_goal_local_data_source.dart';
 import 'package:opration/features/goals/domain/repositories/financial_goal_repository.dart';
@@ -72,6 +73,7 @@ Future<void> setupGetIt() async {
       () => TransactionRepositoryImpl(localDataSource: getIt()),
     )
     ..registerFactory(DebtCubit.new)
+    ..registerFactory(CreditCubit.new)
     ..registerLazySingleton(ShoppingCubit.new)
     ..registerFactory(() => GetTransactionsUseCase(repository: getIt()))
     ..registerFactory(() => AddTransactionUseCase(repository: getIt()))
